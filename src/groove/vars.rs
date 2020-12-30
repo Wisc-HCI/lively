@@ -1,14 +1,17 @@
-use nalgebra::{UnitQuaternion, Vector3, Quaternion, Point3};
-use crate::utils_rust::yaml_utils::{*};
+use nalgebra::{UnitQuaternion, Vector3, Point3};
+// use crate::utils::yaml_utils::{*};
 use crate::spacetime::robot::Robot;
 use crate::groove::collision_nn::CollisionNN;
-use crate::utils_rust::sampler::ThreadRobotSampler;
-use crate::utils_rust::file_utils::{*};
+use crate::utils::sampler::ThreadRobotSampler;
+use crate::utils::config::{*};
+use crate::utils::settings::{*};
+// use crate::utils::file_utils::{*};
+use crate::utils::goals::GoalSpec;
 use crate::groove::env_collision::{*};
 use ncollide3d::pipeline::{*};
 use ncollide3d::query::{*};
 use ncollide3d::shape::{*};
-use time::PreciseTime;
+// use time::PreciseTime;
 use std::ops::Deref;
 
 #[derive(Clone, Debug)]
@@ -42,48 +45,45 @@ pub struct RelaxedIKVars {
     pub prev_state: Vec<f64>,
     pub prev_state2: Vec<f64>,
     pub prev_state3: Vec<f64>,
-    pub goal_positions: Vec<Vector3<f64>>,
-    pub goal_quats: Vec<UnitQuaternion<f64>>,
+    pub goals: Vec<GoalSpec>,
+    // pub goal_positions: Vec<Vector3<f64>>,
+    // pub goal_quats: Vec<UnitQuaternion<f64>>,
     pub init_ee_positions: Vec<Vector3<f64>>,
     pub init_ee_quats: Vec<UnitQuaternion<f64>>,
-    pub position_mode_relative: bool, // if false, will be absolute
-    pub rotation_mode_relative: bool, // if false, will be absolute
+    // pub position_mode_relative: bool, // if false, will be absolute
+    // pub rotation_mode_relative: bool, // if false, will be absolute
     pub collision_nn: CollisionNN,
     pub env_collision: RelaxedIKEnvCollision,
-    pub objective_mode: String
+    pub control_mode: ControlMode,
+    pub environment_mode: EnvironmentMode
 }
 impl RelaxedIKVars {
-    pub fn from_yaml_path(fp: String, position_mode_relative: bool, rotation_mode_relative: bool) -> Self {
-        let ifp = InfoFileParser::from_yaml_path(fp.clone());
-        let mut robot = Robot::from_yaml_path(fp.clone());
-        let num_chains = ifp.joint_names.len();
+    pub fn new(config: Config) -> Self {
+        let mut robot = Robot::new(config.clone());
+        let num_chains = config.joint_names.len();
         let sampler = ThreadRobotSampler::new(robot.clone());
 
-        let mut goal_positions: Vec<Vector3<f64>> = Vec::new();
-        let mut goal_quats: Vec<UnitQuaternion<f64>> = Vec::new();
-
-        let init_ee_positions = robot.get_ee_positions(ifp.starting_config.as_slice());
-        let init_ee_quats = robot.get_ee_quats(ifp.starting_config.as_slice());
-
-        for i in 0..num_chains {
-            goal_positions.push(init_ee_positions[i]);
-            goal_quats.push(init_ee_quats[i]);
+        let mut goals: Vec<GoalSpec> = Vec::new();
+        for goal_spec in &config.goals {
+            if goal_spec.name == "default" {
+                goals = goal_spec.goals.clone();
+            }
         }
+        let init_ee_positions = robot.get_ee_positions(config.starting_config.as_slice());
+        let init_ee_quats = robot.get_ee_quats(config.starting_config.as_slice());
 
-        let collision_nn_path = get_path_to_src()+ "relaxed_ik_core/config/collision_nn_rust/" + ifp.collision_nn_file.as_str() + ".yaml";
-        let collision_nn = CollisionNN::from_yaml_path(collision_nn_path);
+        let collision_nn = CollisionNN::new(config.nn_main.clone());
 
-        let fp = get_path_to_src() + "relaxed_ik_core/config/settings.yaml";
-        let fp2 = fp.clone();
-        let env_collision_file = EnvCollisionFileParser::from_yaml_path(fp);
-        let frames = robot.get_frames_immutable(&ifp.starting_config.clone());
-        let env_collision = RelaxedIKEnvCollision::init_collision_world(env_collision_file, &frames);
-        let objective_mode = get_objective_mode(fp2);
+        let frames = robot.get_frames_immutable(&config.starting_config.clone());
+        let env_collision = RelaxedIKEnvCollision::new(config.clone(), &frames);
 
-        RelaxedIKVars{robot, sampler, init_state: ifp.starting_config.clone(), xopt: ifp.starting_config.clone(),
-            prev_state: ifp.starting_config.clone(), prev_state2: ifp.starting_config.clone(), prev_state3: ifp.starting_config.clone(),
-            goal_positions, goal_quats, init_ee_positions, init_ee_quats, position_mode_relative, rotation_mode_relative, collision_nn, 
-            env_collision, objective_mode}
+        let environment_mode = config.mode_environment;
+        let control_mode = config.mode_control;
+
+        RelaxedIKVars{robot, sampler, init_state: config.starting_config.clone(), xopt: config.starting_config.clone(),
+            prev_state: config.starting_config.clone(), prev_state2: config.starting_config.clone(), prev_state3: config.starting_config.clone(),
+            goals, init_ee_positions, init_ee_quats, control_mode, collision_nn,
+            env_collision, environment_mode}
     }
 
     pub fn update(&mut self, xopt: Vec<f64>) {
@@ -152,7 +152,7 @@ impl RelaxedIKVars {
                             self.env_collision.active_pairs[arm_idx].remove(&event.collider1);
                         }
                     }
-                } 
+                }
             }
             // self.print_active_pairs();
         }
@@ -180,7 +180,7 @@ impl RelaxedIKVars {
                     // println!("VARS -> {:?}, Link{}, Distance: {:?}", obstacle.data(), j, dis);
                     if dis > 0.0 {
                         sum += a / (dis + link_radius).powi(2);
-                    } else if self.objective_mode != "noECA" {
+                    } else if self.environment_mode != EnvironmentMode::None {
                         return true;
                     } else {
                         break;
@@ -190,7 +190,7 @@ impl RelaxedIKVars {
             }
 
             // println!("Number of active obstacles: {}", active_obstacles.len());
-            if self.objective_mode != "noECA" {
+            if self.environment_mode != EnvironmentMode::None {
                 if active_candidates.len() > filter_cutoff {
                     active_candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
                     let active_obstacles = active_candidates[0..filter_cutoff].iter().cloned().collect();
@@ -200,7 +200,7 @@ impl RelaxedIKVars {
                 }
             }
         }
-        
+
         return false;
     }
 

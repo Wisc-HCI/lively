@@ -1,10 +1,10 @@
-use crate::utils_rust::robot_shape_model::RobotShapeModel;
+use crate::utils::robot_shape_model::RobotShapeModel;
 use crate::spacetime::robot::Robot;
-use crate::utils_rust::yaml_utils::{RobotCollisionSpecFileParser, InfoFileParser};
-use crate::utils_rust::file_utils::get_path_to_src;
-use crate::utils_rust::collision_object::CollisionObject;
-use crate::utils_rust::transformations;
-use crate::utils_rust::sampler::{ThreadRobotSampler, ThreadSampler};
+// use crate::utils::yaml_utils::{RobotCollisionSpecFileParser, InfoFileParser};
+// use crate::utils::file_utils::get_path_to_src;
+use crate::utils::collision_object::CollisionObject;
+use crate::utils::transformations;
+use crate::utils::sampler::{ThreadRobotSampler, ThreadSampler};
 use nalgebra::{UnitQuaternion, Vector3, UnitComplex};
 use ncollide3d::query::{Proximity, PointQuery};
 
@@ -18,6 +18,7 @@ pub struct SelfCollisionEngine {
 }
 
 impl SelfCollisionEngine {
+    
     pub fn from_robot_shape_model(robot_shape_model: RobotShapeModel) -> Self {
         let num_collision_links = robot_shape_model.link_info_arr.len();
         let allowed_collision_matrix = vec![vec![true; num_collision_links]; num_collision_links];

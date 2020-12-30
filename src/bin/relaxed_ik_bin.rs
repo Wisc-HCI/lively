@@ -1,6 +1,6 @@
 extern crate relaxed_ik_lib;
 use relaxed_ik_lib::relaxed_ik;
-use relaxed_ik_lib::utils_rust::subscriber_utils::EEPoseGoalsSubscriber;
+use relaxed_ik_lib::utils::subscriber_utils::EEPoseGoalsSubscriber;
 use std::sync::{Arc, Mutex};
 use nalgebra::{Vector3, UnitQuaternion, Quaternion};
 
@@ -18,7 +18,7 @@ fn main() {
 
     let arc = Arc::new(Mutex::new(EEPoseGoalsSubscriber::new()));
     let mut g = arc.lock().unwrap();
-    
+
     for i in 0..r.vars.robot.num_chains {
         println!("Chain {}: Please enter the ee goal position separated by white spaces (e.g., 0.015 0.015 0.015): ", i);
         let mut pos_buf = String::new();

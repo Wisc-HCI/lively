@@ -1,7 +1,8 @@
-use crate::utils_rust::yaml_utils::NeuralNetParser;
-use crate::utils_rust::{geometry_utils, yaml_utils};
+// use crate::utils::yaml_utils::NeuralNetParser;
+// use crate::utils::{geometry_utils, yaml_utils};
+use crate::utils::config::NNSpec;
 use crate::spacetime::robot::Robot;
-use nalgebra::{DMatrix, DVector};
+use nalgebra::{DMatrix};
 
 fn relu(x: f64) -> f64 {
     x.max(0.0)
@@ -63,18 +64,20 @@ pub struct CollisionNN {
 }
 
 impl CollisionNN {
-    pub fn from_yaml_path(fp: String) -> Self {
-        let parser = NeuralNetParser::from_yaml_path(fp.clone());
-        let input_length = parser.coefs[0].len();
+    pub fn new(nnspec: NNSpec) -> Self {
+        let input_length = nnspec.coefs[0].len();
         let __x_proxy: DMatrix<f64> = DMatrix::from_element(1, input_length, 0.0);
         let mut __intermediate_vecs: Vec<DMatrix<f64>> = Vec::new();
         let mut result = 0.0;
 
-        for i in 0..parser.intercept_vectors.len() {
-            __intermediate_vecs.push(parser.intercept_vectors[i].clone());
+        for i in 0..nnspec.intercept_vectors.len() {
+            __intermediate_vecs.push(nnspec.intercept_vectors[i].clone());
         }
 
-        Self{coef_matrices: parser.coef_matrices.clone(), intercept_vectors: parser.intercept_vectors.clone(), split_point: parser.split_point, input_length, result, __x_proxy, __intermediate_vecs}
+        Self{coef_matrices: nnspec.coef_matrices.clone(),
+             intercept_vectors: nnspec.intercept_vectors.clone(),
+             split_point: nnspec.split_point,
+             input_length, result, __x_proxy, __intermediate_vecs}
     }
 
     pub fn predict_mutable(&mut self, x: Vec<f64>) {
@@ -199,18 +202,20 @@ pub struct CollisionNNJointPoint {
 }
 
 impl CollisionNNJointPoint {
-    pub fn from_yaml_path(fp: String) -> Self {
-        let parser = NeuralNetParser::from_yaml_path(fp.clone());
-        let input_length = parser.coefs[0].len();
+    pub fn new(nnspec: NNSpec) -> Self {
+        let input_length = nnspec.coefs[0].len();
         let __x_proxy: DMatrix<f64> = DMatrix::from_element(1, input_length, 0.0);
         let mut __intermediate_vecs: Vec<DMatrix<f64>> = Vec::new();
         let mut result = 0.0;
 
-        for i in 0..parser.intercept_vectors.len() {
-            __intermediate_vecs.push(parser.intercept_vectors[i].clone());
+        for i in 0..nnspec.intercept_vectors.len() {
+            __intermediate_vecs.push(nnspec.intercept_vectors[i].clone());
         }
 
-        Self{coef_matrices: parser.coef_matrices.clone(), intercept_vectors: parser.intercept_vectors.clone(), split_point: parser.split_point, input_length, result, __x_proxy, __intermediate_vecs}
+        Self{coef_matrices: nnspec.coef_matrices.clone(),
+             intercept_vectors: nnspec.intercept_vectors.clone(),
+             split_point: nnspec.split_point,
+             input_length, result, __x_proxy, __intermediate_vecs}
     }
 
     pub fn predict(&self, x: &Vec<f64>, robot: &Robot) -> f64 {
@@ -249,7 +254,3 @@ impl CollisionNNJointPoint {
         (f_0, out)
     }
 }
-
-
-
-

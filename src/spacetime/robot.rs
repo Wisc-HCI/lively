@@ -1,5 +1,6 @@
 use crate::spacetime::arm;
-use crate::utils_rust::{geometry_utils, yaml_utils};
+// use crate::utils::{geometry_utils, yaml_utils};
+use crate::utils::config::Config;
 
 #[derive(Clone, Debug)]
 pub struct Robot {
@@ -17,18 +18,18 @@ pub struct Robot {
 }
 
 impl Robot {
-    pub fn from_info_file_parser(ifp: &yaml_utils::InfoFileParser) -> Robot {
-        let num_chains = ifp.axis_types.len();
-        let num_dof = ifp.velocity_limits.len();
+    pub fn new(config: Config) -> Robot {
+        let num_chains = config.axis_types.len();
+        let num_dof = config.velocity_limits.len();
 
         let mut arms: Vec<arm::Arm> = Vec::new();
         for i in 0..num_chains {
-            let a = arm::Arm::new(ifp.axis_types[i].clone(), ifp.displacements[i].clone(),
-                              ifp.disp_offsets[i].clone(), ifp.rot_offsets[i].clone(), ifp.joint_types[i].clone());
+            let a = arm::Arm::new(config.axis_types[i].clone(), config.displacements[i].clone(),
+                                  config.disp_offsets[i].clone(), config.rot_offsets[i].clone(), config.joint_types[i].clone());
             arms.push(a);
         }
 
-        let subchain_indices = Robot::get_subchain_indices(&ifp.joint_names, &ifp.joint_ordering);
+        let subchain_indices = Robot::get_subchain_indices(&config.joint_names, &config.joint_ordering);
 
         let mut __subchain_outputs: Vec<Vec<f64>> = Vec::new();
         for i in 0..subchain_indices.len() {
@@ -41,18 +42,13 @@ impl Robot {
 
         let mut upper_bounds: Vec<f64> = Vec::new();
         let mut lower_bounds: Vec<f64> = Vec::new();
-        for i in 0..ifp.joint_limits.len() {
-            upper_bounds.push(ifp.joint_limits[i][1].clone());
-            lower_bounds.push(ifp.joint_limits[i][0].clone());
+        for i in 0..config.joint_limits.len() {
+            upper_bounds.push(config.joint_limits[i][1].clone());
+            lower_bounds.push(config.joint_limits[i][0].clone());
         }
 
-        Robot{arms, joint_names: ifp.joint_names.clone(), joint_ordering: ifp.joint_ordering.clone(),
-            num_chains, num_dof, subchain_indices, bounds: ifp.joint_limits.clone(), lower_bounds, upper_bounds, velocity_limits: ifp.velocity_limits.clone(), __subchain_outputs}
-    }
-
-    pub fn from_yaml_path(fp: String) -> Robot {
-        let ifp = yaml_utils::InfoFileParser::from_yaml_path(fp);
-        Robot::from_info_file_parser(&ifp)
+        Robot{arms, joint_names: config.joint_names.clone(), joint_ordering: config.joint_ordering.clone(),
+            num_chains, num_dof, subchain_indices, bounds: config.joint_limits.clone(), lower_bounds, upper_bounds, velocity_limits: config.velocity_limits.clone(), __subchain_outputs}
     }
 
     pub fn split_into_subchains(&self, x: &[f64]) -> Vec<Vec<f64>>{
@@ -161,4 +157,3 @@ impl Robot {
     }
 
 }
-

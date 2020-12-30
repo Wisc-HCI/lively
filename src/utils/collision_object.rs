@@ -1,13 +1,13 @@
 use ncollide3d::query;
-use ncollide3d::query::{Proximity, PointQuery};
-use ncollide3d::shape::FeatureId;
-use ncollide3d::shape::{Ball, Cuboid, Cylinder, Capsule, Cone, ConvexHull, Shape, TriMesh};
+use ncollide3d::query::{Proximity};
+// use ncollide3d::shape::FeatureId;
+use ncollide3d::shape::{Ball, Cuboid, Capsule, Shape};
 use ncollide3d::bounding_volume::{self, BoundingVolume, BoundingSphere, AABB};
-use ncollide3d::transformation;
-use crate::utils_rust::transformations;
+// use ncollide3d::transformation;
+// use crate::utils::transformations;
 use std::boxed::Box;
-use nalgebra::{UnitQuaternion, Vector3, Translation3, Quaternion, Isometry3, DVector, Rotation3, Matrix3};
-use std::borrow::BorrowMut;
+use nalgebra::{UnitQuaternion, Vector3, Translation3, Quaternion, Isometry3};
+// use std::borrow::BorrowMut;
 
 
 pub struct CollisionObject {
@@ -113,6 +113,3 @@ impl CollisionObject {
         self.bounding_sphere.intersects(&other.bounding_sphere)
     }
 }
-
-
-

@@ -1,5 +1,7 @@
-use crate::groove::objective::*;
+use crate::groove::objective::{*};
 use crate::groove::vars::RelaxedIKVars;
+use crate::utils::config::{*};
+use crate::utils::settings::{*};
 
 pub struct ObjectiveMaster {
     pub objectives: Vec<Box<dyn ObjectiveTrait + Send>>,
@@ -10,16 +12,104 @@ pub struct ObjectiveMaster {
 }
 
 impl ObjectiveMaster {
-    pub fn standard_ik(num_chains: usize) -> Self {
+
+    pub fn new(config:Config) -> Self {
+        let num_chains = config.joint_names.len();
         let mut objectives: Vec<Box<dyn ObjectiveTrait + Send>> = Vec::new();
         let mut weight_priors: Vec<f64> = Vec::new();
-        for i in 0..num_chains {
-            objectives.push(Box::new(MatchEEPosGoals::new(i)));
-            weight_priors.push(1.0);
-            objectives.push(Box::new(MatchEEQuatGoals::new(i)));
-            weight_priors.push(1.0);
+        for i in 0..config.objectives.len() {
+            let mut objective_spec = &config.objectives[i];
+            match objective_spec.variant {
+                // EE Position (Standard)
+                ObjectiveVariant::EEPositionMatch => {
+                    objectives.push(Box::new(MatchEEPosGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                }
+                // EE Orientation (Standard)
+                ObjectiveVariant::EEOrientationMatch => {
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // EE Position Liveliness (TODO)
+                ObjectiveVariant::EEPositionLiveliness => {
+                    objectives.push(Box::new(MatchEEPosGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                }
+                // EE Orientation Liveliness (TODO)
+                ObjectiveVariant::EEOrientationLiveliness => {
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // EE Position Mirroring (TODO)
+                ObjectiveVariant::EEPositionMirroring => {
+                    objectives.push(Box::new(MatchEEPosGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                }
+                // EE Orientation Mirroring (TODO)
+                ObjectiveVariant::EEOrientationMirroring => {
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // EE Position Bounding (TODO)
+                ObjectiveVariant::EEPositionBounding => {
+                    objectives.push(Box::new(MatchEEPosGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                }
+                // EE Orientation Bounding (TODO)
+                ObjectiveVariant::EEOrientationBounding => {
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // Joint Matching (TODO)
+                ObjectiveVariant::JointMatch => {
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // Joint Liveliness (TODO)
+                ObjectiveVariant::JointLiveliness => {
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // Joint Mirroring (TODO)
+                ObjectiveVariant::JointMirroring => {
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // Joint Limits (Standard)
+                ObjectiveVariant::JointLimits => {
+                    objectives.push(Box::new(JointLimits));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // Self-Collision (Standard)
+                ObjectiveVariant::NNSelfCollision => {
+                    objectives.push(Box::new(NNSelfCollision));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // Environment Collision (Standard)
+                ObjectiveVariant::EnvCollision => {
+                    objectives.push(Box::new(EnvCollision::new(i)));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // Velocity Minimization (Standard)
+                ObjectiveVariant::MinimizeVelocity => {
+                    objectives.push(Box::new(MinimizeVelocity));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // Acceleration Minimization (Standard)
+                ObjectiveVariant::MinimizeAcceleration => {
+                    objectives.push(Box::new(MinimizeAcceleration));
+                    weight_priors.push(objective_spec.weight);
+                },
+                // Jerk Minimization (Standard)
+                ObjectiveVariant::MinimizeJerk => {
+                    objectives.push(Box::new(MinimizeJerk));
+                    weight_priors.push(objective_spec.weight);
+                },
+                ObjectiveVariant::None => {}
+            }
         }
-        Self{objectives, num_chains, weight_priors, lite: true, finite_diff_grad: true}
+
+        Self {objectives, num_chains, weight_priors, lite: false, finite_diff_grad: true} // fix this
     }
 
     pub fn tune_weight_priors(&mut self, vars: &RelaxedIKVars) {
@@ -43,35 +133,35 @@ impl ObjectiveMaster {
         }
     }
 
-    pub fn relaxed_ik(num_chains: usize, objective_mode: String) -> Self {
-        let mut objectives: Vec<Box<dyn ObjectiveTrait + Send>> = Vec::new();
-        let mut weight_priors: Vec<f64> = Vec::new();
-        for i in 0..num_chains {
-            objectives.push(Box::new(MatchEEPosGoals::new(i)));
-            weight_priors.push(1.0);
-            objectives.push(Box::new(MatchEEQuatGoals::new(i)));
-            if objective_mode == "ECA3" {
-                weight_priors.push(0.0);
-            } else if objective_mode == "ECAA" {
-                weight_priors.push(1.0);
-            } else {
-                weight_priors.push(1.0);
-            }
-            objectives.push(Box::new(EnvCollision::new(i)));
-            if objective_mode == "noECA" {
-                weight_priors.push(0.0);
-            } else {
-                weight_priors.push(1.0);
-            }
-        }
-        objectives.push(Box::new(MinimizeVelocity));   weight_priors.push(7.0);
-        objectives.push(Box::new(MinimizeAcceleration));    weight_priors.push(2.0);
-        objectives.push(Box::new(MinimizeJerk));    weight_priors.push(1.0);
-        objectives.push(Box::new(JointLimits));    weight_priors.push(1.0);
-        objectives.push(Box::new(NNSelfCollision));    weight_priors.push(1.0);
-
-        Self{objectives, num_chains, weight_priors, lite: false, finite_diff_grad: true} // fix this
-    }
+    // pub fn relaxed_ik(num_chains: usize, objective_mode: String) -> Self {
+    //     let mut objectives: Vec<Box<dyn ObjectiveTrait + Send>> = Vec::new();
+    //     let mut weight_priors: Vec<f64> = Vec::new();
+    //     for i in 0..num_chains {
+    //         objectives.push(Box::new(MatchEEPosGoals::new(i)));
+    //         weight_priors.push(1.0);
+    //         objectives.push(Box::new(MatchEEQuatGoals::new(i)));
+    //         if objective_mode == "ECA3" {
+    //             weight_priors.push(0.0);
+    //         } else if objective_mode == "ECAA" {
+    //             weight_priors.push(1.0);
+    //         } else {
+    //             weight_priors.push(1.0);
+    //         }
+    //         objectives.push(Box::new(EnvCollision::new(i)));
+    //         if objective_mode == "noECA" {
+    //             weight_priors.push(0.0);
+    //         } else {
+    //             weight_priors.push(1.0);
+    //         }
+    //     }
+    //     objectives.push(Box::new(MinimizeVelocity));   weight_priors.push(7.0);
+    //     objectives.push(Box::new(MinimizeAcceleration));    weight_priors.push(2.0);
+    //     objectives.push(Box::new(MinimizeJerk));    weight_priors.push(1.0);
+    //     objectives.push(Box::new(JointLimits));    weight_priors.push(1.0);
+    //     objectives.push(Box::new(NNSelfCollision));    weight_priors.push(1.0);
+    //
+    //     Self{objectives, num_chains, weight_priors, lite: false, finite_diff_grad: true} // fix this
+    // }
 
     pub fn call(&self, x: &[f64], vars: &RelaxedIKVars) -> f64 {
         if self.lite {

@@ -1,4 +1,4 @@
-use crate::groove::gradient::{ForwardFiniteDiff, CentralFiniteDiff, GradientFinder, ForwardFiniteDiffImmutable, CentralFiniteDiffImmutable, GradientFinderImmutable};
+// use crate::groove::gradient::{ForwardFiniteDiff, CentralFiniteDiff, ForwardFiniteDiffImmutable, CentralFiniteDiffImmutable};
 use crate::groove::vars::{RelaxedIKVars};
 use optimization_engine::{constraints::*, panoc::*, *};
 use nlopt::*;

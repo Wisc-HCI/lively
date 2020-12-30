@@ -3,8 +3,8 @@ use std::io::prelude::*;
 use yaml_rust::{YamlLoader, Yaml};
 use nalgebra;
 use nalgebra::{DMatrix, DVector};
-use crate::utils_rust::file_utils::{*};
-use crate::utils_rust::shape_parser_utils::{*};
+use crate::utils::file_utils::{*};
+use crate::utils::shape_parser_utils::{*};
 use std::path::Path;
 use std::io;
 

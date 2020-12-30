@@ -1,20 +1,19 @@
-use nalgebra;
-use nalgebra::{UnitQuaternion, Unit};
+use nalgebra::{Matrix3, Vector3, Rotation3, UnitQuaternion};
 
 #[derive(Clone, Debug)]
 pub struct Arm {
     pub axis_types: Vec<String>,
-    pub displacements: Vec<nalgebra::Vector3<f64>>,
-    pub disp_offset: nalgebra::Vector3<f64>,
-    pub pos_offsets: Vec<nalgebra::Vector3<f64>>,
+    pub displacements: Vec<Vector3<f64>>,
+    pub disp_offset: Vector3<f64>,
+    pub pos_offsets: Vec<Vector3<f64>>,
     pub rot_offsets: Vec<Vec<f64>>,
-    pub rot_offset_matrices: Vec<nalgebra::Matrix3<f64>>,
-    pub rot_offset_quats: Vec<nalgebra::UnitQuaternion<f64>>,
+    pub rot_offset_matrices: Vec<Matrix3<f64>>,
+    pub rot_offset_quats: Vec<UnitQuaternion<f64>>,
     pub joint_types: Vec<String>,
     pub num_dof: usize,
-    pub out_positions: Vec<nalgebra::Vector3<f64>>,
-    pub out_rot_mats: Vec<nalgebra::Matrix3<f64>>,
-    pub out_rot_quats: Vec<nalgebra::UnitQuaternion<f64>>,
+    pub out_positions: Vec<Vector3<f64>>,
+    pub out_rot_mats: Vec<Matrix3<f64>>,
+    pub out_rot_quats: Vec<UnitQuaternion<f64>>,
     __do_rot_offset: Vec<bool>,
     __is_prismatic: Vec<bool>,
     __is_revolute_or_continuous: Vec<bool>,
@@ -25,12 +24,12 @@ pub struct Arm {
     __is_neg_x: Vec<bool>,
     __is_neg_y: Vec<bool>,
     __is_neg_z: Vec<bool>,
-    __aux_matrix: nalgebra::Matrix3<f64>
+    __aux_matrix: Matrix3<f64>
 }
 
 impl Arm{
     pub fn new(axis_types: Vec<String>,
-        displacements: Vec<nalgebra::Vector3<f64>>, disp_offset: nalgebra::Vector3<f64>,
+        displacements: Vec<Vector3<f64>>, disp_offset: Vector3<f64>,
         rot_offsets: Vec<Vec<f64>>, joint_types: Vec<String>) -> Arm {
 
         let num_dof = axis_types.len();
@@ -44,27 +43,27 @@ impl Arm{
             }
         }
 
-        let mut pos_offsets: Vec<nalgebra::Vector3<f64>> = Vec::new();
+        let mut pos_offsets: Vec<Vector3<f64>> = Vec::new();
         pos_offsets.push(disp_offset.clone());
         for i in 0..displacements.len() {
             pos_offsets.push(displacements[i].clone());
         }
 
-        let mut rot_offset_matrices: Vec<nalgebra::Matrix3<f64>> = Vec::new();
-        let mut rot_offset_quats: Vec<nalgebra::UnitQuaternion<f64>> = Vec::new();
+        let mut rot_offset_matrices: Vec<Matrix3<f64>> = Vec::new();
+        let mut rot_offset_quats: Vec<UnitQuaternion<f64>> = Vec::new();
         for i in 0..rot_offsets.len() {
             rot_offset_matrices.push( euler_triple_to_3x3(&rot_offsets[i]) );
-            let r = nalgebra::Rotation3::from_matrix_unchecked(rot_offset_matrices[i]);
+            let r = Rotation3::from_matrix_unchecked(rot_offset_matrices[i]);
             rot_offset_quats.push( UnitQuaternion::from_rotation_matrix(&r)  );
         }
 
-        let mut out_positions: Vec<nalgebra::Vector3<f64>> = Vec::new();
-        let mut out_rot_mats: Vec<nalgebra::Matrix3<f64>> = Vec::new();
-        let mut out_rot_quats: Vec<nalgebra::UnitQuaternion<f64>> = Vec::new();
+        let mut out_positions: Vec<Vector3<f64>> = Vec::new();
+        let mut out_rot_mats: Vec<Matrix3<f64>> = Vec::new();
+        let mut out_rot_quats: Vec<UnitQuaternion<f64>> = Vec::new();
         for i in 0..rot_offsets.len() {
-            out_positions.push(nalgebra::Vector3::new(0.,0.,0.));
-            out_rot_mats.push(nalgebra::Matrix3::identity());
-            out_rot_quats.push(nalgebra::UnitQuaternion::identity());
+            out_positions.push(Vector3::new(0.,0.,0.));
+            out_rot_mats.push(Matrix3::identity());
+            out_rot_quats.push(UnitQuaternion::identity());
         }
         out_positions[0] = disp_offset;
         out_rot_mats[0] = rot_offset_matrices[0];
@@ -91,7 +90,7 @@ impl Arm{
             }
         }
 
-        let __aux_matrix: nalgebra::Matrix3<f64> = nalgebra::Matrix3::identity();
+        let __aux_matrix: Matrix3<f64> = Matrix3::identity();
 
         let mut __is_x: Vec<bool> = Vec::new();
         let mut __is_y: Vec<bool> = Vec::new();
@@ -160,11 +159,11 @@ impl Arm{
         }
     }
 
-    pub fn get_frames_immutable(&self, x: &[f64]) -> (Vec<nalgebra::Vector3<f64>>, Vec<nalgebra::UnitQuaternion<f64>>) {
-        let mut out_positions: Vec<nalgebra::Vector3<f64>> = Vec::new();
-        let mut out_rot_quats: Vec<nalgebra::UnitQuaternion<f64>> = Vec::new();
+    pub fn get_frames_immutable(&self, x: &[f64]) -> (Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>) {
+        let mut out_positions: Vec<Vector3<f64>> = Vec::new();
+        let mut out_rot_quats: Vec<UnitQuaternion<f64>> = Vec::new();
 
-        let mut pt: nalgebra::Vector3<f64> = self.disp_offset.clone();
+        let mut pt: Vector3<f64> = self.disp_offset.clone();
         let mut rot_quat = self.rot_offset_quats[0].clone();
         out_positions.push(pt);
         out_rot_quats.push(rot_quat);
@@ -199,17 +198,17 @@ impl Arm{
             else if self.__is_prismatic[i] {
                 let joint_val = x[joint_idx];
                 if self.__is_x[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(joint_val, 0., 0.);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(joint_val, 0., 0.);
                 } else if self.__is_y[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(0., joint_val, 0.);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(0., joint_val, 0.);
                 } else if self.__is_z[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(0., 0., joint_val);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(0., 0., joint_val);
                 } else if self.__is_neg_x[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(-joint_val, 0., 0.);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(-joint_val, 0., 0.);
                 } else if self.__is_neg_y[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(0., -joint_val, 0.);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(0., -joint_val, 0.);
                 } else if self.__is_neg_z[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(0., 0., -joint_val);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(0., 0., -joint_val);
                 }
                 if self.__do_rot_offset[i+1] {
                     rot_quat = rot_quat * self.rot_offset_quats[i + 1];
@@ -231,8 +230,8 @@ impl Arm{
         (out_positions, out_rot_quats)
     }
 
-    pub fn get_ee_pos_and_quat_immutable(&self, x: &[f64]) -> (nalgebra::Vector3<f64>, nalgebra::UnitQuaternion<f64>) {
-        let mut pt: nalgebra::Vector3<f64> = self.disp_offset.clone();
+    pub fn get_ee_pos_and_quat_immutable(&self, x: &[f64]) -> (Vector3<f64>, UnitQuaternion<f64>) {
+        let mut pt: Vector3<f64> = self.disp_offset.clone();
         let mut rot_quat = self.rot_offset_quats[0].clone();
 
         let mut joint_idx: usize = 0;
@@ -263,17 +262,17 @@ impl Arm{
             else if self.__is_prismatic[i] {
                 let joint_val = x[joint_idx];
                 if self.__is_x[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(joint_val, 0., 0.);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(joint_val, 0., 0.);
                 } else if self.__is_y[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(0., joint_val, 0.);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(0., joint_val, 0.);
                 } else if self.__is_z[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(0., 0., joint_val);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(0., 0., joint_val);
                 } else if self.__is_neg_x[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(-joint_val, 0., 0.);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(-joint_val, 0., 0.);
                 } else if self.__is_neg_y[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(0., -joint_val, 0.);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(0., -joint_val, 0.);
                 } else if self.__is_neg_z[joint_idx] {
-                    pt = rot_quat * self.displacements[i] + pt + nalgebra::Vector3::new(0., 0., -joint_val);
+                    pt = rot_quat * self.displacements[i] + pt + Vector3::new(0., 0., -joint_val);
                 }
                 if self.__do_rot_offset[i+1] {
                     rot_quat = rot_quat * self.rot_offset_quats[i + 1];
@@ -291,19 +290,19 @@ impl Arm{
         (pt, rot_quat)
     }
 
-    pub fn get_ee_position(&mut self, x: &[f64]) -> nalgebra::Vector3<f64> {
+    pub fn get_ee_position(&mut self, x: &[f64]) -> Vector3<f64> {
         self.get_frames(x);
         let last_index = self.out_positions.len() - 1;
         self.out_positions[last_index].clone()
     }
 
-    pub fn get_ee_rot_mat(&mut self, x: &[f64]) -> nalgebra::Matrix3<f64> {
+    pub fn get_ee_rot_mat(&mut self, x: &[f64]) -> Matrix3<f64> {
         self.get_frames(x);
         let last_index = self.out_rot_mats.len() - 1;
         self.out_rot_mats[last_index].clone()
     }
 
-    pub fn get_ee_quat(&mut self, x: &[f64]) -> nalgebra::UnitQuaternion<f64> {
+    pub fn get_ee_quat(&mut self, x: &[f64]) -> UnitQuaternion<f64> {
         self.get_frames(x);
         let last_index = self.out_rot_quats.len() - 1;
         self.out_rot_quats[last_index].clone()
@@ -345,22 +344,22 @@ impl Arm{
         self.out_rot_quats[i + 1] = self.out_rot_quats[i];
 
         if __is_x {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(joint_val, 0., 0.);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(joint_val, 0., 0.);
         }
         else if __is_y {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(0., joint_val, 0.);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., joint_val, 0.);
         }
         else if __is_z {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(0., 0., joint_val);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., joint_val);
         }
         else if __is_neg_x {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(-joint_val, 0., 0.);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(-joint_val, 0., 0.);
         }
         else if __is_neg_y {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(0., -joint_val, 0.);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., -joint_val, 0.);
         }
         else if __is_neg_z {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(0., 0., -joint_val);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., -joint_val);
         }
     }
 
@@ -370,22 +369,22 @@ impl Arm{
         self.out_rot_quats[i + 1] = self.out_rot_quats[i];
 
         if __is_x {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(joint_val, 0., 0.);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(joint_val, 0., 0.);
         }
         else if __is_y {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(0., joint_val, 0.);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., joint_val, 0.);
         }
         else if __is_z {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(0., 0., joint_val);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., joint_val);
         }
         else if __is_neg_x {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(-joint_val, 0., 0.);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(-joint_val, 0., 0.);
         }
         else if __is_neg_y {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(0., -joint_val, 0.);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., -joint_val, 0.);
         }
         else if __is_neg_z {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + nalgebra::Vector3::new(0., 0., -joint_val);
+            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., -joint_val);
         }
 
         self.out_rot_quats[i + 1] = self.out_rot_quats[i + 1] * self.rot_offset_quats[i+1];
@@ -469,55 +468,55 @@ impl Arm{
     }
 }
 
-pub fn get_rot_x(val: f64) -> nalgebra::Matrix3<f64> {
-    nalgebra::Matrix3::new(1., 0., 0., 0., val.cos(), -val.sin(), 0.0, val.sin(), val.cos())
+pub fn get_rot_x(val: f64) -> Matrix3<f64> {
+    Matrix3::new(1., 0., 0., 0., val.cos(), -val.sin(), 0.0, val.sin(), val.cos())
 }
 
-pub fn get_rot_y(val: f64) -> nalgebra::Matrix3<f64> {
-    nalgebra::Matrix3::new(val.cos(), 0.0, val.sin(), 0., 1., 0., -val.sin(), 0., val.cos())
+pub fn get_rot_y(val: f64) -> Matrix3<f64> {
+    Matrix3::new(val.cos(), 0.0, val.sin(), 0., 1., 0., -val.sin(), 0., val.cos())
 }
 
-pub fn get_rot_z(val: f64) -> nalgebra::Matrix3<f64> {
-    nalgebra::Matrix3::new(val.cos(), -val.sin(), 0., val.sin(), val.cos(), 0., 0., 0., 1.)
+pub fn get_rot_z(val: f64) -> Matrix3<f64> {
+    Matrix3::new(val.cos(), -val.sin(), 0., val.sin(), val.cos(), 0., 0., 0., 1.)
 }
 
-pub fn get_neg_rot_x(val: f64) -> nalgebra::Matrix3<f64> {
+pub fn get_neg_rot_x(val: f64) -> Matrix3<f64> {
     get_rot_x(-val)
 }
 
-pub fn get_neg_rot_y(val: f64) -> nalgebra::Matrix3<f64> {
+pub fn get_neg_rot_y(val: f64) -> Matrix3<f64> {
     get_rot_y(-val)
 }
 
-pub fn get_neg_rot_z(val: f64) -> nalgebra::Matrix3<f64> {
+pub fn get_neg_rot_z(val: f64) -> Matrix3<f64> {
     get_rot_z(-val)
 }
 
-pub fn get_quat_x(val: f64) -> nalgebra::UnitQuaternion<f64> {
+pub fn get_quat_x(val: f64) -> UnitQuaternion<f64> {
     UnitQuaternion::from_euler_angles(val, 0., 0.)
 }
 
-pub fn get_quat_y(val: f64) -> nalgebra::UnitQuaternion<f64> {
+pub fn get_quat_y(val: f64) -> UnitQuaternion<f64> {
     UnitQuaternion::from_euler_angles(0., val, 0.)
 }
 
-pub fn get_quat_z(val: f64) -> nalgebra::UnitQuaternion<f64> {
+pub fn get_quat_z(val: f64) -> UnitQuaternion<f64> {
     UnitQuaternion::from_euler_angles(0., 0., val)
 }
 
-pub fn get_neg_quat_x(val: f64) -> nalgebra::UnitQuaternion<f64> {
+pub fn get_neg_quat_x(val: f64) -> UnitQuaternion<f64> {
     get_quat_x(-val)
 }
 
-pub fn get_neg_quat_y(val: f64) -> nalgebra::UnitQuaternion<f64> {
+pub fn get_neg_quat_y(val: f64) -> UnitQuaternion<f64> {
     get_quat_y(-val)
 }
 
-pub fn get_neg_quat_z(val: f64) -> nalgebra::UnitQuaternion<f64> {
+pub fn get_neg_quat_z(val: f64) -> UnitQuaternion<f64> {
     get_quat_z(-val)
 }
 
-pub fn euler_triple_to_3x3(t: &Vec<f64>) -> nalgebra::Matrix3<f64>{
+pub fn euler_triple_to_3x3(t: &Vec<f64>) -> Matrix3<f64>{
     let xm = get_rot_x(t[0]);
     let ym = get_rot_y(t[1]);
     let zm = get_rot_z(t[2]);
@@ -527,11 +526,11 @@ pub fn euler_triple_to_3x3(t: &Vec<f64>) -> nalgebra::Matrix3<f64>{
 }
 
 /*
-pub fn get_frame_closure(axis: &String, joint_type: &String, rot_offset_matrix: &nalgebra::Matrix3<f64>, disp: &nalgebra::Vector3<f64>, do_rot_offset: bool) -> impl Fn(f64) -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
-    let m: nalgebra::Matrix3<f64> = nalgebra::Matrix3::identity();
-    let v: nalgebra::Vector3<f64> = nalgebra::Vector3::new(0.,0.,0.);
+pub fn get_frame_closure(axis: &String, joint_type: &String, rot_offset_matrix: &Matrix3<f64>, disp: &Vector3<f64>, do_rot_offset: bool) -> impl Fn(f64) -> (Matrix3<f64>, Vector3<f64>) {
+    let m: Matrix3<f64> = Matrix3::identity();
+    let v: Vector3<f64> = Vector3::new(0.,0.,0.);
 
-    move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+    move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
         (m, v)
     }
 
@@ -539,79 +538,79 @@ pub fn get_frame_closure(axis: &String, joint_type: &String, rot_offset_matrix: 
 */
 
 /*
-pub fn get_revolute_closure(axis: &String, rot_offset_matrix: nalgebra::Matrix3<f64>, disp: nalgebra::Vector3<f64>, do_rot_offset: bool) -> impl Fn(f64) -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+pub fn get_revolute_closure(axis: &String, rot_offset_matrix: Matrix3<f64>, disp: Vector3<f64>, do_rot_offset: bool) -> impl Fn(f64) -> (Matrix3<f64>, Vector3<f64>) {
     if do_rot_offset {
-        let m: nalgebra::Matrix3<f64> = rot_offset_matrix.clone();
+        let m: Matrix3<f64> = rot_offset_matrix.clone();
 
         if *axis == String::from("X") || *axis == String::from("x") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (m * get_rot_x(val), disp.clone())
             }
         }
         else if *axis == String::from("Y") || *axis == String::from("y") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (m * get_rot_y(val), disp.clone())
             }
         }
         else if *axis == String::from("Z") || *axis == String::from("z") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (m * get_rot_z(val), disp.clone())
             }
         }
         else if *axis == String::from("-x") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (m * get_rot_x(-val), disp.clone())
             }
         }
         else if *axis == String::from("-y") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (m * get_rot_y(-val), disp.clone())
             }
         }
         else if *axis == String::from("-z") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (m * get_rot_z(-val), disp.clone())
             }
         }
         else {
-            move  |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move  |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (get_rot_z(-val), disp.clone())
             }
         }
     }
     else {
         if *axis == String::from("X") || *axis == String::from("x") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (get_rot_x(val), disp.clone())
             }
         }
         else if *axis == String::from("Y") || *axis == String::from("y") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (get_rot_y(val), disp.clone())
             }
         }
         else if *axis == String::from("Z") || *axis == String::from("z") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (get_rot_z(val), disp.clone())
             }
         }
         else if *axis == String::from("-x") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (get_rot_x(-val), disp.clone())
             }
         }
         else if *axis == String::from("-y") {
-            move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (get_rot_y(-val), disp.clone())
             }
         }
         else if *axis == String::from("-z") {
-            move  |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move  |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (get_rot_z(-val), disp.clone())
             }
         }
         else {
-            move  |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+            move  |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
                 (get_rot_z(-val), disp.clone())
             }
         }
@@ -621,13 +620,13 @@ pub fn get_revolute_closure(axis: &String, rot_offset_matrix: nalgebra::Matrix3<
 */
 
 /*
-pub fn get_revolute_closure(axis: &String, rot_offset_matrix: nalgebra::Matrix3<f64>, disp: nalgebra::Vector3<f64>, do_rot_offset: bool) -> Box<Fn(f64) -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>)> {
+pub fn get_revolute_closure(axis: &String, rot_offset_matrix: Matrix3<f64>, disp: Vector3<f64>, do_rot_offset: bool) -> Box<Fn(f64) -> (Matrix3<f64>, Vector3<f64>)> {
     if true {
-        Box::new(move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+        Box::new(move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
             (get_rot_x(val).clone(), disp.clone())
         })
     } else {
-        Box::new(move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+        Box::new(move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
             (get_rot_x(val).clone(), disp.clone())
         })
     }
@@ -635,30 +634,30 @@ pub fn get_revolute_closure(axis: &String, rot_offset_matrix: nalgebra::Matrix3<
 */
 
 /*
-pub fn get_revolute_closure() -> impl Fn(f64) -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
-    let m: nalgebra::Matrix3<f64> = nalgebra::Matrix3::identity();
-    let v: nalgebra::Vector3<f64> = nalgebra::Vector3::new(0.,0.,0.);
+pub fn get_revolute_closure() -> impl Fn(f64) -> (Matrix3<f64>, Vector3<f64>) {
+    let m: Matrix3<f64> = Matrix3::identity();
+    let v: Vector3<f64> = Vector3::new(0.,0.,0.);
 
-    move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+    move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
         (m, v)
     }
 }
 
-pub fn get_revolute_closure2() -> impl Fn(f64) -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
-    let m: nalgebra::Matrix3<f64> = nalgebra::Matrix3::identity();
-    let v: nalgebra::Vector3<f64> = nalgebra::Vector3::new(1.,1.,0.);
+pub fn get_revolute_closure2() -> impl Fn(f64) -> (Matrix3<f64>, Vector3<f64>) {
+    let m: Matrix3<f64> = Matrix3::identity();
+    let v: Vector3<f64> = Vector3::new(1.,1.,0.);
 
-    move |val: f64| -> (nalgebra::Matrix3<f64>, nalgebra::Vector3<f64>) {
+    move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
         (m*m, v)
     }
 }
 
 
-fn get_fixed_closure(axis: &String, rot_offset_matrix: &nalgebra::Matrix3<f64>, disp: &nalgebra::Vector3<f64>, do_rot_offset: bool) {
+fn get_fixed_closure(axis: &String, rot_offset_matrix: &Matrix3<f64>, disp: &Vector3<f64>, do_rot_offset: bool) {
 
 }
 
-fn get_prismatic_closure(axis: &String, rot_offset_matrix: &nalgebra::Matrix3<f64>, disp: &nalgebra::Vector3<f64>, do_rot_offset: bool) {
+fn get_prismatic_closure(axis: &String, rot_offset_matrix: &Matrix3<f64>, disp: &Vector3<f64>, do_rot_offset: bool) {
 
 }
 */

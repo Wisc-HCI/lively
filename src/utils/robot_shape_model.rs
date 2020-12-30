@@ -1,9 +1,9 @@
 
 use crate::spacetime::robot::Robot;
-use crate::utils_rust::yaml_utils::{RobotCollisionSpecFileParser, InfoFileParser};
-use crate::utils_rust::file_utils::get_path_to_src;
-use crate::utils_rust::collision_object::CollisionObject;
-use crate::utils_rust::transformations;
+// use crate::utils::yaml_utils::{RobotCollisionSpecFileParser, InfoFileParser};
+// use crate::utils::file_utils::get_path_to_src;
+use crate::utils::collision_object::CollisionObject;
+use crate::utils::transformations;
 use nalgebra::{UnitQuaternion, Vector3, UnitComplex};
 use ncollide3d::query::{Proximity, PointQuery};
 

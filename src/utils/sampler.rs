@@ -2,7 +2,7 @@ use nalgebra::DVector;
 extern crate rand;
 use rand::distributions::{Distribution, Uniform};
 use rand::{Rng};
-use rand::rngs::{ThreadRng, StdRng};
+use rand::rngs::{ThreadRng};
 use crate::spacetime::robot::Robot;
 use std::marker::{Sync, Send};
 
