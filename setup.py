@@ -9,7 +9,6 @@ setup(
     packages=[package_name],
     rust_extensions=[RustExtension("lively_ik_core.lively_ik_core", binding=Binding.PyO3, quiet=True)],
     install_requires=['setuptools','wheel','setuptools_rust'],
-    include_package_data=False,
     zip_safe=False,
     maintainer='AndrewJSchoen',
     maintainer_email='schoen.andrewj@gmail.com',
