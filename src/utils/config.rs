@@ -13,7 +13,7 @@ pub struct ObjectiveSpec {
     #[pyo3(get, set)]
     pub weight: f64,
     #[pyo3(get, set)]
-    pub index: usize,
+    pub index: Option<usize>,
     #[pyo3(get, set)]
     pub secondary_index: Option<u64>,
     #[pyo3(get, set)]
@@ -25,7 +25,7 @@ pub struct ObjectiveSpec {
 #[pymethods]
 impl ObjectiveSpec {
     #[new]
-    fn new(variant: String, weight: f64, index: usize, secondary_index: Option<u64>, scale: Option<f64>, frequency: Option<f64>) -> Self {
+    fn new(variant: String, weight: f64, index: Option<usize>, secondary_index: Option<u64>, scale: Option<f64>, frequency: Option<f64>) -> Self {
         let variant_enum = ObjectiveVariant::from(variant);
         Self { variant: variant_enum, weight, index, secondary_index, scale, frequency }
     }
@@ -85,7 +85,9 @@ impl NNSpec {
 pub struct EnvironmentSpec {
     #[pyo3(get, set)]
     pub cuboids: Vec<Cuboid>,
+    #[pyo3(get, set)]
     pub spheres: Vec<Sphere>,
+    #[pyo3(get, set)]
     pub pcs: Vec<PC>
 }
 
@@ -102,6 +104,7 @@ impl EnvironmentSpec {
 pub struct GoalConfig {
     #[pyo3(get, set)]
     pub name: String,
+    #[pyo3(get, set)]
     pub goals: Vec<GoalSpec>
 }
 
@@ -140,8 +143,8 @@ pub struct Config {
     pub joint_ordering: Vec<String>,
     #[pyo3(get, set)]
     pub joint_types: Vec<Vec<String>>,
-    #[pyo3(get, set)]
-    pub jt_pts: Vec<Vec<f64>>,
+    // #[pyo3(get, set)]
+    // pub jt_pts: Vec<Vec<f64>>,
     #[pyo3(get, set)]
     pub nn_jointpoint: NNSpec,
     #[pyo3(get, set)]
@@ -173,7 +176,7 @@ impl Config {
     fn new(axis_types: Vec<Vec<String>>, collision_scores: Vec<f64>, static_environment: EnvironmentSpec,
            ee_fixed_joints: Vec<String>, fixed_frame: String, fixed_frame_noise_scale: f64, fixed_frame_noise_frequency: f64,
            goals: Vec<GoalConfig>, joint_limits: Vec<[f64; 2]>, joint_names: Vec<Vec<String>>,
-           joint_ordering: Vec<String>, joint_types: Vec<Vec<String>>, jt_pts: Vec<Vec<f64>>,
+           joint_ordering: Vec<String>, joint_types: Vec<Vec<String>>,
            mode_control: String, mode_environment: String, nn_jointpoint: NNSpec, nn_main: NNSpec,
            objectives: Vec<ObjectiveSpec>, states: Vec<Vec<f64>>, robot_link_radius: f64,
            rot_offsets: Vec<Vec<Vec<f64>>>, starting_config: Vec<f64>, urdf: String,
@@ -186,7 +189,7 @@ impl Config {
 
        Self { axis_types, collision_scores, static_environment, ee_fixed_joints, fixed_frame, fixed_frame_noise_scale,
               fixed_frame_noise_frequency, goals, joint_limits, joint_names, joint_ordering,
-              joint_types, jt_pts, mode_control: mode_control_setting, mode_environment: mode_env_setting,
+              joint_types, mode_control: mode_control_setting, mode_environment: mode_env_setting,
               nn_jointpoint, nn_main, objectives, states, robot_link_radius, rot_offsets, starting_config,
               urdf, velocity_limits, disp_offsets: disp_offset_vectors, displacements: displacement_vectors }
     }

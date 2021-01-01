@@ -34,10 +34,6 @@ name = "relaxed_ik_lib"
 path = "src/lib.rs"
 crate-type = ["rlib", "dylib", "cdylib"]
 
-# [[bin]]
-# name = "relaxed_ik_bin"
-# path = "src/bin/relaxed_ik_bin.rs"
-
 [dependencies.pyo3]
 version = "0.12.4"
 features = ["extension-module"]

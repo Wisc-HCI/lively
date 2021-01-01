@@ -19,60 +19,68 @@ impl ObjectiveMaster {
         let mut weight_priors: Vec<f64> = Vec::new();
         for i in 0..config.objectives.len() {
             let mut objective_spec = &config.objectives[i];
+            let mut idx: usize = 0;
+            // Determine the index, if it exists (default to 0)
+            match objective_spec.index {
+                Some(v) => idx = v,
+                None => {}
+            }
+            // Match by variant
             match objective_spec.variant {
+
                 // EE Position (Standard)
                 ObjectiveVariant::EEPositionMatch => {
-                    objectives.push(Box::new(MatchEEPosGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEPosGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 }
                 // EE Orientation (Standard)
                 ObjectiveVariant::EEOrientationMatch => {
-                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 },
                 // EE Position Liveliness (TODO)
                 ObjectiveVariant::EEPositionLiveliness => {
-                    objectives.push(Box::new(MatchEEPosGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEPosGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 }
                 // EE Orientation Liveliness (TODO)
                 ObjectiveVariant::EEOrientationLiveliness => {
-                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 },
                 // EE Position Mirroring (TODO)
                 ObjectiveVariant::EEPositionMirroring => {
-                    objectives.push(Box::new(MatchEEPosGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEPosGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 }
                 // EE Orientation Mirroring (TODO)
                 ObjectiveVariant::EEOrientationMirroring => {
-                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 },
                 // EE Position Bounding (TODO)
                 ObjectiveVariant::EEPositionBounding => {
-                    objectives.push(Box::new(MatchEEPosGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEPosGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 }
                 // EE Orientation Bounding (TODO)
                 ObjectiveVariant::EEOrientationBounding => {
-                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 },
                 // Joint Matching (TODO)
                 ObjectiveVariant::JointMatch => {
-                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 },
                 // Joint Liveliness (TODO)
                 ObjectiveVariant::JointLiveliness => {
-                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 },
                 // Joint Mirroring (TODO)
                 ObjectiveVariant::JointMirroring => {
-                    objectives.push(Box::new(MatchEEQuatGoals::new(i,objective_spec.index)));
+                    objectives.push(Box::new(MatchEEQuatGoals::new(i,idx)));
                     weight_priors.push(objective_spec.weight);
                 },
                 // Joint Limits (Standard)
