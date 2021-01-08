@@ -12,3 +12,4 @@ pub mod shapes;
 pub mod goals;
 pub mod settings;
 pub mod conversions;
+pub mod history;

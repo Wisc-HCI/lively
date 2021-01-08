@@ -122,6 +122,8 @@ pub struct Config {
     #[pyo3(get, set)]
     pub axis_types: Vec<Vec<String>>,
     #[pyo3(get, set)]
+    pub base_link_motion_bounds: Vec<[f64; 2]>,
+    #[pyo3(get, set)]
     pub collision_scores: Vec<f64>,
     #[pyo3(get, set)]
     pub static_environment: EnvironmentSpec,
@@ -173,13 +175,13 @@ pub struct Config {
 #[pymethods]
 impl Config {
     #[new]
-    fn new(axis_types: Vec<Vec<String>>, collision_scores: Vec<f64>, static_environment: EnvironmentSpec,
-           ee_fixed_joints: Vec<String>, fixed_frame: String, fixed_frame_noise_scale: f64, fixed_frame_noise_frequency: f64,
-           goals: Vec<GoalConfig>, joint_limits: Vec<[f64; 2]>, joint_names: Vec<Vec<String>>,
-           joint_ordering: Vec<String>, joint_types: Vec<Vec<String>>,
-           mode_control: String, mode_environment: String, nn_jointpoint: NNSpec, nn_main: NNSpec,
-           objectives: Vec<ObjectiveSpec>, states: Vec<Vec<f64>>, robot_link_radius: f64,
-           rot_offsets: Vec<Vec<Vec<f64>>>, starting_config: Vec<f64>, urdf: String,
+    fn new(axis_types: Vec<Vec<String>>, base_link_motion_bounds: Vec<[f64; 2]>, collision_scores: Vec<f64>,
+           static_environment: EnvironmentSpec, ee_fixed_joints: Vec<String>, fixed_frame: String,
+           fixed_frame_noise_scale: f64, fixed_frame_noise_frequency: f64, goals: Vec<GoalConfig>,
+           joint_limits: Vec<[f64; 2]>, joint_names: Vec<Vec<String>>, joint_ordering: Vec<String>,
+           joint_types: Vec<Vec<String>>, mode_control: String, mode_environment: String,
+           nn_jointpoint: NNSpec, nn_main: NNSpec, objectives: Vec<ObjectiveSpec>, states: Vec<Vec<f64>>,
+           robot_link_radius: f64, rot_offsets: Vec<Vec<Vec<f64>>>, starting_config: Vec<f64>, urdf: String,
            velocity_limits: Vec<f64>, disp_offsets: Vec<Vec<f64>>, displacements: Vec<Vec<Vec<f64>>>) -> Self {
 
        let displacement_vectors: Vec<Vec<Vector3<f64>>> = vec_to_displacements(displacements);
@@ -187,7 +189,7 @@ impl Config {
        let mode_control_setting = ControlMode::from(mode_control);
        let mode_env_setting = EnvironmentMode::from(mode_environment);
 
-       Self { axis_types, collision_scores, static_environment, ee_fixed_joints, fixed_frame, fixed_frame_noise_scale,
+       Self { axis_types, base_link_motion_bounds, collision_scores, static_environment, ee_fixed_joints, fixed_frame, fixed_frame_noise_scale,
               fixed_frame_noise_frequency, goals, joint_limits, joint_names, joint_ordering,
               joint_types, mode_control: mode_control_setting, mode_environment: mode_env_setting,
               nn_jointpoint, nn_main, objectives, states, robot_link_radius, rot_offsets, starting_config,

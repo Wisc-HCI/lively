@@ -40,7 +40,7 @@ pub fn get_relu_jacobian_mul(x: &DMatrix<f64>, c: &DMatrix<f64>) -> DMatrix<f64>
 
 pub fn state_to_jt_pt_vec(x: &Vec<f64>, robot: &Robot) -> Vec<f64> {
     let mut out_vec: Vec<f64> = Vec::new();
-    let frames = robot.get_frames_immutable(x.as_slice());
+    let frames = robot.get_frames(x.as_slice());
     for i in 0..frames.len() {
         for j in 0..frames[i].0.len() {
             out_vec.push(frames[i].0[j][0]);

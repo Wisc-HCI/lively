@@ -10,13 +10,13 @@ pub struct OptimizationEngineOpen {
 }
 impl OptimizationEngineOpen {
     pub fn new(dim: usize) -> Self {
-        let mut cache = PANOCCache::new(dim, 1e-14, 10);
+        let mut cache = PANOCCache::new(dim+3, 1e-14, 10);
         OptimizationEngineOpen { dim, cache }
     }
 
-    pub fn optimize(&mut self, x: &mut [f64], v: &RelaxedIKVars, om: &ObjectiveMaster, max_iter: usize) {
+    pub fn optimize(&mut self, x: &mut [f64], v: &RelaxedIKVars, om: &ObjectiveMaster, max_iter: usize, is_core: bool) {
         let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
-            let (my_obj, my_grad) = om.gradient(u, v);
+            let (my_obj, my_grad) = om.gradient(u, v, &is_core);
             for i in 0..my_grad.len() {
                 grad[i] = my_grad[i];
             }
@@ -24,7 +24,7 @@ impl OptimizationEngineOpen {
         };
 
         let f = |u: &[f64], c: &mut f64| -> Result<(), SolverError> {
-            *c = om.call(u, v);
+            *c = om.call(u, v, &is_core);
             Ok(())
         };
 
@@ -48,11 +48,11 @@ pub struct OptimizationEngineNLopt;
 impl OptimizationEngineNLopt {
     pub fn new() -> Self { OptimizationEngineNLopt{} }
 
-    pub fn optimize(&mut self, x_out: &mut [f64], v: &RelaxedIKVars, om: &ObjectiveMaster, max_iter: u32) {
-        let num_dim = v.robot.num_dof;
+    pub fn optimize(&mut self, x_out: &mut [f64], v: &RelaxedIKVars, om: &ObjectiveMaster, max_iter: u32, is_core: bool) {
+        let num_dim = v.robot.num_dof+3;
 
         let obj_f = |x: &[f64], _gradient: Option<&mut [f64]>, _params: &mut ()| -> f64 {
-            let (my_f, my_grad) = om.gradient(x, v);
+            let (my_f, my_grad) = om.gradient(x, v, &is_core);
             if _gradient.is_none() {
             } else {
                 let g = _gradient.unwrap();

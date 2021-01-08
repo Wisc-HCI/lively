@@ -5,6 +5,7 @@ use crate::groove::collision_nn::CollisionNN;
 use crate::utils::sampler::ThreadRobotSampler;
 use crate::utils::config::{*};
 use crate::utils::settings::{*};
+use crate::utils::history::History;
 // use crate::utils::file_utils::{*};
 use crate::utils::goals::GoalSpec;
 use crate::groove::env_collision::{*};
@@ -14,27 +15,28 @@ use ncollide3d::shape::{*};
 // use time::PreciseTime;
 use std::ops::Deref;
 
-#[derive(Clone, Debug)]
-pub struct Vars {
-    pub init_state: Vec<f64>,
-    pub xopt: Vec<f64>,
-    pub prev_state: Vec<f64>,
-    pub prev_state2: Vec<f64>,
-    pub prev_state3: Vec<f64>
-}
-impl Vars {
-    pub fn new(init_state: Vec<f64>) -> Self {
-        Vars{init_state: init_state.clone(), xopt: init_state.clone(), prev_state: init_state.clone(),
-            prev_state2: init_state.clone(), prev_state3: init_state.clone()}
-    }
-
-    pub fn update(&mut self, xopt: Vec<f64>) {
-        self.prev_state3 = self.prev_state2.clone();
-        self.prev_state2 = self.prev_state.clone();
-        self.prev_state = self.xopt.clone();
-        self.xopt = xopt.clone();
-    }
-}
+// #[derive(Clone, Debug)]
+// pub struct Vars {
+//     pub init_state: Vec<f64>,
+//     pub xopt: Vec<f64>,
+//     pub offset: Vec<f64>,
+//     pub prev_state: Vec<f64>,
+//     pub prev_state2: Vec<f64>,
+//     pub prev_state3: Vec<f64>
+// }
+// impl Vars {
+//     pub fn new(init_state: Vec<f64>) -> Self {
+//         Vars{init_state: init_state.clone(), xopt: init_state.clone(), offset: vec![0,0,0], prev_state: init_state.clone(),
+//             prev_state2: init_state.clone(), prev_state3: init_state.clone()}
+//     }
+//
+//     pub fn update(&mut self, xopt: Vec<f64>) {
+//         self.prev_state3 = self.prev_state2.clone();
+//         self.prev_state2 = self.prev_state.clone();
+//         self.prev_state = self.xopt.clone();
+//         self.xopt = xopt.clone();
+//     }
+// }
 
 
 pub struct RelaxedIKVars {
@@ -42,20 +44,18 @@ pub struct RelaxedIKVars {
     pub sampler: ThreadRobotSampler,
     pub init_state: Vec<f64>,
     pub xopt: Vec<f64>,
-    pub prev_state: Vec<f64>,
-    pub prev_state2: Vec<f64>,
-    pub prev_state3: Vec<f64>,
+    pub xopt_core: Vec<f64>,
+    pub offset: Vec<f64>,
+    pub history: History,
+    pub history_core: History,
     pub goals: Vec<GoalSpec>,
-    // pub goal_positions: Vec<Vector3<f64>>,
-    // pub goal_quats: Vec<UnitQuaternion<f64>>,
     pub init_ee_positions: Vec<Vector3<f64>>,
     pub init_ee_quats: Vec<UnitQuaternion<f64>>,
-    // pub position_mode_relative: bool, // if false, will be absolute
-    // pub rotation_mode_relative: bool, // if false, will be absolute
     pub collision_nn: CollisionNN,
     pub env_collision: RelaxedIKEnvCollision,
     pub control_mode: ControlMode,
-    pub environment_mode: EnvironmentMode
+    pub environment_mode: EnvironmentMode,
+    pub objective_variants: Vec<ObjectiveVariant>
 }
 impl RelaxedIKVars {
     pub fn new(config: Config) -> Self {
@@ -74,27 +74,26 @@ impl RelaxedIKVars {
 
         let collision_nn = CollisionNN::new(config.nn_main.clone());
 
-        let frames = robot.get_frames_immutable(&config.starting_config.clone());
+        let frames = robot.get_frames(&config.starting_config.clone());
         let env_collision = RelaxedIKEnvCollision::new(config.clone(), &frames);
 
         let environment_mode = config.mode_environment;
         let control_mode = config.mode_control;
 
-        RelaxedIKVars{robot, sampler, init_state: config.starting_config.clone(), xopt: config.starting_config.clone(),
-            prev_state: config.starting_config.clone(), prev_state2: config.starting_config.clone(), prev_state3: config.starting_config.clone(),
-            goals, init_ee_positions, init_ee_quats, control_mode, collision_nn,
-            env_collision, environment_mode}
-    }
+        let mut objective_variants: Vec<ObjectiveVariant> = Vec::new();
+        for objective in config.objectives {
+            objective_variants.push(objective.variant)
+        }
 
-    pub fn update(&mut self, xopt: Vec<f64>) {
-        self.prev_state3 = self.prev_state2.clone();
-        self.prev_state2 = self.prev_state.clone();
-        self.prev_state = self.xopt.clone();
-        self.xopt = xopt.clone();
+        RelaxedIKVars{robot, sampler, init_state: config.starting_config.clone(), xopt: config.starting_config.clone(),
+            xopt_core: config.starting_config.clone(), offset: vec![0.0,0.0,0.0],
+            history: History::new(config.starting_config.clone()), history_core: History::new(config.starting_config.clone()),
+            goals, init_ee_positions, init_ee_quats, control_mode, collision_nn,
+            env_collision, environment_mode, objective_variants}
     }
 
     pub fn update_collision_world(&mut self) -> bool {
-        let frames = self.robot.get_frames_immutable(&self.xopt);
+        let frames = self.robot.get_frames(&self.xopt);
         self.env_collision.update_links(&frames);
         for event in self.env_collision.world.proximity_events() {
             let c1 = self.env_collision.world.objects.get(event.collider1).unwrap();
@@ -205,7 +204,7 @@ impl RelaxedIKVars {
     }
 
     pub fn print_active_pairs(&self) {
-        let frames = self.robot.get_frames_immutable(&self.xopt);
+        let frames = self.robot.get_frames(&self.xopt);
         for i in 0..frames.len() {
             for (key, values) in self.env_collision.active_pairs[i].iter() {
                 let collider = self.env_collision.world.objects.get(*key).unwrap();

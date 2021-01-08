@@ -11,9 +11,9 @@ pub struct Arm {
     pub rot_offset_quats: Vec<UnitQuaternion<f64>>,
     pub joint_types: Vec<String>,
     pub num_dof: usize,
-    pub out_positions: Vec<Vector3<f64>>,
-    pub out_rot_mats: Vec<Matrix3<f64>>,
-    pub out_rot_quats: Vec<UnitQuaternion<f64>>,
+    out_positions: Vec<Vector3<f64>>,
+    out_rot_mats: Vec<Matrix3<f64>>,
+    out_rot_quats: Vec<UnitQuaternion<f64>>,
     __do_rot_offset: Vec<bool>,
     __is_prismatic: Vec<bool>,
     __is_revolute_or_continuous: Vec<bool>,
@@ -135,31 +135,31 @@ impl Arm{
             __is_neg_z, __aux_matrix}
     }
 
-    pub fn get_frames(&mut self, x: &[f64]) {
-        let mut joint_idx: usize = 0;
-        for i in 0..self.displacements.len() {
+    // pub fn get_frames(&mut self, x: &[f64]) {
+    //     let mut joint_idx: usize = 0;
+    //     for i in 0..self.displacements.len() {
+    //
+    //         if self.__is_revolute_or_continuous[i] || self.__is_prismatic[i] {
+    //             self.__update_frames(i, x[joint_idx], self.__do_rot_offset[i + 1],
+    //                                  self.__is_prismatic[i], self.__is_revolute_or_continuous[i],
+    //                                  self.__is_fixed[i], self.__is_x[joint_idx], self.__is_y[joint_idx],
+    //                                  self.__is_z[joint_idx], self.__is_neg_x[joint_idx],
+    //                                  self.__is_neg_y[joint_idx], self.__is_neg_z[joint_idx]);
+    //         } else {
+    //             if self.__do_rot_offset[i+1] {
+    //                 self.__update_fixed_ro(i)
+    //             } else {
+    //                 self.__update_fixed(i)
+    //             }
+    //         }
+    //
+    //         if self.__is_revolute_or_continuous[i] || self.__is_prismatic[i] {
+    //             joint_idx += 1;
+    //         }
+    //     }
+    // }
 
-            if self.__is_revolute_or_continuous[i] || self.__is_prismatic[i] {
-                self.__update_frames(i, x[joint_idx], self.__do_rot_offset[i + 1],
-                                     self.__is_prismatic[i], self.__is_revolute_or_continuous[i],
-                                     self.__is_fixed[i], self.__is_x[joint_idx], self.__is_y[joint_idx],
-                                     self.__is_z[joint_idx], self.__is_neg_x[joint_idx],
-                                     self.__is_neg_y[joint_idx], self.__is_neg_z[joint_idx]);
-            } else {
-                if self.__do_rot_offset[i+1] {
-                    self.__update_fixed_ro(i)
-                } else {
-                    self.__update_fixed(i)
-                }
-            }
-
-            if self.__is_revolute_or_continuous[i] || self.__is_prismatic[i] {
-                joint_idx += 1;
-            }
-        }
-    }
-
-    pub fn get_frames_immutable(&self, x: &[f64]) -> (Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>) {
+    pub fn get_frames(&self, x: &[f64]) -> (Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>) {
         let mut out_positions: Vec<Vector3<f64>> = Vec::new();
         let mut out_rot_quats: Vec<UnitQuaternion<f64>> = Vec::new();
 
@@ -230,7 +230,7 @@ impl Arm{
         (out_positions, out_rot_quats)
     }
 
-    pub fn get_ee_pos_and_quat_immutable(&self, x: &[f64]) -> (Vector3<f64>, UnitQuaternion<f64>) {
+    pub fn get_ee_pos_and_quat(&self, x: &[f64]) -> (Vector3<f64>, UnitQuaternion<f64>) {
         let mut pt: Vector3<f64> = self.disp_offset.clone();
         let mut rot_quat = self.rot_offset_quats[0].clone();
 
@@ -290,182 +290,182 @@ impl Arm{
         (pt, rot_quat)
     }
 
-    pub fn get_ee_position(&mut self, x: &[f64]) -> Vector3<f64> {
-        self.get_frames(x);
-        let last_index = self.out_positions.len() - 1;
-        self.out_positions[last_index].clone()
+    pub fn get_ee_position(&self, x: &[f64]) -> Vector3<f64> {
+        let (positions, quaternions) = self.get_frames(x);
+        let last_index = positions.len() - 1;
+        positions[last_index]
     }
 
-    pub fn get_ee_rot_mat(&mut self, x: &[f64]) -> Matrix3<f64> {
-        self.get_frames(x);
-        let last_index = self.out_rot_mats.len() - 1;
-        self.out_rot_mats[last_index].clone()
+    pub fn get_ee_rot_mat(&self, x: &[f64]) -> Matrix3<f64> {
+        let (positions, quaternions) = self.get_frames(x);
+        let last_index = quaternions.len() - 1;
+        *quaternions[last_index].to_rotation_matrix().matrix()
     }
 
-    pub fn get_ee_quat(&mut self, x: &[f64]) -> UnitQuaternion<f64> {
-        self.get_frames(x);
-        let last_index = self.out_rot_quats.len() - 1;
-        self.out_rot_quats[last_index].clone()
+    pub fn get_ee_quat(&self, x: &[f64]) -> UnitQuaternion<f64> {
+        let (positions, quaternions) = self.get_frames(x);
+        let last_index = quaternions.len() - 1;
+        quaternions[last_index]
     }
 
-    fn __update_frames(&mut self, i: usize, joint_val: f64, __do_rot_offset: bool, __is_prismatic: bool,
-                       __is_revolute_or_continuous: bool, __is_fixed: bool, __is_x: bool, __is_y: bool,
-                       __is_z: bool, __is_neg_x: bool, __is_neg_y: bool, __is_neg_z: bool) {
-        if __is_prismatic {
-            if __do_rot_offset {
-                self.__update_prismatic_ro(i, joint_val, __is_x, __is_y, __is_z, __is_neg_x, __is_neg_y, __is_neg_z);
-            }
-            else {
-                self.__update_prismatic(i, joint_val, __is_x, __is_y, __is_z, __is_neg_x, __is_neg_y, __is_neg_z);
-            }
-        }
-        else if __is_revolute_or_continuous {
-            if __do_rot_offset {
-                self.__update_revolute_or_continuous_ro(i, joint_val, __is_x, __is_y, __is_z, __is_neg_x, __is_neg_y, __is_neg_z);
-            }
-            else {
-                self.__update_revolute_or_continuous(i, joint_val, __is_x, __is_y, __is_z, __is_neg_x, __is_neg_y, __is_neg_z);
-            }
-        }
-        else if __is_fixed {
-            if __do_rot_offset {
-                self.__update_fixed_ro(i);
-            }
-            else {
-                self.__update_fixed(i);
-            }
-        }
-    }
-
-    fn __update_prismatic(&mut self, i: usize, joint_val: f64, __is_x: bool, __is_y: bool,
-                       __is_z: bool, __is_neg_x: bool, __is_neg_y: bool, __is_neg_z: bool) {
-
-        self.out_rot_mats[i + 1] = self.out_rot_mats[i];
-        self.out_rot_quats[i + 1] = self.out_rot_quats[i];
-
-        if __is_x {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(joint_val, 0., 0.);
-        }
-        else if __is_y {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., joint_val, 0.);
-        }
-        else if __is_z {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., joint_val);
-        }
-        else if __is_neg_x {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(-joint_val, 0., 0.);
-        }
-        else if __is_neg_y {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., -joint_val, 0.);
-        }
-        else if __is_neg_z {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., -joint_val);
-        }
-    }
-
-    fn __update_prismatic_ro(&mut self, i: usize, joint_val: f64, __is_x: bool, __is_y: bool,
-                       __is_z: bool, __is_neg_x: bool, __is_neg_y: bool, __is_neg_z: bool) {
-
-        self.out_rot_quats[i + 1] = self.out_rot_quats[i];
-
-        if __is_x {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(joint_val, 0., 0.);
-        }
-        else if __is_y {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., joint_val, 0.);
-        }
-        else if __is_z {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., joint_val);
-        }
-        else if __is_neg_x {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(-joint_val, 0., 0.);
-        }
-        else if __is_neg_y {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., -joint_val, 0.);
-        }
-        else if __is_neg_z {
-            self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., -joint_val);
-        }
-
-        self.out_rot_quats[i + 1] = self.out_rot_quats[i + 1] * self.rot_offset_quats[i+1];
-        self.out_rot_mats[i + 1] = *self.out_rot_quats[i + 1].to_rotation_matrix().matrix()
-
-    }
-
-    fn __update_revolute_or_continuous(&mut self, i: usize, joint_val: f64, __is_x: bool, __is_y: bool,
-                       __is_z: bool, __is_neg_x: bool, __is_neg_y: bool, __is_neg_z: bool) {
-        if __is_x {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_x(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_x(joint_val);
-        }
-        else if __is_y {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_y(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_y(joint_val);
-        }
-        else if __is_z {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_z(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_z(joint_val);
-        }
-        else if __is_neg_x {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_x(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_x(joint_val);
-        }
-        else if __is_neg_y {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_y(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_y(joint_val);
-        }
-        else if __is_neg_z {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_z(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_x(joint_val);
-        }
-
-        self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i];
-        self.out_rot_mats[i + 1] = *self.out_rot_quats[i + 1].to_rotation_matrix().matrix();
-    }
-
-    fn __update_revolute_or_continuous_ro(&mut self, i: usize, joint_val: f64, __is_x: bool, __is_y: bool,
-                       __is_z: bool, __is_neg_x: bool, __is_neg_y: bool, __is_neg_z: bool) {
-        if __is_x {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_x(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_x(joint_val);
-        }
-        else if __is_y {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_y(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_y(joint_val);
-        }
-        else if __is_z {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_z(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_z(joint_val);
-        }
-        else if __is_neg_x {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_x(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_x(joint_val);
-        }
-        else if __is_neg_y {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_y(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_y(joint_val);
-        }
-        else if __is_neg_z {
-            // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_z(joint_val);
-            self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_x(joint_val);
-        }
-
-        self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i];
-        self.out_rot_quats[i + 1] = self.out_rot_quats[i + 1] * self.rot_offset_quats[i+1];
-        self.out_rot_mats[i + 1] = *self.out_rot_quats[i + 1].to_rotation_matrix().matrix();
-    }
-
-    fn __update_fixed(&mut self, i: usize) {
-        self.out_rot_quats[i + 1] = self.out_rot_quats[i];
-        self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i];
-        self.out_rot_mats[i + 1] = *self.out_rot_quats[i].to_rotation_matrix().matrix();
-    }
-
-    fn __update_fixed_ro(&mut self, i: usize) {
-        self.out_positions[i + 1] = self.out_rot_quats[i] * self.displacements[i] + self.out_positions[i];
-        self.out_rot_quats[i + 1] = self.out_rot_quats[i] * self.rot_offset_quats[i];
-        self.out_rot_mats[i + 1] = *self.out_rot_quats[i].to_rotation_matrix().matrix();
-    }
+    // fn __update_frames(&mut self, i: usize, joint_val: f64, __do_rot_offset: bool, __is_prismatic: bool,
+    //                    __is_revolute_or_continuous: bool, __is_fixed: bool, __is_x: bool, __is_y: bool,
+    //                    __is_z: bool, __is_neg_x: bool, __is_neg_y: bool, __is_neg_z: bool) {
+    //     if __is_prismatic {
+    //         if __do_rot_offset {
+    //             self.__update_prismatic_ro(i, joint_val, __is_x, __is_y, __is_z, __is_neg_x, __is_neg_y, __is_neg_z);
+    //         }
+    //         else {
+    //             self.__update_prismatic(i, joint_val, __is_x, __is_y, __is_z, __is_neg_x, __is_neg_y, __is_neg_z);
+    //         }
+    //     }
+    //     else if __is_revolute_or_continuous {
+    //         if __do_rot_offset {
+    //             self.__update_revolute_or_continuous_ro(i, joint_val, __is_x, __is_y, __is_z, __is_neg_x, __is_neg_y, __is_neg_z);
+    //         }
+    //         else {
+    //             self.__update_revolute_or_continuous(i, joint_val, __is_x, __is_y, __is_z, __is_neg_x, __is_neg_y, __is_neg_z);
+    //         }
+    //     }
+    //     else if __is_fixed {
+    //         if __do_rot_offset {
+    //             self.__update_fixed_ro(i);
+    //         }
+    //         else {
+    //             self.__update_fixed(i);
+    //         }
+    //     }
+    // }
+    //
+    // fn __update_prismatic(&mut self, i: usize, joint_val: f64, __is_x: bool, __is_y: bool,
+    //                    __is_z: bool, __is_neg_x: bool, __is_neg_y: bool, __is_neg_z: bool) {
+    //
+    //     self.out_rot_mats[i + 1] = self.out_rot_mats[i];
+    //     self.out_rot_quats[i + 1] = self.out_rot_quats[i];
+    //
+    //     if __is_x {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(joint_val, 0., 0.);
+    //     }
+    //     else if __is_y {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., joint_val, 0.);
+    //     }
+    //     else if __is_z {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., joint_val);
+    //     }
+    //     else if __is_neg_x {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(-joint_val, 0., 0.);
+    //     }
+    //     else if __is_neg_y {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., -joint_val, 0.);
+    //     }
+    //     else if __is_neg_z {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., -joint_val);
+    //     }
+    // }
+    //
+    // fn __update_prismatic_ro(&mut self, i: usize, joint_val: f64, __is_x: bool, __is_y: bool,
+    //                    __is_z: bool, __is_neg_x: bool, __is_neg_y: bool, __is_neg_z: bool) {
+    //
+    //     self.out_rot_quats[i + 1] = self.out_rot_quats[i];
+    //
+    //     if __is_x {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(joint_val, 0., 0.);
+    //     }
+    //     else if __is_y {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., joint_val, 0.);
+    //     }
+    //     else if __is_z {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., joint_val);
+    //     }
+    //     else if __is_neg_x {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(-joint_val, 0., 0.);
+    //     }
+    //     else if __is_neg_y {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., -joint_val, 0.);
+    //     }
+    //     else if __is_neg_z {
+    //         self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i] + Vector3::new(0., 0., -joint_val);
+    //     }
+    //
+    //     self.out_rot_quats[i + 1] = self.out_rot_quats[i + 1] * self.rot_offset_quats[i+1];
+    //     self.out_rot_mats[i + 1] = *self.out_rot_quats[i + 1].to_rotation_matrix().matrix()
+    //
+    // }
+    //
+    // fn __update_revolute_or_continuous(&mut self, i: usize, joint_val: f64, __is_x: bool, __is_y: bool,
+    //                    __is_z: bool, __is_neg_x: bool, __is_neg_y: bool, __is_neg_z: bool) {
+    //     if __is_x {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_x(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_x(joint_val);
+    //     }
+    //     else if __is_y {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_y(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_y(joint_val);
+    //     }
+    //     else if __is_z {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_z(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_z(joint_val);
+    //     }
+    //     else if __is_neg_x {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_x(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_x(joint_val);
+    //     }
+    //     else if __is_neg_y {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_y(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_y(joint_val);
+    //     }
+    //     else if __is_neg_z {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_z(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_x(joint_val);
+    //     }
+    //
+    //     self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i];
+    //     self.out_rot_mats[i + 1] = *self.out_rot_quats[i + 1].to_rotation_matrix().matrix();
+    // }
+    //
+    // fn __update_revolute_or_continuous_ro(&mut self, i: usize, joint_val: f64, __is_x: bool, __is_y: bool,
+    //                    __is_z: bool, __is_neg_x: bool, __is_neg_y: bool, __is_neg_z: bool) {
+    //     if __is_x {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_x(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_x(joint_val);
+    //     }
+    //     else if __is_y {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_y(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_y(joint_val);
+    //     }
+    //     else if __is_z {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_rot_z(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_quat_z(joint_val);
+    //     }
+    //     else if __is_neg_x {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_x(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_x(joint_val);
+    //     }
+    //     else if __is_neg_y {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_y(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_y(joint_val);
+    //     }
+    //     else if __is_neg_z {
+    //         // self.out_rot_mats[i + 1] = self.out_rot_mats[i] * get_neg_rot_z(joint_val);
+    //         self.out_rot_quats[i + 1] = self.out_rot_quats[i] * get_neg_quat_x(joint_val);
+    //     }
+    //
+    //     self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i];
+    //     self.out_rot_quats[i + 1] = self.out_rot_quats[i + 1] * self.rot_offset_quats[i+1];
+    //     self.out_rot_mats[i + 1] = *self.out_rot_quats[i + 1].to_rotation_matrix().matrix();
+    // }
+    //
+    // fn __update_fixed(&mut self, i: usize) {
+    //     self.out_rot_quats[i + 1] = self.out_rot_quats[i];
+    //     self.out_positions[i + 1] = self.out_rot_quats[i + 1] * self.displacements[i] + self.out_positions[i];
+    //     self.out_rot_mats[i + 1] = *self.out_rot_quats[i].to_rotation_matrix().matrix();
+    // }
+    //
+    // fn __update_fixed_ro(&mut self, i: usize) {
+    //     self.out_positions[i + 1] = self.out_rot_quats[i] * self.displacements[i] + self.out_positions[i];
+    //     self.out_rot_quats[i + 1] = self.out_rot_quats[i] * self.rot_offset_quats[i];
+    //     self.out_rot_mats[i + 1] = *self.out_rot_quats[i].to_rotation_matrix().matrix();
+    // }
 }
 
 pub fn get_rot_x(val: f64) -> Matrix3<f64> {
@@ -524,140 +524,3 @@ pub fn euler_triple_to_3x3(t: &Vec<f64>) -> Matrix3<f64>{
     let zy = zm*ym;
     zy*xm
 }
-
-/*
-pub fn get_frame_closure(axis: &String, joint_type: &String, rot_offset_matrix: &Matrix3<f64>, disp: &Vector3<f64>, do_rot_offset: bool) -> impl Fn(f64) -> (Matrix3<f64>, Vector3<f64>) {
-    let m: Matrix3<f64> = Matrix3::identity();
-    let v: Vector3<f64> = Vector3::new(0.,0.,0.);
-
-    move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-        (m, v)
-    }
-
-}
-*/
-
-/*
-pub fn get_revolute_closure(axis: &String, rot_offset_matrix: Matrix3<f64>, disp: Vector3<f64>, do_rot_offset: bool) -> impl Fn(f64) -> (Matrix3<f64>, Vector3<f64>) {
-    if do_rot_offset {
-        let m: Matrix3<f64> = rot_offset_matrix.clone();
-
-        if *axis == String::from("X") || *axis == String::from("x") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (m * get_rot_x(val), disp.clone())
-            }
-        }
-        else if *axis == String::from("Y") || *axis == String::from("y") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (m * get_rot_y(val), disp.clone())
-            }
-        }
-        else if *axis == String::from("Z") || *axis == String::from("z") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (m * get_rot_z(val), disp.clone())
-            }
-        }
-        else if *axis == String::from("-x") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (m * get_rot_x(-val), disp.clone())
-            }
-        }
-        else if *axis == String::from("-y") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (m * get_rot_y(-val), disp.clone())
-            }
-        }
-        else if *axis == String::from("-z") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (m * get_rot_z(-val), disp.clone())
-            }
-        }
-        else {
-            move  |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (get_rot_z(-val), disp.clone())
-            }
-        }
-    }
-    else {
-        if *axis == String::from("X") || *axis == String::from("x") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (get_rot_x(val), disp.clone())
-            }
-        }
-        else if *axis == String::from("Y") || *axis == String::from("y") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (get_rot_y(val), disp.clone())
-            }
-        }
-        else if *axis == String::from("Z") || *axis == String::from("z") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (get_rot_z(val), disp.clone())
-            }
-        }
-        else if *axis == String::from("-x") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (get_rot_x(-val), disp.clone())
-            }
-        }
-        else if *axis == String::from("-y") {
-            move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (get_rot_y(-val), disp.clone())
-            }
-        }
-        else if *axis == String::from("-z") {
-            move  |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (get_rot_z(-val), disp.clone())
-            }
-        }
-        else {
-            move  |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-                (get_rot_z(-val), disp.clone())
-            }
-        }
-    }
-
-}
-*/
-
-/*
-pub fn get_revolute_closure(axis: &String, rot_offset_matrix: Matrix3<f64>, disp: Vector3<f64>, do_rot_offset: bool) -> Box<Fn(f64) -> (Matrix3<f64>, Vector3<f64>)> {
-    if true {
-        Box::new(move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-            (get_rot_x(val).clone(), disp.clone())
-        })
-    } else {
-        Box::new(move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-            (get_rot_x(val).clone(), disp.clone())
-        })
-    }
-}
-*/
-
-/*
-pub fn get_revolute_closure() -> impl Fn(f64) -> (Matrix3<f64>, Vector3<f64>) {
-    let m: Matrix3<f64> = Matrix3::identity();
-    let v: Vector3<f64> = Vector3::new(0.,0.,0.);
-
-    move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-        (m, v)
-    }
-}
-
-pub fn get_revolute_closure2() -> impl Fn(f64) -> (Matrix3<f64>, Vector3<f64>) {
-    let m: Matrix3<f64> = Matrix3::identity();
-    let v: Vector3<f64> = Vector3::new(1.,1.,0.);
-
-    move |val: f64| -> (Matrix3<f64>, Vector3<f64>) {
-        (m*m, v)
-    }
-}
-
-
-fn get_fixed_closure(axis: &String, rot_offset_matrix: &Matrix3<f64>, disp: &Vector3<f64>, do_rot_offset: bool) {
-
-}
-
-fn get_prismatic_closure(axis: &String, rot_offset_matrix: &Matrix3<f64>, disp: &Vector3<f64>, do_rot_offset: bool) {
-
-}
-*/

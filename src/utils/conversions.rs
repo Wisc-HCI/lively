@@ -1,47 +1,4 @@
 use nalgebra::{Vector3};
-// use crate::utils::settings::{*};/
-
-// pub fn control_mode_to_string(mode: ControlMode) -> String {
-//     let mode_control: String;
-//     match mode {
-//         ControlMode::Relative => mode_control = String::from("relative"),
-//         ControlMode::Absolute => mode_control = String::from("absolute")
-//     }
-//     return mode_control
-// }
-//
-// pub fn environment_mode_to_string(mode: EnvironmentMode) -> String {
-//     let mode_environment: String;
-//     match mode {
-//         EnvironmentMode::ECA => mode_environment = String::from("ECA"),
-//         EnvironmentMode::ECA3 => mode_environment = String::from("ECA3"),
-//         EnvironmentMode::ECAA => mode_environment = String::from("ECAA"),
-//         EnvironmentMode::None => mode_environment = String::from("None")
-//     }
-//     return mode_environment
-// }
-//
-// pub fn string_to_control_mode(string: String) -> ControlMode {
-//     let mut mode_control: ControlMode;
-//     match string {
-//         String::from("absolute") => mode_control = ControlMode::Absolute,
-//         String::from("belative") => mode_control = ControlMode::Relative,
-//         _ => mode_control = ControlMode::Absolute // Default to Absolute
-//     }
-//     return mode_control;
-// }
-//
-// pub fn string_to_environment_mode(string: String) -> EnvironmentMode {
-//     let mut mode_environment: EnvironmentMode;
-//     match string {
-//         String::from("ECA") => mode_environment = EnvironmentMode::ECA,
-//         String::from("ECA3") => mode_environment = EnvironmentMode::ECA3,
-//         String::from("ECAA") => mode_environment = EnvironmentMode::ECAA,
-//         String::from("None") => mode_environment = EnvironmentMode::None,
-//         _ => mode_environment = EnvironmentMode::None // Default to None
-//     }
-//     return mode_environment;
-// }
 
 pub fn disp_offsets_to_vec(disp_offsets: Vec<Vector3<f64>>) -> Vec<Vec<f64>> {
     let mut disp_offsets_vec: Vec<Vec<f64>> = Vec::new();

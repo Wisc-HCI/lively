@@ -41,8 +41,19 @@ impl LivelyIK {
         Self { config, vars, om, groove, groove_nlopt }
     }
 
-    fn solve(&mut self, goals: Vec<GoalSpec>, precise: bool) -> PyResult<Vec<f64>> {
+    fn solve(&mut self, goals: Vec<GoalSpec>, _precise: bool) -> PyResult<Vec<f64>> {
         let mut out_x = self.vars.xopt.clone();
+        let mut out_x_core = self.vars.xopt_core.clone();
+        let mut xopt = self.vars.offset.clone();
+        let mut xopt_core = vec![0.0,0.0,0.0];
+
+        for i in 0..out_x.len() {
+            xopt.push(out_x[i])
+        }
+
+        for i in 0..out_x_core.len() {
+            xopt_core.push(out_x_core[i])
+        }
 
         if goals.len() != self.config.objectives.len() {
             println!("Mismatch between goals (n={:?}) and objectives (n={:?})", goals.len(), self.config.objectives);
@@ -56,8 +67,22 @@ impl LivelyIK {
             if self.config.mode_environment == EnvironmentMode::ECAA {
                 self.om.tune_weight_priors(&self.vars);
             }
-            self.groove.optimize(&mut out_x, &self.vars, &self.om, 100);
-            self.vars.update(out_x.clone());
+            // Run without liveliness (core objectives)
+            self.groove.optimize(&mut xopt_core, &self.vars, &self.om, 100, true);
+            for i in 0..out_x_core.len() {
+                out_x_core[i] = xopt_core[i+3];
+            }
+            self.vars.xopt_core = out_x_core.clone();
+            self.vars.history_core.update(out_x_core.clone());
+
+            // Run with liveliness (all objectives)
+            self.groove.optimize(&mut xopt, &self.vars, &self.om, 100, false);
+            for i in 0..out_x_core.len() {
+                out_x[i] = xopt[i+3];
+            }
+            self.vars.xopt = out_x.clone();
+            self.vars.history.update(out_x.clone());
+            self.vars.offset = vec![xopt[0],xopt[1],xopt[2]]
         }
 
         return Ok(out_x)
