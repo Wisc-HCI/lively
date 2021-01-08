@@ -2,24 +2,37 @@ use crate::spacetime::arm;
 // use crate::utils::{geometry_utils, yaml_utils};
 use crate::utils::config::Config;
 use nalgebra::Vector3;
+use pyo3::prelude::*;
 
+#[pyclass]
 #[derive(Clone, Debug)]
 pub struct Robot {
     pub arms: Vec<arm::Arm>,
+    #[pyo3(get, set)]
     pub joint_names: Vec<Vec<String>>,
+    #[pyo3(get, set)]
     pub joint_ordering: Vec<String>,
+    #[pyo3(get, set)]
     pub num_chains: usize,
+    #[pyo3(get, set)]
     pub num_dof: usize,
+    #[pyo3(get, set)]
     pub subchain_indices: Vec<Vec<usize>>,
+    #[pyo3(get, set)]
     pub bounds: Vec< [f64; 2] >,
+    #[pyo3(get, set)]
     pub lower_bounds: Vec<f64>,
+    #[pyo3(get, set)]
     pub upper_bounds: Vec<f64>,
     // pub opt_lower_bounds: Vec<f64>,
     // pub opt_upper_bounds: Vec<f64>,
+    #[pyo3(get, set)]
     pub velocity_limits: Vec<f64>
 }
 
+#[pymethods]
 impl Robot {
+    #[new]
     pub fn new(config: Config) -> Robot {
         let num_chains = config.axis_types.len();
         let num_dof = config.velocity_limits.len();
@@ -51,14 +64,22 @@ impl Robot {
             velocity_limits: config.velocity_limits.clone()}
     }
 
+    pub fn x_as_subchains(&self, x: Vec<f64>) -> PyResult<Vec<Vec<f64>>> {
+        Ok(self.split_into_subchains(x.as_slice()))
+    }
+
+}
+
+impl Robot {
+
     pub fn split_into_subchains(&self, x: &[f64]) -> Vec<Vec<f64>>{
         let mut out_subchains: Vec<Vec<f64>> = Vec::new();
         for i in 0..self.num_chains {
-            let s: Vec<f64> = Vec::new();
-            out_subchains.push(s);
-            for j in 0..self.subchain_indices[i].len() {
-                out_subchains[i].push( x[self.subchain_indices[i][j]] );
+            let mut chain: Vec<f64> = Vec::new();
+            for index in self.subchain_indices[i].clone() {
+                chain.push( x[index] );
             }
+            out_subchains.push(chain);
         }
         out_subchains
     }
@@ -109,20 +130,16 @@ impl Robot {
     fn get_subchain_indices(joint_names: &Vec<Vec<String>>, joint_ordering: &Vec<String>) -> Vec<Vec<usize>> {
         let mut out: Vec<Vec<usize>> = Vec::new();
 
-        let num_chains = joint_names.len();
-        for _i in 0..num_chains {
-            let v: Vec<usize> = Vec::new();
-            out.push(v);
-        }
-
-        for i in 0..num_chains {
+        for i in 0..joint_names.len() {
+            let mut chain: Vec<usize> = Vec::new();
             for j in 0..joint_names[i].len() {
                 let idx = Robot::get_index_from_joint_order(joint_ordering, &joint_names[i][j]);
                 if  idx == 101010101010 {
                 } else {
-                    out[i].push(idx);
+                    chain.push(idx);
                 }
             }
+            out.push(chain);
         }
         out
     }

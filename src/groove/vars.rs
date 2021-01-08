@@ -14,6 +14,7 @@ use ncollide3d::query::{*};
 use ncollide3d::shape::{*};
 // use time::PreciseTime;
 use std::ops::Deref;
+use pyo3::prelude::*;
 
 // #[derive(Clone, Debug)]
 // pub struct Vars {
@@ -38,7 +39,7 @@ use std::ops::Deref;
 //     }
 // }
 
-
+#[pyclass]
 pub struct RelaxedIKVars {
     pub robot: Robot,
     pub sampler: ThreadRobotSampler,
@@ -57,7 +58,10 @@ pub struct RelaxedIKVars {
     pub environment_mode: EnvironmentMode,
     pub objective_variants: Vec<ObjectiveVariant>
 }
+
+#[pymethods]
 impl RelaxedIKVars {
+    #[new]
     pub fn new(config: Config) -> Self {
         let mut robot = Robot::new(config.clone());
         let num_chains = config.joint_names.len();
@@ -69,12 +73,18 @@ impl RelaxedIKVars {
                 goals = goal_spec.goals.clone();
             }
         }
-        let init_ee_positions = robot.get_ee_positions(config.starting_config.as_slice());
-        let init_ee_quats = robot.get_ee_quats(config.starting_config.as_slice());
+
+        let mut initial_x: Vec<f64> = vec![0.0,0.0,0.0];
+        for starting_joint_value in config.starting_config.clone() {
+            initial_x.push(starting_joint_value)
+        }
+
+        let init_ee_positions = robot.get_ee_positions(initial_x.as_slice());
+        let init_ee_quats = robot.get_ee_quats(initial_x.as_slice());
 
         let collision_nn = CollisionNN::new(config.nn_main.clone());
 
-        let frames = robot.get_frames(&config.starting_config.clone());
+        let frames = robot.get_frames(&initial_x.clone());
         let env_collision = RelaxedIKEnvCollision::new(config.clone(), &frames);
 
         let environment_mode = config.mode_environment;
@@ -91,7 +101,9 @@ impl RelaxedIKVars {
             goals, init_ee_positions, init_ee_quats, control_mode, collision_nn,
             env_collision, environment_mode, objective_variants}
     }
+}
 
+impl RelaxedIKVars {
     pub fn update_collision_world(&mut self) -> bool {
         let frames = self.robot.get_frames(&self.xopt);
         self.env_collision.update_links(&frames);
