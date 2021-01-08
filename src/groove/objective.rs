@@ -37,14 +37,14 @@ pub trait ObjectiveTrait {
     fn gradient_type(&self) -> usize {return 1}  // manual diff = 0, finite diff = 1
 }
 
-pub struct MatchEEPosGoals {
+pub struct EEPositionMatch {
     pub goal_idx: usize,
     pub arm_idx: usize
 }
-impl MatchEEPosGoals {
+impl EEPositionMatch {
     pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
 }
-impl ObjectiveTrait for MatchEEPosGoals {
+impl ObjectiveTrait for EEPositionMatch {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
         let last_elem = frames[self.arm_idx].0.len() - 1;
         let mut x_val: f64 = 0.0;
@@ -60,14 +60,14 @@ impl ObjectiveTrait for MatchEEPosGoals {
     }
 }
 
-pub struct MatchEEQuatGoals {
+pub struct EEOrientationMatch {
     pub goal_idx: usize,
     pub arm_idx: usize
 }
-impl MatchEEQuatGoals {
+impl EEOrientationMatch {
     pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
 }
-impl ObjectiveTrait for MatchEEQuatGoals {
+impl ObjectiveTrait for EEOrientationMatch {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
         let last_elem = frames[self.arm_idx].1.len() - 1;
         let tmp = Quaternion::new(-frames[self.arm_idx].1[last_elem].w, -frames[self.arm_idx].1[last_elem].i, -frames[self.arm_idx].1[last_elem].j, -frames[self.arm_idx].1[last_elem].k);
@@ -171,7 +171,6 @@ impl ObjectiveTrait for MinimizeVelocity {
         x_val = x_val.sqrt();
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
-
 }
 
 pub struct MinimizeAcceleration;
@@ -214,5 +213,147 @@ impl ObjectiveTrait for MinimizeJerk {
         }
         x_val = x_val.sqrt();
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+}
+
+pub struct EEPositionLiveliness {
+    pub goal_idx: usize,
+    pub arm_idx: usize
+}
+impl EEPositionLiveliness {
+    pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
+}
+impl ObjectiveTrait for EEPositionLiveliness {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+        let x_val:f64 = 0.0;
+        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+    }
+}
+
+pub struct EEOrientationLiveliness {
+    pub goal_idx: usize,
+    pub arm_idx: usize
+}
+impl EEOrientationLiveliness {
+    pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
+}
+impl ObjectiveTrait for EEOrientationLiveliness {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+        let x_val:f64 = 0.0;
+        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+    }
+}
+
+pub struct EEPositionMirroring {
+    pub goal_idx: usize,
+    pub arm_1_idx: usize,
+    pub arm_2_idx: usize
+}
+impl EEPositionMirroring {
+    pub fn new(goal_idx: usize, arm_1_idx: usize, arm_2_idx: usize) -> Self {Self{goal_idx, arm_1_idx, arm_2_idx}}
+}
+impl ObjectiveTrait for EEPositionMirroring {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+        let x_val:f64 = 0.0;
+        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+    }
+}
+
+pub struct EEOrientationMirroring {
+    pub goal_idx: usize,
+    pub arm_1_idx: usize,
+    pub arm_2_idx: usize
+}
+impl EEOrientationMirroring  {
+    pub fn new(goal_idx: usize, arm_1_idx: usize, arm_2_idx: usize) -> Self {Self{goal_idx, arm_1_idx, arm_2_idx}}
+}
+impl ObjectiveTrait for EEOrientationMirroring {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+        let x_val:f64 = 0.0;
+        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+    }
+}
+
+pub struct EEPositionBounding {
+    pub goal_idx: usize,
+    pub arm_idx: usize
+}
+impl EEPositionBounding  {
+    pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
+}
+impl ObjectiveTrait for EEPositionBounding {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+        let x_val:f64 = 0.0;
+        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+    }
+}
+
+pub struct EEOrientationBounding {
+    pub goal_idx: usize,
+    pub arm_idx: usize
+}
+impl EEOrientationBounding  {
+    pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
+}
+impl ObjectiveTrait for EEOrientationBounding {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+        let x_val:f64 = 0.0;
+        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+    }
+}
+
+pub struct JointMatch {
+    pub goal_idx: usize,
+    pub joint_idx: usize
+}
+impl JointMatch  {
+    pub fn new(goal_idx: usize, joint_idx: usize) -> Self {Self{goal_idx, joint_idx}}
+}
+impl ObjectiveTrait for JointMatch {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+        let x_val:f64 = 0.0;
+        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+    }
+}
+
+pub struct JointLiveliness {
+    pub goal_idx: usize,
+    pub joint_idx: usize
+}
+impl JointLiveliness  {
+    pub fn new(goal_idx: usize, joint_idx: usize) -> Self {Self{goal_idx, joint_idx}}
+}
+impl ObjectiveTrait for JointLiveliness {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+        let x_val:f64 = 0.0;
+        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+    }
+}
+
+pub struct JointMirroring  {
+    pub goal_idx: usize,
+    pub joint_1_idx: usize,
+    pub joint_2_idx: usize
+}
+impl JointMirroring  {
+    pub fn new(goal_idx: usize, joint_1_idx: usize, joint_2_idx: usize) -> Self {Self{goal_idx, joint_1_idx, joint_2_idx}}
+}
+impl ObjectiveTrait for JointMirroring {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+        let x_val:f64 = 0.0;
+        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+    }
+}
+
+pub struct RootPositionLiveliness {
+    pub goal_idx: usize
+}
+impl RootPositionLiveliness  {
+    pub fn new(goal_idx: usize) -> Self {Self{goal_idx}}
+}
+impl ObjectiveTrait for RootPositionLiveliness {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+        let x_val:f64 = 0.0;
+        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }

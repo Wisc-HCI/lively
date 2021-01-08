@@ -35,7 +35,7 @@ pub enum ObjectiveVariant {
     MinimizeVelocity,
     MinimizeAcceleration,
     MinimizeJerk,
-    BaseLinkPositionLiveliness,
+    RootPositionLiveliness,
     None
 }
 
@@ -101,7 +101,7 @@ impl From<ObjectiveVariant> for String {
             ObjectiveVariant::MinimizeVelocity => String::from("min_velocity"),
             ObjectiveVariant::MinimizeAcceleration => String::from("min_acceleration"),
             ObjectiveVariant::MinimizeJerk => String::from("min_jerk"),
-            ObjectiveVariant::BaseLinkPositionLiveliness => String::from("base_link_position_liveliness"),
+            ObjectiveVariant::RootPositionLiveliness => String::from("base_link_position_liveliness"),
             ObjectiveVariant::None => String::from("None")
         }
     }
@@ -125,7 +125,7 @@ impl From<String> for ObjectiveVariant {
             "min_velocity" => ObjectiveVariant::MinimizeVelocity,
             "min_acceleration" => ObjectiveVariant::MinimizeAcceleration,
             "min_jerk" => ObjectiveVariant::MinimizeJerk,
-            "base_link_position_liveliness" => ObjectiveVariant::BaseLinkPositionLiveliness,
+            "base_link_position_liveliness" => ObjectiveVariant::RootPositionLiveliness,
             "None" => ObjectiveVariant::None,
             _ => ObjectiveVariant::None // Default to None
         }

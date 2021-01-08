@@ -15,7 +15,7 @@ pub struct ObjectiveSpec {
     #[pyo3(get, set)]
     pub index: Option<usize>,
     #[pyo3(get, set)]
-    pub secondary_index: Option<u64>,
+    pub secondary_index: Option<usize>,
     #[pyo3(get, set)]
     pub scale: Option<f64>,
     #[pyo3(get, set)]
@@ -25,7 +25,7 @@ pub struct ObjectiveSpec {
 #[pymethods]
 impl ObjectiveSpec {
     #[new]
-    fn new(variant: String, weight: f64, index: Option<usize>, secondary_index: Option<u64>, scale: Option<f64>, frequency: Option<f64>) -> Self {
+    fn new(variant: String, weight: f64, index: Option<usize>, secondary_index: Option<usize>, scale: Option<f64>, frequency: Option<f64>) -> Self {
         let variant_enum = ObjectiveVariant::from(variant);
         Self { variant: variant_enum, weight, index, secondary_index, scale, frequency }
     }

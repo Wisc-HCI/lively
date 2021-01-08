@@ -65,6 +65,20 @@ impl Liveliness {
                     sizes.push(size);
                     freqs.push(freq);
                 },
+                ObjectiveVariant::RootPositionLiveliness => {
+                    goals.push(Goal::Vector(Vector3::new(0,0,0)));
+                    seeds.push(Goal::Vector(Vector3::new(rng.gen_range(0..1000),rng.gen_range(0..1000),rng.gen_range(0..1000))));
+                    match objective.scale {
+                        Some(s) => size = s.clone(),
+                        None => {}
+                    }
+                    match objective.frequency {
+                        Some(f) => freq = f.clone(),
+                        None => {}
+                    }
+                    sizes.push(size);
+                    freqs.push(freq);
+                },
                 // None-Objectives or Non-Lively Objectives are ignored.
                 ObjectiveVariant::None => {
                     goals.push(Goal::None);
