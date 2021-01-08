@@ -32,9 +32,11 @@ pub struct LivelyIK {
 impl LivelyIK {
     #[new]
     fn new(config: Config) -> Self {
+        println!("Creating RelaxedIKVars");
         let vars = RelaxedIKVars::new(config.clone());
+        println!("Creating ObjectiveMaster");
         let mut om = ObjectiveMaster::new(config.clone());
-
+        println!("Creating OptimizationEngine");
         let groove = OptimizationEngineOpen::new(vars.robot.num_dof.clone());
         let groove_nlopt = OptimizationEngineNLopt::new();
 

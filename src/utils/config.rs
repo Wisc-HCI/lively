@@ -128,13 +128,7 @@ pub struct Config {
     #[pyo3(get, set)]
     pub static_environment: EnvironmentSpec,
     #[pyo3(get, set)]
-    pub ee_fixed_joints: Vec<String>,
-    #[pyo3(get, set)]
     pub fixed_frame: String,
-    #[pyo3(get, set)]
-    pub fixed_frame_noise_scale: f64,
-    #[pyo3(get, set)]
-    pub fixed_frame_noise_frequency: f64,
     #[pyo3(get, set)]
     pub goals: Vec<GoalConfig>,
     #[pyo3(get, set)]
@@ -145,8 +139,6 @@ pub struct Config {
     pub joint_ordering: Vec<String>,
     #[pyo3(get, set)]
     pub joint_types: Vec<Vec<String>>,
-    // #[pyo3(get, set)]
-    // pub jt_pts: Vec<Vec<f64>>,
     #[pyo3(get, set)]
     pub nn_jointpoint: NNSpec,
     #[pyo3(get, set)]
@@ -176,8 +168,7 @@ pub struct Config {
 impl Config {
     #[new]
     fn new(axis_types: Vec<Vec<String>>, base_link_motion_bounds: Vec<[f64; 2]>, collision_scores: Vec<f64>,
-           static_environment: EnvironmentSpec, ee_fixed_joints: Vec<String>, fixed_frame: String,
-           fixed_frame_noise_scale: f64, fixed_frame_noise_frequency: f64, goals: Vec<GoalConfig>,
+           static_environment: EnvironmentSpec, fixed_frame: String, goals: Vec<GoalConfig>,
            joint_limits: Vec<[f64; 2]>, joint_names: Vec<Vec<String>>, joint_ordering: Vec<String>,
            joint_types: Vec<Vec<String>>, mode_control: String, mode_environment: String,
            nn_jointpoint: NNSpec, nn_main: NNSpec, objectives: Vec<ObjectiveSpec>, states: Vec<Vec<f64>>,
@@ -189,11 +180,12 @@ impl Config {
        let mode_control_setting = ControlMode::from(mode_control);
        let mode_env_setting = EnvironmentMode::from(mode_environment);
 
-       Self { axis_types, base_link_motion_bounds, collision_scores, static_environment, ee_fixed_joints, fixed_frame, fixed_frame_noise_scale,
-              fixed_frame_noise_frequency, goals, joint_limits, joint_names, joint_ordering,
-              joint_types, mode_control: mode_control_setting, mode_environment: mode_env_setting,
-              nn_jointpoint, nn_main, objectives, states, robot_link_radius, rot_offsets, starting_config,
-              urdf, velocity_limits, disp_offsets: disp_offset_vectors, displacements: displacement_vectors }
+       Self { axis_types, base_link_motion_bounds, collision_scores, static_environment,
+              fixed_frame, goals, joint_limits, joint_names, joint_ordering, joint_types,
+              mode_control: mode_control_setting, mode_environment: mode_env_setting,
+              nn_jointpoint, nn_main, objectives, states, robot_link_radius, rot_offsets,
+              starting_config, urdf, velocity_limits, disp_offsets: disp_offset_vectors,
+              displacements: displacement_vectors }
     }
 
     #[getter]
