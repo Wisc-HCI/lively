@@ -347,16 +347,6 @@ impl JointMatch  {
 impl ObjectiveTrait for JointMatch {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
         let mut x_val:f64 = 0.0;
-        match v.liveliness.goals[self.goal_idx] {
-            // goal must be a vector
-            Goal::Scalar(noise_val) => {
-                // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
-                // NOTE: xopt_core.len() == joints.len(), whereas x.len() == joints.len()+3
-                let lively_goal = v.xopt_core[self.joint_idx] + noise_val;
-                x_val = (lively_goal-x[self.joint_idx+3]).abs();
-            },
-            _ => {} // Some odd condition where incorrect input was provided
-        }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
@@ -372,6 +362,16 @@ impl JointLiveliness  {
 impl ObjectiveTrait for JointLiveliness {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
         let x_val:f64 = 0.0;
+        match v.liveliness.goals[self.goal_idx] {
+            // goal must be a vector
+            Goal::Scalar(noise_val) => {
+                // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
+                // NOTE: xopt_core.len() == joints.len(), whereas x.len() == joints.len()+3
+                let lively_goal = v.xopt_core[self.joint_idx] + noise_val;
+                x_val = (lively_goal-x[self.joint_idx+3]).abs();
+            },
+            _ => {} // Some odd condition where incorrect input was provided
+        }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
