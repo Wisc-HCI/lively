@@ -2,6 +2,7 @@ use nalgebra::{UnitQuaternion, Vector3, Point3};
 // use crate::utils::yaml_utils::{*};
 use crate::spacetime::robot::Robot;
 use crate::groove::collision_nn::CollisionNN;
+use crate::groove::liveliness::Liveliness;
 use crate::utils::sampler::ThreadRobotSampler;
 use crate::utils::config::{*};
 use crate::utils::settings::{*};
@@ -16,29 +17,6 @@ use ncollide3d::shape::{*};
 use std::ops::Deref;
 use pyo3::prelude::*;
 
-// #[derive(Clone, Debug)]
-// pub struct Vars {
-//     pub init_state: Vec<f64>,
-//     pub xopt: Vec<f64>,
-//     pub offset: Vec<f64>,
-//     pub prev_state: Vec<f64>,
-//     pub prev_state2: Vec<f64>,
-//     pub prev_state3: Vec<f64>
-// }
-// impl Vars {
-//     pub fn new(init_state: Vec<f64>) -> Self {
-//         Vars{init_state: init_state.clone(), xopt: init_state.clone(), offset: vec![0,0,0], prev_state: init_state.clone(),
-//             prev_state2: init_state.clone(), prev_state3: init_state.clone()}
-//     }
-//
-//     pub fn update(&mut self, xopt: Vec<f64>) {
-//         self.prev_state3 = self.prev_state2.clone();
-//         self.prev_state2 = self.prev_state.clone();
-//         self.prev_state = self.xopt.clone();
-//         self.xopt = xopt.clone();
-//     }
-// }
-
 #[pyclass]
 pub struct RelaxedIKVars {
     pub robot: Robot,
@@ -46,10 +24,12 @@ pub struct RelaxedIKVars {
     pub init_state: Vec<f64>,
     pub xopt: Vec<f64>,
     pub xopt_core: Vec<f64>,
+    pub frames_core: Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
     pub offset: Vec<f64>,
     pub history: History,
     pub history_core: History,
     pub goals: Vec<GoalSpec>,
+    pub liveliness: Liveliness,
     pub init_ee_positions: Vec<Vector3<f64>>,
     pub init_ee_quats: Vec<UnitQuaternion<f64>>,
     pub collision_nn: CollisionNN,
@@ -91,14 +71,16 @@ impl RelaxedIKVars {
         let control_mode = config.mode_control;
 
         let mut objective_variants: Vec<ObjectiveVariant> = Vec::new();
-        for objective in config.objectives {
+        for objective in config.objectives.clone() {
             objective_variants.push(objective.variant)
         }
 
+        let liveliness:Liveliness = Liveliness::new(config.objectives.clone());
+
         RelaxedIKVars{robot, sampler, init_state: config.starting_config.clone(), xopt: config.starting_config.clone(),
-            xopt_core: config.starting_config.clone(), offset: vec![0.0,0.0,0.0],
+            xopt_core: config.starting_config.clone(), frames_core: frames, offset: vec![0.0,0.0,0.0],
             history: History::new(config.starting_config.clone()), history_core: History::new(config.starting_config.clone()),
-            goals, init_ee_positions, init_ee_quats, control_mode, collision_nn,
+            goals, liveliness, init_ee_positions, init_ee_quats, control_mode, collision_nn,
             env_collision, environment_mode, objective_variants}
     }
 }

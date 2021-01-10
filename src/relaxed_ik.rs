@@ -76,6 +76,7 @@ impl LivelyIK {
             }
             self.vars.xopt_core = out_x_core.clone();
             self.vars.history_core.update(out_x_core.clone());
+            self.vars.frames_core = self.vars.robot.get_frames(&out_x_core.clone());
 
             // Run with liveliness (all objectives)
             self.groove.optimize(&mut xopt, &self.vars, &self.om, 100, false);

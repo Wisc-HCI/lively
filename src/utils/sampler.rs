@@ -81,7 +81,7 @@ impl ThreadSampler for ThreadRangeSampler {
         let mut v =  DVector::from_element(self.dim, 0.0);
         let mut rng = rand::thread_rng();
         for i in 0..self.dim {
-            v[i] = rng.gen_range(self.lower_bound, self.upper_bound);
+            v[i] = rng.gen_range(self.lower_bound..self.upper_bound);
         }
         v
     }
@@ -134,7 +134,7 @@ impl ThreadSampler for ThreadRobotSampler {
         let mut rng = rand::thread_rng();
         let mut v =  DVector::from_element(self.dim, 0.0);
         for i in 0..self.dim {
-            v[i] = rng.gen_range(self.robot.bounds[i][0], self.robot.bounds[i][1]);
+            v[i] = rng.gen_range(self.robot.bounds[i][0]..self.robot.bounds[i][1]);
         }
         v
     }

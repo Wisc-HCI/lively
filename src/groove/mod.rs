@@ -6,3 +6,4 @@ pub mod gradient;
 pub mod collision_nn;
 pub mod objective_master;
 pub mod env_collision;
+pub mod liveliness;

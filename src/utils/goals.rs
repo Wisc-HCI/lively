@@ -18,7 +18,7 @@ fn quat_to_vec(value: UnitQuaternion<f64>) -> Vec<f64> {
     return vec![value[0],value[1],value[2],value[3]]
 }
 
-#[derive(Clone,Debug)]
+#[derive(Clone,Copy,Debug)]
 pub enum Goal {
     Scalar(f64), // input is a float
     Vector(Vector3<f64>), // input is a 3-vector
@@ -27,7 +27,7 @@ pub enum Goal {
 }
 
 #[pyclass]
-#[derive(Clone,Debug)]
+#[derive(Clone,Copy,Debug)]
 pub struct GoalSpec {
     #[pyo3(get, set)]
     pub weight: Option<f64>,

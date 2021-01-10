@@ -217,6 +217,7 @@ impl ObjectiveTrait for MinimizeJerk {
 }
 
 pub struct EEPositionLiveliness {
+    // Adds position liveliness to the specified end effector
     pub goal_idx: usize,
     pub arm_idx: usize
 }
@@ -224,13 +225,26 @@ impl EEPositionLiveliness {
     pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
 }
 impl ObjectiveTrait for EEPositionLiveliness {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
-        let x_val:f64 = 0.0;
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: &bool) -> f64 {
+        let last_elem = frames[self.arm_idx].0.len() - 1;
+        let mut x_val: f64 = 0.0;
+        if *is_core == false {
+            match v.liveliness.goals[self.goal_idx] {
+                // The goal must be a 3-vector.
+                Goal::Vector(noise_vec) => {
+                    // The error is the difference between the current value and the noise-augmented position solved previously w/o noise.
+                    x_val = ( frames[self.arm_idx].0[last_elem] - (v.frames_core[self.arm_idx].0[last_elem]+noise_vec) ).norm();
+                },
+                // Ignore if it isn't
+                _ => {}
+            }
+        }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
 
 pub struct EEOrientationLiveliness {
+    // Adds orientation liveliness to the specified end effector
     pub goal_idx: usize,
     pub arm_idx: usize
 }
@@ -239,12 +253,29 @@ impl EEOrientationLiveliness {
 }
 impl ObjectiveTrait for EEOrientationLiveliness {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
-        let x_val:f64 = 0.0;
+        let last_elem = frames[self.arm_idx].1.len() - 1;
+        // Since there are 2 ways to measure the distance around the unit sphere of orientations,
+        // calculate actual orientation of the end effector both ways.
+        let tmp = Quaternion::new(-frames[self.arm_idx].1[last_elem].w, -frames[self.arm_idx].1[last_elem].i, -frames[self.arm_idx].1[last_elem].j, -frames[self.arm_idx].1[last_elem].k);
+        let ee_quat2 = UnitQuaternion::from_quaternion(tmp);
+        let mut x_val: f64 = 0.0;
+        match v.liveliness.goals[self.goal_idx] {
+            // goal must be a vector
+            Goal::Vector(noise_vec) => {
+                // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
+                let lively_goal = quaternion_exp(quaternion_log(v.frames_core[self.arm_idx].1[last_elem]) + noise_vec);
+                let disp = angle_between(lively_goal, frames[self.arm_idx].1[last_elem]);
+                let disp2 = angle_between(lively_goal, ee_quat2);
+                x_val = disp.min(disp2);
+            },
+            _ => {} // Some odd condition where incorrect input was provided
+        }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
 
 pub struct EEPositionMirroring {
+    // Matches the position between two joints, with a difference according to the Vector3 provided in goals.
     pub goal_idx: usize,
     pub arm_1_idx: usize,
     pub arm_2_idx: usize
@@ -260,6 +291,7 @@ impl ObjectiveTrait for EEPositionMirroring {
 }
 
 pub struct EEOrientationMirroring {
+    // Matches the orientation between two joints, with a difference according to the Vector3 provided in goals.
     pub goal_idx: usize,
     pub arm_1_idx: usize,
     pub arm_2_idx: usize
@@ -275,6 +307,7 @@ impl ObjectiveTrait for EEOrientationMirroring {
 }
 
 pub struct EEPositionBounding {
+    // Bounds the position within a region according to the input provided in goals.
     pub goal_idx: usize,
     pub arm_idx: usize
 }
@@ -289,6 +322,7 @@ impl ObjectiveTrait for EEPositionBounding {
 }
 
 pub struct EEOrientationBounding {
+    // Bounds the orientation within a region on the unit sphere according to the input provided in goals.
     pub goal_idx: usize,
     pub arm_idx: usize
 }
@@ -303,6 +337,7 @@ impl ObjectiveTrait for EEOrientationBounding {
 }
 
 pub struct JointMatch {
+    // Sets a joint to a value given in scalar goal
     pub goal_idx: usize,
     pub joint_idx: usize
 }
@@ -311,12 +346,23 @@ impl JointMatch  {
 }
 impl ObjectiveTrait for JointMatch {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
-        let x_val:f64 = 0.0;
+        let mut x_val:f64 = 0.0;
+        match v.liveliness.goals[self.goal_idx] {
+            // goal must be a vector
+            Goal::Scalar(noise_val) => {
+                // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
+                // NOTE: xopt_core.len() == joints.len(), whereas x.len() == joints.len()+3
+                let lively_goal = v.xopt_core[self.joint_idx] + noise_val;
+                x_val = (lively_goal-x[self.joint_idx+3]).abs();
+            },
+            _ => {} // Some odd condition where incorrect input was provided
+        }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
 
 pub struct JointLiveliness {
+    // Adds joint liveliness
     pub goal_idx: usize,
     pub joint_idx: usize
 }
@@ -331,6 +377,7 @@ impl ObjectiveTrait for JointLiveliness {
 }
 
 pub struct JointMirroring  {
+    // Match joint values according to the difference specified in goals
     pub goal_idx: usize,
     pub joint_1_idx: usize,
     pub joint_2_idx: usize
@@ -346,6 +393,7 @@ impl ObjectiveTrait for JointMirroring {
 }
 
 pub struct RootPositionLiveliness {
+    // Adds position liveliness to the root node (first three entries in x are these values)
     pub goal_idx: usize
 }
 impl RootPositionLiveliness  {
