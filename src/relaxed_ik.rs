@@ -43,7 +43,7 @@ impl LivelyIK {
         Self { config, vars, om, groove, groove_nlopt }
     }
 
-    fn solve(&mut self, goals: Vec<GoalSpec>, time: f64, world: Option<EnvironmentSpec>, _precise: bool) -> PyResult<Vec<f64>> {
+    fn solve(&mut self, goals: Vec<GoalSpec>, time: f64, world: Option<EnvironmentSpec>, _precise: Option<bool>) -> PyResult<Vec<f64>> {
         let mut out_x = self.vars.xopt.clone();
         let mut out_x_core = self.vars.xopt_core.clone();
         let mut xopt = self.vars.offset.clone();
@@ -73,7 +73,7 @@ impl LivelyIK {
             None => {}
         }
 
-        let in_collision = self.vars.update_collision_world();
+        let in_collision = false;//self.vars.update_collision_world();
         if !in_collision {
             if self.config.mode_environment == EnvironmentMode::ECAA {
                 self.om.tune_weight_priors(&self.vars);
@@ -85,7 +85,7 @@ impl LivelyIK {
             }
             self.vars.xopt_core = out_x_core.clone();
             self.vars.history_core.update(out_x_core.clone());
-            self.vars.frames_core = self.vars.robot.get_frames(&out_x_core.clone());
+            self.vars.frames_core = self.vars.robot.get_frames(&xopt_core.clone());
 
             // Run with liveliness (all objectives)
             self.groove.optimize(&mut xopt, &self.vars, &self.om, 100, false);

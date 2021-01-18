@@ -53,7 +53,7 @@ impl ObjectiveTrait for EEPositionMatch {
             Goal::Vector(goal_vec) => {
                 x_val = ( frames[self.arm_idx].0[last_elem] - goal_vec ).norm();
             },
-            _ => {} // Some odd condition where incorrect input was provided
+            _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
 
         groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
@@ -79,7 +79,7 @@ impl ObjectiveTrait for EEOrientationMatch {
                 let disp2 = angle_between(goal_quat, ee_quat2);
                 x_val = disp.min(disp2);
             },
-            _ => {} // Some odd condition where incorrect input was provided
+            _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
 
         groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
@@ -175,8 +175,8 @@ pub struct MinimizeVelocity;
 impl ObjectiveTrait for MinimizeVelocity {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
         let mut x_val = 0.0;
-        for i in 0..x.len() {
-           x_val += (x[i] - v.xopt[i]).powi(2);
+        for i in 3..x.len() {
+           x_val += (x[i] - v.xopt[i-3]).powi(2);
         }
         x_val = x_val.sqrt();
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
@@ -187,13 +187,13 @@ pub struct MinimizeAcceleration;
 impl ObjectiveTrait for MinimizeAcceleration {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: &bool) -> f64 {
         let mut x_val = 0.0;
-        for i in 0..x.len() {
-            let v1 = x[i] - v.xopt[i];
+        for i in 3..x.len() {
+            let v1 = x[i] - v.xopt[i-3];
             let v2:f64;
             if *is_core {
-                v2 = v.xopt[i] - v.history_core.prev1[i];
+                v2 = v.xopt[i-3] - v.history_core.prev1[i-3];
             } else {
-                v2 = v.xopt[i] - v.history.prev1[i];
+                v2 = v.xopt[i-3] - v.history.prev1[i-3];
             }
             x_val += (v1 - v2).powi(2);
         }
@@ -206,16 +206,16 @@ pub struct MinimizeJerk;
 impl ObjectiveTrait for MinimizeJerk {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: &bool) -> f64 {
         let mut x_val = 0.0;
-        for i in 0..x.len() {
-            let v1 = x[i] - v.xopt[i];
+        for i in 3..x.len() {
+            let v1 = x[i] - v.xopt[i-3];
             let v2:f64;
             let v3:f64;
             if *is_core {
-                v2 = v.xopt[i] - v.history_core.prev1[i];
-                v3 = v.history_core.prev1[i] - v.history_core.prev2[i];
+                v2 = v.xopt[i-3] - v.history_core.prev1[i-3];
+                v3 = v.history_core.prev1[i-3] - v.history_core.prev2[i-3];
             } else {
-                v2 = v.xopt[i] - v.history.prev1[i];
-                v3 = v.history.prev1[i] - v.history.prev2[i];
+                v2 = v.xopt[i-3] - v.history.prev1[i-3];
+                v3 = v.history.prev1[i-3] - v.history.prev2[i-3];
             }
             let a1 = v1 - v2;
             let a2 = v2 - v3;
@@ -246,7 +246,7 @@ impl ObjectiveTrait for EEPositionLiveliness {
                     x_val = ( frames[self.arm_idx].0[last_elem] - (v.frames_core[self.arm_idx].0[last_elem]+noise_vec) ).norm();
                 },
                 // Ignore if it isn't
-                _ => {}
+                _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)}
             }
         }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
@@ -278,7 +278,7 @@ impl ObjectiveTrait for EEOrientationLiveliness {
                 let disp2 = angle_between(lively_goal, ee_quat2);
                 x_val = disp.min(disp2);
             },
-            _ => {} // Some odd condition where incorrect input was provided
+            _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
@@ -313,7 +313,7 @@ impl ObjectiveTrait for EEPositionMirroring {
                 let arm_2_pos = frames[self.arm_2_idx].0[last_elem_arm_2];
                 x_val = (arm_1_pos-arm_2_pos).norm();
             }
-            _ => {} // Some odd condition where incorrect input was provided
+            _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
@@ -351,7 +351,7 @@ impl ObjectiveTrait for EEOrientationMirroring {
                 let disp2 = angle_between(v.frames_core[self.arm_1_idx].1[last_elem_arm_1], ee_2_quat2);
                 x_val = disp.min(disp2);
             }
-            _ => {} // Some odd condition where incorrect input was provided
+            _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
@@ -405,7 +405,7 @@ impl ObjectiveTrait for JointMatch {
                 // NOTE: xopt_core.len() == joints.len(), whereas x.len() == joints.len()+3
                 x_val = (goal_val-x[self.joint_idx+3]).abs();
             },
-            _ => {} // Some odd condition where incorrect input was provided
+            _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
@@ -430,7 +430,7 @@ impl ObjectiveTrait for JointLiveliness {
                 let lively_goal = v.xopt_core[self.joint_idx] + noise_val;
                 x_val = (lively_goal-x[self.joint_idx+3]).abs();
             },
-            _ => {} // Some odd condition where incorrect input was provided
+            _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
@@ -459,7 +459,7 @@ impl ObjectiveTrait for JointMirroring {
             Goal::None => {
                 x_val = (x[self.joint_1_idx+3]-x[self.joint_2_idx+3]).abs();
             }
-            _ => {} // Some odd condition where incorrect input was provided
+            _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
@@ -483,7 +483,7 @@ impl ObjectiveTrait for RootPositionLiveliness {
                     x_val = ( Vector3::new(x[0],x[1],x[2]) - noise_vec ).norm();
                 },
                 // Ignore if it isn't
-                _ => {}
+                _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)}
             }
         }
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
