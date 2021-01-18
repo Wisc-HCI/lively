@@ -6,7 +6,7 @@ use crate::groove::objective_master::ObjectiveMaster;
 // use crate::utils::subscriber_utils::EEPoseGoalsSubscriber;
 // use crate::utils::transformations::{*};
 // use crate::utils::yaml_utils::{*};
-use crate::utils::config::Config;
+use crate::utils::config::{Config,EnvironmentSpec};
 use crate::utils::goals::GoalSpec;
 use crate::utils::settings::{*};
 // use crate::utils::sampler::ThreadSampler;
@@ -43,7 +43,7 @@ impl LivelyIK {
         Self { config, vars, om, groove, groove_nlopt }
     }
 
-    fn solve(&mut self, goals: Vec<GoalSpec>, _precise: bool) -> PyResult<Vec<f64>> {
+    fn solve(&mut self, goals: Vec<GoalSpec>, time: f64, world: Option<EnvironmentSpec>, _precise: bool) -> PyResult<Vec<f64>> {
         let mut out_x = self.vars.xopt.clone();
         let mut out_x_core = self.vars.xopt_core.clone();
         let mut xopt = self.vars.offset.clone();
@@ -63,6 +63,15 @@ impl LivelyIK {
         }
 
         self.vars.goals = goals.clone();
+        self.vars.liveliness.update(time);
+        match world {
+            // Update the collision world
+            Some(env) => {
+
+            },
+            // Keep the same one as previous
+            None => {}
+        }
 
         let in_collision = self.vars.update_collision_world();
         if !in_collision {
