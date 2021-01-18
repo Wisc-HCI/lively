@@ -1,6 +1,25 @@
-# relaxed_ik_core
+# lively_ik_core
 ## About
-This is the core part of RelaxedIK solver. Here is the project page that has more information about RelaxedIK that you may want to know about: https://uwgraphics.github.io/relaxed_ik_core/
+
+This is the core part of LivelyIK solver. For information about LivelyIK, see the Github page for that package.
+
+To build, download and `cd` to this directory. Then run:
+
+```
+# If you just want to install:
+python3 setup.py install
+
+
+# Or if you are developing:
+python3 setup.py develop
+
+# If you are developing and need to rebuild:
+python3 setup.py clean && python3 setup.py develop
+```
+
+You will need this installed to use the ROS2 LivelyIK Package.
+
+**OLD CONTENT BELOW:**
 
 RelaxedIK is an inverse kinematics (IK) solver designed for robot platforms such that the conversion between Cartesian end-effector pose goals (such as "move the robot's right arm end-effector to position X, while maintaining an end-effector orientation Y") to Joint-Space (i.e., the robot's rotation values for each joint degree-of-freedom at a particular time-point) is done both ACCURATELY and FEASIBLY.  By this, we mean that RelaxedIK attempts to find the closest possible solution to the desired end-effector pose goals without exhibiting negative effects such as self-collisions, environment collisions, kinematic-singularities, or joint-space discontinuities.
 
@@ -17,11 +36,11 @@ Usually you don't want to run this repo directly (although it is runnable, pleas
 To use relaxed_ik_core and all the wrappers that include relaxed_ik_core, you will first need to install Rust. Please go to https://www.rust-lang.org/learn/get-started for more infomation.
 
 ## Configuration
-All the configurations are set up in [relaxed_ik_core/config/settings.yaml](https://github.com/uwgraphics/relaxed_ik_core/blob/dev/config/settings.yaml). Please take a look at this file before you try to run the solver. More detailed instructions are provided there. 
+All the configurations are set up in [relaxed_ik_core/config/settings.yaml](https://github.com/uwgraphics/relaxed_ik_core/blob/dev/config/settings.yaml). Please take a look at this file before you try to run the solver. More detailed instructions are provided there.
 
 ## Run
 1. relaxed_ik_core is runnable on both linux and windows machines.
-2. Enter the interactive mode by running: 
+2. Enter the interactive mode by running:
 	```
 	cargo run --bin relaxed_ik_bin
 	```

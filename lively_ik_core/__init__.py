@@ -1,7 +1,7 @@
 from .lively_ik_core import *
 
 CONFIG_FIELDS = {
-        'axis_types', 'base_link_motion_bounds', 'collision_scores', 'static_environment',
+        'axis_types', 'base_link_motion_bounds', 'ee_fixed_joints', 'static_environment',
         'fixed_frame','goals', 'joint_limits', 'joint_names', 'joint_ordering','joint_types',
         'mode_control', 'mode_environment','nn_jointpoint', 'nn_main', 'objectives',
         'states', 'robot_link_radius', 'rot_offsets', 'starting_config','urdf',
