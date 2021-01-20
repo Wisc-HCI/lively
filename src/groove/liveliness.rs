@@ -104,14 +104,14 @@ impl Liveliness {
             match (self.goals[i],self.seeds[i]) {
                 // If the goal is a scalar
                 (Goal::Scalar(goal),Goal::Scalar(seed)) => {
-                    self.goals[i] = Goal::Scalar(self.perlin.get([time/self.freqs[i], seed, 500.0*((time/self.freqs[i]+seed)/500.0).sin()]))
+                    self.goals[i] = Goal::Scalar(self.perlin.get([time/self.freqs[i], seed, 500.0*((time/self.freqs[i]+seed)/500.0).sin()]));
                 },
                 // If the goal is a 3-vector
                 (Goal::Vector(goal),Goal::Vector(seed)) => {
                     self.goals[i] = Goal::Vector(Vector3::new(self.perlin.get([time/self.freqs[i], seed[0], 500.0*((time/self.freqs[i]+seed[0])/500.0).sin()]),
                                                               self.perlin.get([time/self.freqs[i], seed[1], 500.0*((time/self.freqs[i]+seed[1])/500.0).sin()]),
                                                               self.perlin.get([time/self.freqs[i], seed[2], 500.0*((time/self.freqs[i]+seed[2])/500.0).sin()])
-                                                          ))
+                                                          ));
                 },
                 // Ignore anything else
                 _ => {}

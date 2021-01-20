@@ -1,5 +1,3 @@
-// use crate::groove::{vars};
-// use crate::groove::env_collision::{*};
 use crate::utils::transformations::{*};
 use crate::utils::goals::{*};
 // use std::cmp;
@@ -55,7 +53,7 @@ impl ObjectiveTrait for EEPositionMatch {
             },
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
-
+        // println!("EEPositionMatch error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
@@ -81,7 +79,7 @@ impl ObjectiveTrait for EEOrientationMatch {
             },
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
-
+        // println!("EEOrientationMatch error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
@@ -95,6 +93,7 @@ impl ObjectiveTrait for NNSelfCollision {
             input_vec.push(xvec[i])
         }
         let mut x_val = v.collision_nn.predict(&input_vec);
+        // println!("NNSelfCollision error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 2.1, 0.0002, 4)
     }
 
@@ -149,7 +148,7 @@ impl ObjectiveTrait for EnvCollision {
 
         // let end = PreciseTime::now();
         // println!("Obstacles calculating takes {}", start.to(end));
-
+        // println!("EnvCollision error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
@@ -160,13 +159,14 @@ impl ObjectiveTrait for JointLimits {
         let mut sum = 0.0;
         let penalty_cutoff: f64 = 0.9;
         let a = 0.05 / (penalty_cutoff.powi(50));
-        for i in 0..v.robot.num_dof {
-            let l = v.robot.bounds[i][0];
-            let u = v.robot.bounds[i][1];
+        for i in 0..v.robot.lower_bounds.len() {
+            let l = v.robot.lower_bounds[i];
+            let u = v.robot.upper_bounds[i];
             let r = (x[i] - l) / (u - l);
             let n = 2.0 * (r - 0.5);
             sum += a*n.powf(50.);
         }
+        // println!("JointLimits error: {:?}",sum);
         groove_loss(sum, 0.0, 2, 0.32950, 0.1, 2)
     }
 }
@@ -179,6 +179,7 @@ impl ObjectiveTrait for MinimizeVelocity {
            x_val += (x[i] - v.xopt[i-3]).powi(2);
         }
         x_val = x_val.sqrt();
+        // println!("MinimizeVelocity error: {:?}",x_val);
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
@@ -198,6 +199,7 @@ impl ObjectiveTrait for MinimizeAcceleration {
             x_val += (v1 - v2).powi(2);
         }
         x_val = x_val.sqrt();
+        // println!("MinimizeAcceleration error: {:?}",x_val);
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
@@ -222,6 +224,7 @@ impl ObjectiveTrait for MinimizeJerk {
             x_val += (a1 - a2).powi(2);
         }
         x_val = x_val.sqrt();
+        // println!("MinimizeJerk error: {:?}",x_val);
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
@@ -249,6 +252,7 @@ impl ObjectiveTrait for EEPositionLiveliness {
                 _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)}
             }
         }
+        // println!("EEPositionLiveliness error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
@@ -280,6 +284,7 @@ impl ObjectiveTrait for EEOrientationLiveliness {
             },
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
+        // println!("EEOrientationLiveliness error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
@@ -315,6 +320,7 @@ impl ObjectiveTrait for EEPositionMirroring {
             }
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
+        // println!("EEPositionMirroring error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
@@ -353,6 +359,7 @@ impl ObjectiveTrait for EEOrientationMirroring {
             }
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
+        // println!("EEOrientationMirroring error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
@@ -407,6 +414,7 @@ impl ObjectiveTrait for JointMatch {
             },
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
+        // println!("JointMatch error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
@@ -432,6 +440,7 @@ impl ObjectiveTrait for JointLiveliness {
             },
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
+        // println!("JointLiveliness error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
@@ -461,6 +470,7 @@ impl ObjectiveTrait for JointMirroring {
             }
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
+        // println!("JointMirroring error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }
@@ -486,6 +496,7 @@ impl ObjectiveTrait for RootPositionLiveliness {
                 _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)}
             }
         }
+        // println!("RootPositionLiveliness error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
     }
 }

@@ -10,7 +10,7 @@ pub struct OptimizationEngineOpen {
 }
 impl OptimizationEngineOpen {
     pub fn new(dim: usize) -> Self {
-        let mut cache = PANOCCache::new(dim+3, 1e-14, 10);
+        let mut cache = PANOCCache::new(dim, 1e-14, 10);
         OptimizationEngineOpen { dim, cache }
     }
 
@@ -34,13 +34,10 @@ impl OptimizationEngineOpen {
         /* PROBLEM STATEMENT */
         let problem = Problem::new(&bounds, df, f);
         let mut panoc = PANOCOptimizer::new(problem, &mut self.cache).with_max_iter(max_iter).with_tolerance(0.0005);
-        // let mut panoc = PANOCOptimizer::new(problem, &mut self.cache);
 
         // Invoke the solver
         let status = panoc.solve(x);
-
-        // println!("Panoc status: {:#?}", status);
-        // println!("Panoc solution: {:#?}", x);
+        // println!("Status: {:?}",status);
     }
 }
 

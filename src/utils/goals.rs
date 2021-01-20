@@ -104,4 +104,24 @@ impl GoalSpec {
         return Ok(())
     }
 
+    fn __str__(&self) -> PyResult<String> {
+        let mut response: String = String::from("<null>");
+        let mut weight: String = String::from("null");
+        match self.weight {
+            Some(w) => {weight = format!("{:?}",w)},
+            None => {}
+        }
+        match self.value {
+            Goal::Scalar(s) => response = format!("<GoalSpec weight: {:?}, scalar: {:?}>", weight, s),
+            Goal::Vector(v) => response = format!("<GoalSpec weight: {:?}, vector: {:?},{:?},{:?}>", weight, v.x, v.y, v.z),
+            Goal::Quaternion(q) => response = format!("<GoalSpec weight: {:?}, quaternion: {:?},{:?},{:?},{:?}>", weight, q[0], q[1], q[2], q[3]),
+            Goal::None => {}
+        }
+        return Ok(response)
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        return self.__str__()
+    }
+
 }

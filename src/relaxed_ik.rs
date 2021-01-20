@@ -7,7 +7,7 @@ use crate::groove::objective_master::ObjectiveMaster;
 // use crate::utils::transformations::{*};
 // use crate::utils::yaml_utils::{*};
 use crate::utils::config::{Config,EnvironmentSpec};
-use crate::utils::goals::GoalSpec;
+use crate::utils::goals::{Goal,GoalSpec};
 use crate::utils::settings::{*};
 // use crate::utils::sampler::ThreadSampler;
 // use nalgebra::{Vector3, UnitQuaternion, Quaternion};
@@ -37,16 +37,20 @@ impl LivelyIK {
         println!("Creating ObjectiveMaster");
         let mut om = ObjectiveMaster::new(config.clone());
         println!("Creating OptimizationEngine");
-        let groove = OptimizationEngineOpen::new(vars.robot.num_dof.clone());
+        let groove = OptimizationEngineOpen::new(vars.robot.num_dof.clone()+3);
         let groove_nlopt = OptimizationEngineNLopt::new();
 
         Self { config, vars, om, groove, groove_nlopt }
     }
 
     fn solve(&mut self, goals: Vec<GoalSpec>, time: f64, world: Option<EnvironmentSpec>, _precise: Option<bool>) -> PyResult<Vec<f64>> {
+        // Will be the output of solve. N=num_dof
         let mut out_x = self.vars.xopt.clone();
+        // Will be the output of solving for core. N=num_dof
         let mut out_x_core = self.vars.xopt_core.clone();
+        // Will be the output of the optimization. N=num_dof+3
         let mut xopt = self.vars.offset.clone();
+        // Will be the output of the core optimization. N=num_dof+3
         let mut xopt_core = vec![0.0,0.0,0.0];
 
         for i in 0..out_x.len() {
@@ -58,12 +62,26 @@ impl LivelyIK {
         }
 
         if goals.len() != self.config.objectives.len() {
-            println!("Mismatch between goals (n={:?}) and objectives (n={:?})", goals.len(), self.config.objectives);
+            println!("Mismatch between goals (n={:?}) and objectives (n={:?})", goals.len(), self.config.objectives.len());
             return Ok(out_x);
         }
 
-        self.vars.goals = goals.clone();
+        for goal_idx in 0..goals.clone().len() {
+            match goals[goal_idx].weight {
+                Some(weight) => self.om.weight_priors[goal_idx] = weight,
+                None => {}
+            }
+            match goals[goal_idx].value {
+                // Only update if the goal is specified.
+                Goal::None => {},
+                _ => {self.vars.goals[goal_idx].value = goals[goal_idx].value}
+            }
+        }
+
+        println!("Updated Goals {:?}",self.vars.goals);
+
         self.vars.liveliness.update(time);
+
         match world {
             // Update the collision world
             Some(env) => {
