@@ -26,6 +26,7 @@ impl Liveliness {
             let mut freq:f64 = 1.0;
             match objective.variant {
                 ObjectiveVariant::EEPositionLiveliness => {
+                    // println!("EEPositionLiveliness added");
                     goals.push(Goal::Vector(Vector3::new(0.0,0.0,0.0)));
                     seeds.push(Goal::Vector(Vector3::new(f64::from(rng.gen_range(0..1000)),f64::from(rng.gen_range(0..1000)),f64::from(rng.gen_range(0..1000)))));
                     match objective.scale {
@@ -40,6 +41,7 @@ impl Liveliness {
                     freqs.push(freq);
                 },
                 ObjectiveVariant::EEOrientationLiveliness => {
+                    // println!("EEOrientationLiveliness added");
                     goals.push(Goal::Vector(Vector3::new(0.0,0.0,0.0)));
                     seeds.push(Goal::Vector(Vector3::new(f64::from(rng.gen_range(0..1000)),f64::from(rng.gen_range(0..1000)),f64::from(rng.gen_range(0..1000)))));
                     match objective.scale {
@@ -54,6 +56,7 @@ impl Liveliness {
                     freqs.push(freq);
                 },
                 ObjectiveVariant::JointLiveliness => {
+                    // println!("JointLiveliness added");
                     goals.push(Goal::Scalar(0.0));
                     seeds.push(Goal::Scalar(f64::from(rng.gen_range(0..1000))));
                     match objective.scale {
@@ -68,6 +71,7 @@ impl Liveliness {
                     freqs.push(freq);
                 },
                 ObjectiveVariant::RootPositionLiveliness => {
+                    // println!("RootPositionLiveliness added");
                     goals.push(Goal::Vector(Vector3::new(0.0,0.0,0.0)));
                     seeds.push(Goal::Vector(Vector3::new(f64::from(rng.gen_range(0..1000)),f64::from(rng.gen_range(0..1000)),f64::from(rng.gen_range(0..1000)))));
                     match objective.scale {
@@ -83,12 +87,14 @@ impl Liveliness {
                 },
                 // None-Objectives or Non-Lively Objectives are ignored.
                 ObjectiveVariant::None => {
+                    // println!("Non-Liveliness (None) objective added");
                     goals.push(Goal::None);
                     seeds.push(Goal::None);
                     sizes.push(1.0);
                     freqs.push(1.0);
                 },
                 _ => {
+                    // println!("Non-Liveliness objective added");
                     goals.push(Goal::None);
                     seeds.push(Goal::None);
                     sizes.push(1.0);
@@ -104,13 +110,13 @@ impl Liveliness {
             match (self.goals[i],self.seeds[i]) {
                 // If the goal is a scalar
                 (Goal::Scalar(goal),Goal::Scalar(seed)) => {
-                    self.goals[i] = Goal::Scalar(self.perlin.get([time/self.freqs[i], seed, 500.0*((time/self.freqs[i]+seed)/500.0).sin()]));
+                    self.goals[i] = Goal::Scalar(self.sizes[i]*self.perlin.get([time/self.freqs[i], seed, 500.0*((time/self.freqs[i]+seed)/500.0).sin()]));
                 },
                 // If the goal is a 3-vector
                 (Goal::Vector(goal),Goal::Vector(seed)) => {
-                    self.goals[i] = Goal::Vector(Vector3::new(self.perlin.get([time/self.freqs[i], seed[0], 500.0*((time/self.freqs[i]+seed[0])/500.0).sin()]),
-                                                              self.perlin.get([time/self.freqs[i], seed[1], 500.0*((time/self.freqs[i]+seed[1])/500.0).sin()]),
-                                                              self.perlin.get([time/self.freqs[i], seed[2], 500.0*((time/self.freqs[i]+seed[2])/500.0).sin()])
+                    self.goals[i] = Goal::Vector(Vector3::new(self.sizes[i]*self.perlin.get([time/self.freqs[i], seed[0], 500.0*((time/self.freqs[i]+seed[0])/500.0).sin()]),
+                                                              self.sizes[i]*self.perlin.get([time/self.freqs[i], seed[1], 500.0*((time/self.freqs[i]+seed[1])/500.0).sin()]),
+                                                              self.sizes[i]*self.perlin.get([time/self.freqs[i], seed[2], 500.0*((time/self.freqs[i]+seed[2])/500.0).sin()])
                                                           ));
                 },
                 // Ignore anything else

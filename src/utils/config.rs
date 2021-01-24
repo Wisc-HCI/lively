@@ -211,12 +211,12 @@ impl Config {
     }
 
     #[getter]
-    fn get_mode_control(&mut self) -> PyResult<String> {
+    fn get_mode_control(&self) -> PyResult<String> {
         return Ok(String::from(self.mode_control.clone())); //Ok(control_mode_to_string(self.mode_control))
     }
 
     #[getter]
-    fn get_mode_environment(&mut self) -> PyResult<String> {
+    fn get_mode_environment(&self) -> PyResult<String> {
         return Ok(String::from(self.mode_environment.clone())) // Ok(environment_mode_to_string(self.mode_environment))
     }
 
@@ -230,5 +230,22 @@ impl Config {
     fn set_mode_environment(&mut self, value:String) -> PyResult<()> {
         self.mode_environment = EnvironmentMode::from(value);
         return Ok(())
+    }
+
+    #[getter]
+    fn get_default_goals(&self) -> PyResult<Vec<GoalSpec>> {
+        let mut default_goals:Vec<GoalSpec> = Vec::new();
+        for goal_config in self.goals.clone() {
+            match goal_config.name.as_str() {
+                "default" => {
+                    // Transfer contents to default goals
+                    for goal in goal_config.goals.clone() {
+                        default_goals.push(goal)
+                    }
+                },
+                _ => {}
+            }
+        }
+        return Ok(default_goals)
     }
 }

@@ -32,18 +32,18 @@ pub struct LivelyIK {
 impl LivelyIK {
     #[new]
     fn new(config: Config) -> Self {
-        println!("Creating RelaxedIKVars");
+        // println!("Creating RelaxedIKVars");
         let vars = RelaxedIKVars::new(config.clone());
-        println!("Creating ObjectiveMaster");
+        // println!("Creating ObjectiveMaster");
         let mut om = ObjectiveMaster::new(config.clone());
-        println!("Creating OptimizationEngine");
+        // println!("Creating OptimizationEngine");
         let groove = OptimizationEngineOpen::new(vars.robot.num_dof.clone()+3);
         let groove_nlopt = OptimizationEngineNLopt::new();
 
         Self { config, vars, om, groove, groove_nlopt }
     }
 
-    fn solve(&mut self, goals: Vec<GoalSpec>, time: f64, world: Option<EnvironmentSpec>, _precise: Option<bool>) -> PyResult<Vec<f64>> {
+    fn solve(&mut self, goals: Vec<GoalSpec>, time: f64, world: Option<EnvironmentSpec>, _precise: Option<bool>) -> PyResult<(Vec<f64>,Vec<f64>)> {
         // Will be the output of solve. N=num_dof
         let mut out_x = self.vars.xopt.clone();
         // Will be the output of solving for core. N=num_dof
@@ -63,7 +63,7 @@ impl LivelyIK {
 
         if goals.len() != self.config.objectives.len() {
             println!("Mismatch between goals (n={:?}) and objectives (n={:?})", goals.len(), self.config.objectives.len());
-            return Ok(out_x);
+            return Ok((self.vars.offset.clone(),out_x));
         }
 
         for goal_idx in 0..goals.clone().len() {
@@ -78,9 +78,10 @@ impl LivelyIK {
             }
         }
 
-        println!("Updated Goals {:?}",self.vars.goals);
+        // println!("Updated Goals {:?}",self.vars.goals);
 
         self.vars.liveliness.update(time);
+        // println!("Lively Goals: {:?}",self.vars.liveliness.goals);
 
         match world {
             // Update the collision world
@@ -94,6 +95,7 @@ impl LivelyIK {
         let in_collision = false;//self.vars.update_collision_world();
         if !in_collision {
             if self.config.mode_environment == EnvironmentMode::ECAA {
+                // Right now, doing this causes errors because vars.env_collision.active_obstacles isn't populated
                 self.om.tune_weight_priors(&self.vars);
             }
             // Run without liveliness (core objectives)
@@ -115,7 +117,7 @@ impl LivelyIK {
             self.vars.offset = vec![xopt[0],xopt[1],xopt[2]]
         }
 
-        return Ok(out_x)
+        return Ok((self.vars.offset.clone(),out_x))
     }
 }
 

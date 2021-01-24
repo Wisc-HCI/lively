@@ -162,9 +162,18 @@ impl ObjectiveTrait for JointLimits {
         for i in 0..v.robot.lower_bounds.len() {
             let l = v.robot.lower_bounds[i];
             let u = v.robot.upper_bounds[i];
-            let r = (x[i] - l) / (u - l);
-            let n = 2.0 * (r - 0.5);
-            sum += a*n.powf(50.);
+            let range = u-l;
+            match range {
+                // In cases where the upper and lower limits are the same,
+                // just compare the lower limit to the x value.
+                0.0 => sum += a*(x[i] - l).abs().powi(50),
+                // Otherwise, compare as normal
+                _ => {
+                    let r = (x[i] - l) / (u - l);
+                    let n = 2.0 * (r - 0.5);
+                    sum += a*n.powi(50);
+                }
+            }
         }
         // println!("JointLimits error: {:?}",sum);
         groove_loss(sum, 0.0, 2, 0.32950, 0.1, 2)
