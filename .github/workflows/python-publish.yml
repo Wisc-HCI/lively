@@ -20,7 +20,7 @@ jobs:
         python-version: '3.x'
     - name: Install Rust
       run: |
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -y
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
