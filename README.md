@@ -1,4 +1,6 @@
-# lively_ik_core
+[![PyPI version](https://badge.fury.io/py/lively_ik_core.svg)](https://badge.fury.io/py/lively_ik_core)
+# LivelyIK Core 
+
 ## About
 
 This is the core part of LivelyIK solver. For information about LivelyIK, see the Github page for that package.
