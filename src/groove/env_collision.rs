@@ -1,6 +1,6 @@
-use crate::utils_rust::yaml_utils::EnvCollisionFileParser;
+use crate::utils::config::Config;
 use nalgebra::{Vector3, Isometry3, Point3};
-use nalgebra::geometry::{Translation3, UnitQuaternion, Quaternion};
+use nalgebra::geometry::{Translation3, UnitQuaternion};
 use ncollide3d::pipeline::{*};
 use ncollide3d::shape::{*};
 use std::collections::BTreeMap;
@@ -45,14 +45,11 @@ pub struct RelaxedIKEnvCollision {
 }
 
 impl RelaxedIKEnvCollision {
-    pub fn init_collision_world (
-        env_collision_file: EnvCollisionFileParser,
-        frames: &Vec<(Vec<nalgebra::Vector3<f64>>, Vec<nalgebra::UnitQuaternion<f64>>)>,
-    ) -> Self {
-        let link_radius = env_collision_file.robot_link_radius;
-        let plane_obstacles = env_collision_file.cuboids;
-        let sphere_obstacles = env_collision_file.spheres;
-        let pcd_obstacles = env_collision_file.pcds;
+    pub fn new(config: Config, frames: &Vec<(Vec<nalgebra::Vector3<f64>>, Vec<nalgebra::UnitQuaternion<f64>>)> ) -> Self {
+        let link_radius = config.robot_link_radius;
+        let plane_obstacles = config.static_environment.cuboids;
+        let sphere_obstacles = config.static_environment.spheres;
+        let pcd_obstacles = config.static_environment.pcs;
 
         // The links are part of group 1 and can only interact with obstacles
         let mut link_groups = CollisionGroups::new();
@@ -122,14 +119,6 @@ impl RelaxedIKEnvCollision {
 
         for i in 0..pcd_obstacles.len() {
             let pcd_obs = &pcd_obstacles[i];
-            // let mut shapes: Vec<(Isometry3<f64>, ShapeHandle<f64>)> = Vec::new();
-            // for sphere_obs in &pcd_obs.points {
-            //     let sphere = ShapeHandle::new(Ball::new(sphere_obs.radius));
-            //     let sphere_ts = Translation3::new(sphere_obs.tx, sphere_obs.ty, sphere_obs.tz);
-            //     let sphere_rot = UnitQuaternion::identity();
-            //     let sphere_pos = Isometry3::from_parts(sphere_ts, sphere_rot);
-            //     shapes.push((sphere_pos, sphere));
-            // }
             let mut points: Vec<Point3<f64>> = Vec::new();
             for sphere_obs in &pcd_obs.points {
                 points.push(Point3::new(sphere_obs.tx, sphere_obs.ty, sphere_obs.tz));
@@ -145,7 +134,7 @@ impl RelaxedIKEnvCollision {
                 dyn_obstacle_handles.push((pcd_handle.0, pcd_handle.1.data().name.clone()));
             }
         }
-        
+
         return Self{world, link_radius, link_handles, dyn_obstacle_handles, active_pairs, active_obstacles};
     }
 

@@ -1,7 +1,7 @@
 [package]
-name = "relaxed_ik_core"
+name = "lively_ik_core"
 version = "0.1.0"
-authors = ["djrakita <djrakita@gmail.com>"]
+authors = ["djrakita <djrakita@gmail.com>","andrewjschoen <schoen.andrewj@gmail.com>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -17,11 +17,12 @@ time = "0.1"
 kdtree = "0.6.0"
 vpsearch = "1.3.5"
 ndarray-rand = "0.11.0"
-rand = "0.7.2"
+rand = "0.8.1"
 ncollide2d = "0.19"
 ncollide3d = "0.21.0"
 path-slash = "0.1.2"
-lazy_static = "1.4.0"
+noise = "0.7.0"
+# lazy_static = "1.4.0"
 
 [profile.dev]
 opt-level = 3
@@ -32,8 +33,8 @@ opt-level = 3
 [lib]
 name = "relaxed_ik_lib"
 path = "src/lib.rs"
-crate-type = ["rlib", "dylib"]
+crate-type = ["rlib", "dylib", "cdylib"]
 
-[[bin]]
-name = "relaxed_ik_bin"
-path = "src/bin/relaxed_ik_bin.rs"
+[dependencies.pyo3]
+version = "0.12.4"
+features = ["extension-module"]
