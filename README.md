@@ -1,4 +1,5 @@
 [![PyPI version](https://badge.fury.io/py/lively_ik_core.svg)](https://badge.fury.io/py/lively_ik_core)
+![Upload Python Package](https://github.com/Wisc-HCI/lively_ik_core/workflows/Upload%20Python%20Package/badge.svg)
 # LivelyIK Core 
 
 ## About
