@@ -27,7 +27,7 @@ jobs:
         pip install setuptools setuptools_rust wheel twine
     - name: Build
       run: |
-        python -m build --sdist --wheel --outdir dist/ .
+        python setup.py sdist bdist_wheel
         for whl in dist/*.whl; do auditwheel repair "$whl" -w dist/ ; done
     - name: Publish Python distribution to PyPI
       uses: pypa/gh-action-pypi-publish@master
