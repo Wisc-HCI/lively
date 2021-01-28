@@ -50,10 +50,17 @@ jobs:
         build-requirements: 'setuptools wheel setuptools_rust'
         pip-wheel-args: '-w ./dist --no-deps' 
         pre-build-command: 'source ./install-rust.sh'    
-    - name: Publish Python distribution to PyPI
+    - name: Publish Python distribution to PyPI (macOS)
+      if: matrix.os == 'macos-latest'
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-        twine upload dist/*manylinux* dist/*macos* --skip-existing
-      
+        twine upload dist/* --skip-existing
+    - name: Publish Python distribution to PyPI (Mac)
+      if: matrix.os == 'ubuntu-latest'
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        twine upload `ls -c -td -- dist/*manylinux*` --skip-existing
