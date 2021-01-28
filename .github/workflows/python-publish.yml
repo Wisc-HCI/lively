@@ -48,7 +48,7 @@ jobs:
       with:
         python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38m cp39-cp39m'
         build-requirements: 'setuptools wheel setuptools_rust'
-        pip-wheel-args: '--user -w ./dist --no-deps' 
+        pip-wheel-args: '-w ./dist --no-deps' 
         pre-build-command: 'source ./install-rust.sh'    
     - name: Publish Python distribution to PyPI
       env:
