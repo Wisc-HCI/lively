@@ -45,7 +45,7 @@ jobs:
       with:
         python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38m cp39-cp39m'
         build-requirements: 'setuptools wheel setuptools_rust'
-        pre-build-command: './install-rust.sh'    
+        pre-build-command: 'sh ./install-rust.sh'    
     - name: Publish Python distribution to PyPI
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
