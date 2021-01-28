@@ -35,7 +35,7 @@ jobs:
         python setup.py sdist bdist_wheel
     - name: Audit
       run: for whl in dist/*.whl; do auditwheel repair "$whl" -w dist/ ; done
-      if: env.str == 'ABC' && env.num == 123
+      if: ${{ matrix.os }} == ubuntu-16.04
     - name: Publish Python distribution to PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
