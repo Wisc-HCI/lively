@@ -6,11 +6,16 @@ name: Upload Python Package
 on:
   release:
     types: [created]
+  workflow_dispatch:
 
 jobs:
   deploy:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-10.15, ubuntu-16.04]
 
     steps:
     - uses: actions/checkout@v2
@@ -28,7 +33,9 @@ jobs:
     - name: Build
       run: |
         python setup.py sdist bdist_wheel
-        for whl in dist/*.whl; do auditwheel repair "$whl" -w dist/ ; done
+    - name: Audit
+      run: for whl in dist/*.whl; do auditwheel repair "$whl" -w dist/ ; done
+      if: env.str == 'ABC' && env.num == 123
     - name: Publish Python distribution to PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
