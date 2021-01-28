@@ -20,6 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: test-ubuntu
+      run: echo 'RUNNING ON UBUNTU16'
       if: matrix.os == ubuntu-16.04
     - name: Set up Python
       uses: actions/setup-python@v2
