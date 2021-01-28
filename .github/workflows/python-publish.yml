@@ -16,16 +16,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
+        python-version: ['3.6', '3.7', '3.8', '3.9']
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Docker for Building on Ubuntu
-      run: docker run -i -t -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /bin/bash
-      if: matrix.os == 'ubuntu-latest'
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x'
+        python-version: ${{ matrix.python-version }}
     - name: Install Rust
       run: |
         curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
@@ -35,10 +33,10 @@ jobs:
         pip install setuptools setuptools_rust wheel auditwheel twine
     - name: Build
       run: |
-        python setup.py sdist bdist_wheel
-    - name: Audit
-      run: for whl in dist/*.whl; do auditwheel repair "$whl" -w dist/ ; done
-      if: matrix.os == 'ubuntu-latest'
+        python setup.py sdist bdist_wheel --universal
+#     - name: Audit
+#       run: for whl in dist/*.whl; do auditwheel repair "$whl" -w dist/ ; done
+#       if: matrix.os == 'ubuntu-latest'
     - name: Publish Python distribution to PyPI
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
