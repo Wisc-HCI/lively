@@ -33,7 +33,7 @@ jobs:
         pip install setuptools setuptools_rust wheel auditwheel twine
     - name: Build
       run: |
-        python setup.py sdist bdist_wheel --universal
+        python setup.py bdist_wheel --universal
 #     - name: Audit
 #       run: for whl in dist/*.whl; do auditwheel repair "$whl" -w dist/ ; done
 #       if: matrix.os == 'ubuntu-latest'
