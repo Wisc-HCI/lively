@@ -17,6 +17,14 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         python-version: ['3.6', '3.7', '3.8', '3.9']
+        exclude:
+        # excludes node 4 on macOS
+        - os: ubuntu-latest
+          python-version: '3.6'
+        - os: ubuntu-latest
+          python-version: '3.7'
+        - os: ubuntu-latest
+          python-version: '3.8'
 
     steps:
     - uses: actions/checkout@v2
@@ -24,52 +32,26 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install Rust
-      run: |
-        curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install setuptools setuptools_rust wheel auditwheel twine
-    - name: Build (macOS)
+    - name: macOS Build
       if: matrix.os == 'macos-latest'
       run: |
+        curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
+        python -m pip install --upgrade pip
+        pip install setuptools setuptools_rust wheel auditwheel twine
         python setup.py bdist_wheel --universal
-    - name: Build (Linux, Python 3.6)
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.6'
+    - name: Linux Build
+      if: matrix.os == 'ubuntu-latest'
       uses: RalfG/python-wheels-manylinux-build@v0.3.3-manylinux2010_x86_64
       with:
-        python-versions: 'cp36-cp36m'
-        system-packages: 'curl' 
+        python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38m cp39-cp39m'
         build-requirements: 'setuptools wheel setuptools_rust'
-        pre-build-command: 'curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y'
-    - name: Build (Linux, Python 3.7)
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.7'
-      uses: RalfG/python-wheels-manylinux-build@v0.3.3-manylinux2010_x86_64
-      with:
-        python-versions: 'cp37-cp37m'
-        system-packages: 'curl' 
-        build-requirements: 'setuptools wheel setuptools_rust'
-        pre-build-command: 'curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y'  
-    - name: Build (Linux, Python 3.8)
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.8'
-      uses: RalfG/python-wheels-manylinux-build@v0.3.3-manylinux2010_x86_64
-      with:
-        python-versions: 'cp38-cp38m'
-        system-packages: 'curl' 
-        build-requirements: 'setuptools wheel setuptools_rust'
-        pre-build-command: 'curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y'
-    - name: Build (Linux, Python 3.9)
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
-      uses: RalfG/python-wheels-manylinux-build@v0.3.3-manylinux2010_x86_64
-      with:
-        python-versions: 'cp39-cp39m'
-        system-packages: 'curl' 
-        build-requirements: 'setuptools wheel setuptools_rust'
-        pre-build-command: 'curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y'    
+        pre-build-command: './install-rust.sh'    
     - name: Publish Python distribution to PyPI
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: twine upload dist/*
+      run: |
+        python -m pip install --upgrade pip
+        pip install twine
+        twine upload dist/*
       
