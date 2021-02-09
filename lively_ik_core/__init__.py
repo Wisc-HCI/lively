@@ -15,7 +15,7 @@ NN_SPEC_FIELDS = {'coefs', 'intercepts', 'split_point'}
 GOAL_CONFIG_FIELDS = {'name', 'goals'}
 
 OBJECTIVE_SPEC_FIELDS = {
-        'variant', 'tag', 'weight', 'index', 'secondary_index', 'scale', 'frequency'
+        'variant', 'tag', 'index', 'secondary_index', 'scale', 'frequency'
     }
 
 GOAL_SPEC_FIELDS = {'weight', 'scalar','vector','quaternion'}

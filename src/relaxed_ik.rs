@@ -67,10 +67,7 @@ impl LivelyIK {
         }
 
         for goal_idx in 0..goals.clone().len() {
-            match goals[goal_idx].weight {
-                Some(weight) => self.om.weight_priors[goal_idx] = weight,
-                None => {}
-            }
+            self.om.weight_priors[goal_idx] = goals[goal_idx].weight;
             match goals[goal_idx].value {
                 // Only update if the goal is specified.
                 Goal::None => {},

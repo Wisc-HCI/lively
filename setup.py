@@ -5,7 +5,7 @@ package_name = 'lively_ik_core'
 
 setup(
     name=package_name,
-    version='0.1.1',
+    version='0.1.2',
     packages=[package_name],
     rust_extensions=[RustExtension("lively_ik_core.lively_ik_core", binding=Binding.PyO3, quiet=True)],
     install_requires=['setuptools','wheel','setuptools_rust'],

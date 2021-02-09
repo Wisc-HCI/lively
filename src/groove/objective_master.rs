@@ -36,94 +36,81 @@ impl ObjectiveMaster {
                 // EE Position (Standard)
                 ObjectiveVariant::EEPositionMatch => {
                     objectives.push(Box::new(EEPositionMatch::new(i,idx)));
-                    weight_priors.push(objective_spec.weight);
                 }
                 // EE Orientation (Standard)
                 ObjectiveVariant::EEOrientationMatch => {
                     objectives.push(Box::new(EEOrientationMatch::new(i,idx)));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // EE Position Liveliness (TODO)
                 ObjectiveVariant::EEPositionLiveliness => {
                     objectives.push(Box::new(EEPositionLiveliness::new(i,idx)));
-                    weight_priors.push(objective_spec.weight);
                 }
                 // EE Orientation Liveliness (TODO)
                 ObjectiveVariant::EEOrientationLiveliness => {
                     objectives.push(Box::new(EEOrientationLiveliness::new(i,idx)));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // EE Position Mirroring (TODO)
                 ObjectiveVariant::EEPositionMirroring => {
                     objectives.push(Box::new(EEPositionMirroring::new(i,idx,idx_alt)));
-                    weight_priors.push(objective_spec.weight);
                 }
                 // EE Orientation Mirroring (TODO)
                 ObjectiveVariant::EEOrientationMirroring => {
                     objectives.push(Box::new(EEOrientationMirroring::new(i,idx,idx_alt)));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // EE Position Bounding (TODO)
                 ObjectiveVariant::EEPositionBounding => {
                     objectives.push(Box::new(EEPositionBounding::new(i,idx)));
-                    weight_priors.push(objective_spec.weight);
                 }
                 // EE Orientation Bounding (TODO)
                 ObjectiveVariant::EEOrientationBounding => {
                     objectives.push(Box::new(EEOrientationBounding::new(i,idx)));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // Joint Matching (TODO)
                 ObjectiveVariant::JointMatch => {
                     objectives.push(Box::new(JointMatch::new(i,idx)));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // Joint Liveliness (TODO)
                 ObjectiveVariant::JointLiveliness => {
                     objectives.push(Box::new(JointLiveliness::new(i,idx)));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // Joint Mirroring (TODO)
                 ObjectiveVariant::JointMirroring => {
                     objectives.push(Box::new(JointMirroring::new(i,idx,idx_alt)));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // Joint Limits (Standard)
                 ObjectiveVariant::JointLimits => {
                     objectives.push(Box::new(JointLimits));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // Self-Collision (Standard)
                 ObjectiveVariant::NNSelfCollision => {
                     objectives.push(Box::new(NNSelfCollision));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // Environment Collision (Standard)
                 ObjectiveVariant::EnvCollision => {
                     objectives.push(Box::new(EnvCollision::new(i)));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // Velocity Minimization (Standard)
                 ObjectiveVariant::MinimizeVelocity => {
                     objectives.push(Box::new(MinimizeVelocity));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // Acceleration Minimization (Standard)
                 ObjectiveVariant::MinimizeAcceleration => {
                     objectives.push(Box::new(MinimizeAcceleration));
-                    weight_priors.push(objective_spec.weight);
                 },
                 // Jerk Minimization (Standard)
                 ObjectiveVariant::MinimizeJerk => {
                     objectives.push(Box::new(MinimizeJerk));
-                    weight_priors.push(objective_spec.weight);
                 },
                 ObjectiveVariant::RootPositionLiveliness => {
                     objectives.push(Box::new(RootPositionLiveliness::new(i)));
-                    weight_priors.push(objective_spec.weight);
                 },
                 ObjectiveVariant::None => {}
             }
+        }
+
+        // Transfer default goals weights to weight_priors
+        for goal in config.default_goals() {
+            weight_priors.push(goal.weight)
         }
 
         Self {objectives, num_chains, weight_priors, finite_diff_grad: true} // fix this

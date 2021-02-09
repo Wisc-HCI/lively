@@ -13,8 +13,6 @@ pub struct ObjectiveSpec {
     #[pyo3(get, set)]
     pub tag: String,
     #[pyo3(get, set)]
-    pub weight: f64,
-    #[pyo3(get, set)]
     pub index: Option<usize>,
     #[pyo3(get, set)]
     pub secondary_index: Option<usize>,
@@ -27,9 +25,9 @@ pub struct ObjectiveSpec {
 #[pymethods]
 impl ObjectiveSpec {
     #[new]
-    fn new(variant: String, tag: String, weight: f64, index: Option<usize>, secondary_index: Option<usize>, scale: Option<f64>, frequency: Option<f64>) -> Self {
+    fn new(variant: String, tag: String, index: Option<usize>, secondary_index: Option<usize>, scale: Option<f64>, frequency: Option<f64>) -> Self {
         let variant_enum = ObjectiveVariant::from(variant);
-        Self { variant: variant_enum, tag, weight, index, secondary_index, scale, frequency }
+        Self { variant: variant_enum, tag, index, secondary_index, scale, frequency }
     }
     #[getter]
     fn get_variant(&self) -> PyResult<String> {
@@ -236,6 +234,12 @@ impl Config {
 
     #[getter]
     fn get_default_goals(&self) -> PyResult<Vec<GoalSpec>> {
+        return Ok(self.default_goals())
+    }
+}
+
+impl Config {
+    pub fn default_goals(&self) -> Vec<GoalSpec> {
         let mut default_goals:Vec<GoalSpec> = Vec::new();
         for goal_config in self.goals.clone() {
             match goal_config.name.as_str() {
@@ -244,10 +248,11 @@ impl Config {
                     for goal in goal_config.goals.clone() {
                         default_goals.push(goal)
                     }
+                    break;
                 },
                 _ => {}
             }
         }
-        return Ok(default_goals)
+        return default_goals;
     }
 }

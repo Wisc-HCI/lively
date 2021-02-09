@@ -30,14 +30,14 @@ pub enum Goal {
 #[derive(Clone,Copy,Debug)]
 pub struct GoalSpec {
     #[pyo3(get, set)]
-    pub weight: Option<f64>,
+    pub weight: f64,
     pub value: Goal,
 }
 
 #[pymethods]
 impl GoalSpec {
     #[new]
-    fn new(weight: Option<f64>, scalar: Option<f64>, vector: Option<Vec<f64>>, quaternion: Option<Vec<f64>>) -> Self {
+    fn new(weight: f64, scalar: Option<f64>, vector: Option<Vec<f64>>, quaternion: Option<Vec<f64>>) -> Self {
         let mut value: Goal = Goal::None;
         match scalar {Some(s) => value = Goal::Scalar(s), None => {}};
         match vector {Some(v) => value = Goal::Vector(vec_to_vector(v)), None => {}};
@@ -106,11 +106,7 @@ impl GoalSpec {
 
     fn __str__(&self) -> PyResult<String> {
         let mut response: String = String::from("<null>");
-        let mut weight: String = String::from("null");
-        match self.weight {
-            Some(w) => {weight = format!("{:?}",w)},
-            None => {}
-        }
+        let mut weight: String = format!("{:?}",self.weight);
         match self.value {
             Goal::Scalar(s) => response = format!("<GoalSpec weight: {:?}, scalar: {:?}>", weight, s),
             Goal::Vector(v) => response = format!("<GoalSpec weight: {:?}, vector: {:?},{:?},{:?}>", weight, v.x, v.y, v.z),
