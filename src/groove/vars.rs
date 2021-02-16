@@ -48,9 +48,9 @@ impl RelaxedIKVars {
         let sampler = ThreadRobotSampler::new(robot.clone());
 
         let mut goals: Vec<GoalSpec> = Vec::new();
-        for goal_spec in &config.goals {
-            if goal_spec.name == "default" {
-                goals = goal_spec.goals.clone();
+        for mode_spec in &config.modes {
+            if mode_spec.name == "default" {
+                goals = mode_spec.goals.clone();
             }
         }
 

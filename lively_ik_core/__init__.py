@@ -2,7 +2,7 @@ from .lively_ik_core import *
 
 CONFIG_FIELDS = {
         'axis_types', 'base_link_motion_bounds', 'ee_fixed_joints', 'static_environment',
-        'fixed_frame','goals', 'joint_limits', 'joint_names', 'joint_ordering','joint_types',
+        'fixed_frame','modes', 'joint_limits', 'joint_names', 'joint_ordering','joint_types',
         'mode_control', 'mode_environment','nn_jointpoint', 'nn_main', 'objectives',
         'states', 'robot_link_radius', 'rot_offsets', 'starting_config','urdf',
         'velocity_limits', 'disp_offsets', 'displacements'
@@ -12,11 +12,15 @@ ENVIRONMENT_SPEC_FIELDS = {'cuboids', 'spheres', 'pcs'}
 
 NN_SPEC_FIELDS = {'coefs', 'intercepts', 'split_point'}
 
-GOAL_CONFIG_FIELDS = {'name', 'goals'}
+MODE_CONFIG_FIELDS = {'name', 'goals'}
 
 OBJECTIVE_SPEC_FIELDS = {
-        'variant', 'tag', 'index', 'secondary_index', 'scale', 'frequency'
+        'variant', 'tag', 'index', 'secondary_index', 'scale', 'shape', 'frequency'
     }
+
+CUBOID_FIELDS = {'name','x_halflength','y_halflength','z_halflength','rx','ry','rz','tx','ty','tz','is_dynamic','coordinate_frame'}
+
+SPHERE_FIELDS = {'name','radius','tx','ty','tz','is_dynamic','coordinate_frame'}
 
 GOAL_SPEC_FIELDS = {'weight', 'scalar','vector','quaternion'}
 
@@ -35,8 +39,12 @@ def parse_config_data(data:dict) -> Config:
                 obj = EnvironmentSpec(**{key:value for key,value in content.items() if key in ENVIRONMENT_SPEC_FIELDS })
             elif set(content.keys()).issuperset(NN_SPEC_FIELDS):
                 obj = NNSpec(**{key:value for key,value in content.items() if key in NN_SPEC_FIELDS })
-            elif set(content.keys()).issuperset(GOAL_CONFIG_FIELDS):
-                obj = GoalConfig(**{key:value for key,value in content.items() if key in GOAL_CONFIG_FIELDS })
+            elif set(content.keys()).issuperset(MODE_CONFIG_FIELDS):
+                obj = ModeConfig(**{key:value for key,value in content.items() if key in MODE_CONFIG_FIELDS })
+            elif set(content.keys()).issuperset(CUBOID_FIELDS):
+                obj = Cuboid(**{key:value for key,value in content.items() if key in CUBOID_FIELDS })
+            elif set(content.keys()).issuperset(SPHERE_FIELDS):
+                obj = Sphere(**{key:value for key,value in content.items() if key in SPHERE_FIELDS })
             elif 'variant' in content.keys() and set(content.keys()).issubset(OBJECTIVE_SPEC_FIELDS):
                 obj = ObjectiveSpec(**{key:value for key,value in content.items() if key in OBJECTIVE_SPEC_FIELDS })
             elif set(content.keys()).issubset(GOAL_SPEC_FIELDS):
@@ -62,8 +70,8 @@ def export_config_data(config:Config) -> dict:
         elif isinstance(item,NNSpec):
             for field in NN_SPEC_FIELDS:
                 data[field] = parse_object(getattr(item,field))
-        elif isinstance(item,GoalConfig):
-            for field in GOAL_CONFIG_FIELDS:
+        elif isinstance(item,ModeConfig):
+            for field in MODE_CONFIG_FIELDS:
                 data[field] = parse_object(getattr(item,field))
         elif isinstance(item,ObjectiveSpec):
             for field in OBJECTIVE_SPEC_FIELDS:

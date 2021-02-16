@@ -114,6 +114,8 @@ impl LivelyIK {
             self.vars.offset = vec![xopt[0],xopt[1],xopt[2]]
         }
 
+        // println!("OUTX-CORE {:?},\nOUTX {:?}",xopt_core,xopt);
+
         return Ok((self.vars.offset.clone(),out_x))
     }
 }

@@ -16,7 +16,7 @@ impl OptimizationEngineOpen {
 
     pub fn optimize(&mut self, x: &mut [f64], v: &RelaxedIKVars, om: &ObjectiveMaster, max_iter: usize, is_core: bool) {
         let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
-            let (my_obj, my_grad) = om.gradient(u, v, &is_core);
+            let (my_obj, my_grad) = om.gradient(u, v, is_core);
             for i in 0..my_grad.len() {
                 grad[i] = my_grad[i];
             }
@@ -24,7 +24,7 @@ impl OptimizationEngineOpen {
         };
 
         let f = |u: &[f64], c: &mut f64| -> Result<(), SolverError> {
-            *c = om.call(u, v, &is_core);
+            *c = om.call(u, v, is_core);
             Ok(())
         };
 
@@ -49,7 +49,7 @@ impl OptimizationEngineNLopt {
         let num_dim = v.robot.num_dof+3;
 
         let obj_f = |x: &[f64], _gradient: Option<&mut [f64]>, _params: &mut ()| -> f64 {
-            let (my_f, my_grad) = om.gradient(x, v, &is_core);
+            let (my_f, my_grad) = om.gradient(x, v, is_core);
             if _gradient.is_none() {
             } else {
                 let g = _gradient.unwrap();

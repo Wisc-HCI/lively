@@ -17,7 +17,11 @@ pub struct ObjectiveSpec {
     #[pyo3(get, set)]
     pub secondary_index: Option<usize>,
     #[pyo3(get, set)]
+    // Scale is used for single-dimension objectives, such as joint values
     pub scale: Option<f64>,
+    #[pyo3(get, set)]
+    // Shape is used for multi-dimension objectives, such as ee positions
+    pub shape: Option<Vec<f64>>,
     #[pyo3(get, set)]
     pub frequency: Option<f64>
 }
@@ -25,9 +29,9 @@ pub struct ObjectiveSpec {
 #[pymethods]
 impl ObjectiveSpec {
     #[new]
-    fn new(variant: String, tag: String, index: Option<usize>, secondary_index: Option<usize>, scale: Option<f64>, frequency: Option<f64>) -> Self {
+    fn new(variant: String, tag: String, index: Option<usize>, secondary_index: Option<usize>, scale: Option<f64>, shape: Option<Vec<f64>>, frequency: Option<f64>) -> Self {
         let variant_enum = ObjectiveVariant::from(variant);
-        Self { variant: variant_enum, tag, index, secondary_index, scale, frequency }
+        Self { variant: variant_enum, tag, index, secondary_index, scale, shape, frequency }
     }
     #[getter]
     fn get_variant(&self) -> PyResult<String> {
@@ -101,7 +105,7 @@ impl EnvironmentSpec {
 
 #[pyclass]
 #[derive(Clone,Debug)]
-pub struct GoalConfig {
+pub struct ModeConfig {
     #[pyo3(get, set)]
     pub name: String,
     #[pyo3(get, set)]
@@ -109,7 +113,7 @@ pub struct GoalConfig {
 }
 
 #[pymethods]
-impl GoalConfig {
+impl ModeConfig {
     #[new]
     fn new(name: String, goals: Vec<GoalSpec>) -> Self {
         Self { name, goals }
@@ -130,8 +134,6 @@ pub struct Config {
     #[pyo3(get, set)]
     pub fixed_frame: String,
     #[pyo3(get, set)]
-    pub goals: Vec<GoalConfig>,
-    #[pyo3(get, set)]
     pub joint_limits: Vec<[f64; 2]>,
     #[pyo3(get, set)]
     pub joint_names: Vec<Vec<String>>,
@@ -139,6 +141,8 @@ pub struct Config {
     pub joint_ordering: Vec<String>,
     #[pyo3(get, set)]
     pub joint_types: Vec<Vec<String>>,
+    #[pyo3(get, set)]
+    pub modes: Vec<ModeConfig>,
     #[pyo3(get, set)]
     pub nn_jointpoint: NNSpec,
     #[pyo3(get, set)]
@@ -168,9 +172,9 @@ pub struct Config {
 impl Config {
     #[new]
     fn new(axis_types: Vec<Vec<String>>, base_link_motion_bounds: Vec<[f64; 2]>,
-           static_environment: EnvironmentSpec, ee_fixed_joints: Vec<String>, fixed_frame: String, goals: Vec<GoalConfig>,
+           static_environment: EnvironmentSpec, ee_fixed_joints: Vec<String>, fixed_frame: String,
            joint_limits: Vec<[f64; 2]>, joint_names: Vec<Vec<String>>, joint_ordering: Vec<String>,
-           joint_types: Vec<Vec<String>>, mode_control: String, mode_environment: String,
+           joint_types: Vec<Vec<String>>, modes: Vec<ModeConfig>, mode_control: String, mode_environment: String,
            nn_jointpoint: NNSpec, nn_main: NNSpec, objectives: Vec<ObjectiveSpec>, states: Vec<Vec<f64>>,
            robot_link_radius: f64, rot_offsets: Vec<Vec<Vec<f64>>>, starting_config: Vec<f64>, urdf: String,
            velocity_limits: Vec<f64>, disp_offsets: Vec<Vec<f64>>, displacements: Vec<Vec<Vec<f64>>>) -> Self {
@@ -181,7 +185,7 @@ impl Config {
        let mode_env_setting = EnvironmentMode::from(mode_environment);
 
        Self { axis_types, base_link_motion_bounds, static_environment, ee_fixed_joints,
-              fixed_frame, goals, joint_limits, joint_names, joint_ordering, joint_types,
+              fixed_frame, joint_limits, joint_names, joint_ordering, joint_types, modes,
               mode_control: mode_control_setting, mode_environment: mode_env_setting,
               nn_jointpoint, nn_main, objectives, states, robot_link_radius, rot_offsets,
               starting_config, urdf, velocity_limits, disp_offsets: disp_offset_vectors,
@@ -241,11 +245,11 @@ impl Config {
 impl Config {
     pub fn default_goals(&self) -> Vec<GoalSpec> {
         let mut default_goals:Vec<GoalSpec> = Vec::new();
-        for goal_config in self.goals.clone() {
-            match goal_config.name.as_str() {
+        for mode_config in self.modes.clone() {
+            match mode_config.name.as_str() {
                 "default" => {
                     // Transfer contents to default goals
-                    for goal in goal_config.goals.clone() {
+                    for goal in mode_config.goals.clone() {
                         default_goals.push(goal)
                     }
                     break;

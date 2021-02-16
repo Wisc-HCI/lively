@@ -137,11 +137,11 @@ impl ObjectiveMaster {
         }
     }
 
-    pub fn call(&self, x: &[f64], vars: &RelaxedIKVars, is_core: &bool) -> f64 {
+    pub fn call(&self, x: &[f64], vars: &RelaxedIKVars, is_core: bool) -> f64 {
         self.__call(x, vars, is_core)
     }
 
-    pub fn gradient(&self, x: &[f64], vars: &RelaxedIKVars, is_core: &bool) -> (f64, Vec<f64>) {
+    pub fn gradient(&self, x: &[f64], vars: &RelaxedIKVars, is_core: bool) -> (f64, Vec<f64>) {
         if self.finite_diff_grad {
             self.__gradient_finite_diff(x, vars, is_core)
         } else {
@@ -149,11 +149,11 @@ impl ObjectiveMaster {
         }
     }
 
-    pub fn gradient_finite_diff(&self, x: &[f64], vars: &RelaxedIKVars, is_core: &bool) -> (f64, Vec<f64>) {
+    pub fn gradient_finite_diff(&self, x: &[f64], vars: &RelaxedIKVars, is_core: bool) -> (f64, Vec<f64>) {
         self.__gradient_finite_diff(x, vars, is_core)
     }
 
-    fn __call(&self, x: &[f64], vars: &RelaxedIKVars, is_core: &bool) -> f64 {
+    fn __call(&self, x: &[f64], vars: &RelaxedIKVars, is_core: bool) -> f64 {
         let mut out = 0.0;
         let frames = vars.robot.get_frames(x);
         for i in 0..self.objectives.len() {
@@ -162,7 +162,7 @@ impl ObjectiveMaster {
         out
     }
 
-    fn __gradient(&self, x: &[f64], vars: &RelaxedIKVars, is_core: &bool) -> (f64, Vec<f64>) {
+    fn __gradient(&self, x: &[f64], vars: &RelaxedIKVars, is_core: bool) -> (f64, Vec<f64>) {
         let mut grad: Vec<f64> = vec![0. ; x.len()];
         let mut obj = 0.0;
 
@@ -200,7 +200,7 @@ impl ObjectiveMaster {
         (obj, grad)
     }
 
-    fn __gradient_finite_diff(&self, x: &[f64], vars: &RelaxedIKVars, is_core: &bool) -> (f64, Vec<f64>)  {
+    fn __gradient_finite_diff(&self, x: &[f64], vars: &RelaxedIKVars, is_core: bool) -> (f64, Vec<f64>)  {
         let mut grad: Vec<f64> = vec![0. ; x.len()];
         let mut f_0 = self.call(x, vars, is_core);
 

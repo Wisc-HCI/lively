@@ -17,8 +17,8 @@ pub fn groove_loss_derivative(x_val: f64, t: f64, d: i32, c: f64, f: f64, g: i32
 }
 
 pub trait ObjectiveTrait {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: &bool) -> f64;
-    fn gradient(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: &bool) -> (f64, Vec<f64>) {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64;
+    fn gradient(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> (f64, Vec<f64>) {
         let mut grad: Vec<f64> = Vec::new();
         let f_0 = self.call(x, v, frames, is_core);
 
@@ -43,7 +43,7 @@ impl EEPositionMatch {
     pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
 }
 impl ObjectiveTrait for EEPositionMatch {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let last_elem = frames[self.arm_idx].0.len() - 1;
         let mut x_val: f64 = 0.0;
         // Double-check that the goal is a 3-vector
@@ -66,7 +66,7 @@ impl EEOrientationMatch {
     pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
 }
 impl ObjectiveTrait for EEOrientationMatch {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let last_elem = frames[self.arm_idx].1.len() - 1;
         let tmp = Quaternion::new(-frames[self.arm_idx].1[last_elem].w, -frames[self.arm_idx].1[last_elem].i, -frames[self.arm_idx].1[last_elem].j, -frames[self.arm_idx].1[last_elem].k);
         let ee_quat2 = UnitQuaternion::from_quaternion(tmp);
@@ -86,7 +86,7 @@ impl ObjectiveTrait for EEOrientationMatch {
 
 pub struct NNSelfCollision;
 impl ObjectiveTrait for NNSelfCollision {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let mut input_vec:Vec<f64> = Vec::new();
         let xvec = x.to_vec();
         for i in 3..xvec.len() {
@@ -97,7 +97,7 @@ impl ObjectiveTrait for NNSelfCollision {
         groove_loss(x_val, 0., 2, 2.1, 0.0002, 4)
     }
 
-    fn gradient(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> (f64, Vec<f64>) {
+    fn gradient(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> (f64, Vec<f64>) {
         let mut input_vec:Vec<f64> = Vec::new();
         let xvec = x.to_vec();
         for i in 3..xvec.len() {
@@ -121,7 +121,7 @@ impl EnvCollision {
     pub fn new(arm_idx: usize) -> Self {Self{arm_idx}}
 }
 impl ObjectiveTrait for EnvCollision {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         // let start = PreciseTime::now();\
         let mut x_val: f64 = 0.0;
         let link_radius = v.env_collision.link_radius;
@@ -155,7 +155,7 @@ impl ObjectiveTrait for EnvCollision {
 
 pub struct JointLimits;
 impl ObjectiveTrait for JointLimits {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let mut sum = 0.0;
         let penalty_cutoff: f64 = 0.9;
         let a = 0.05 / (penalty_cutoff.powi(50));
@@ -182,7 +182,7 @@ impl ObjectiveTrait for JointLimits {
 
 pub struct MinimizeVelocity;
 impl ObjectiveTrait for MinimizeVelocity {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let mut x_val = 0.0;
         for i in 3..x.len() {
            x_val += (x[i] - v.xopt[i-3]).powi(2);
@@ -195,12 +195,12 @@ impl ObjectiveTrait for MinimizeVelocity {
 
 pub struct MinimizeAcceleration;
 impl ObjectiveTrait for MinimizeAcceleration {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64 {
         let mut x_val = 0.0;
         for i in 3..x.len() {
             let v1 = x[i] - v.xopt[i-3];
             let v2:f64;
-            if *is_core {
+            if is_core {
                 v2 = v.xopt[i-3] - v.history_core.prev1[i-3];
             } else {
                 v2 = v.xopt[i-3] - v.history.prev1[i-3];
@@ -215,13 +215,13 @@ impl ObjectiveTrait for MinimizeAcceleration {
 
 pub struct MinimizeJerk;
 impl ObjectiveTrait for MinimizeJerk {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64 {
         let mut x_val = 0.0;
         for i in 3..x.len() {
             let v1 = x[i] - v.xopt[i-3];
             let v2:f64;
             let v3:f64;
-            if *is_core {
+            if is_core {
                 v2 = v.xopt[i-3] - v.history_core.prev1[i-3];
                 v3 = v.history_core.prev1[i-3] - v.history_core.prev2[i-3];
             } else {
@@ -247,22 +247,23 @@ impl EEPositionLiveliness {
     pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
 }
 impl ObjectiveTrait for EEPositionLiveliness {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64 {
         let last_elem = frames[self.arm_idx].0.len() - 1;
         let mut x_val: f64 = 0.0;
-        if *is_core == false {
+        if is_core == false {
             match v.liveliness.goals[self.goal_idx] {
                 // The goal must be a 3-vector.
                 Goal::Vector(noise_vec) => {
                     // The error is the difference between the current value and the noise-augmented position solved previously w/o noise.
                     x_val = ( frames[self.arm_idx].0[last_elem] - (v.frames_core[self.arm_idx].0[last_elem]+noise_vec) ).norm();
+                    // println!("EEPositionLiveliness Objective enabled")
                 },
                 // Ignore if it isn't
                 _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)}
             }
         }
-        // println!("EEPositionLiveliness error: {:?}",x_val);
-        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+        // println!("EEPositionLiveliness loss: {:?}",groove_loss(x_val, 0., 2, 3.5, 0.00005, 4));
+        groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
 
@@ -275,26 +276,28 @@ impl EEOrientationLiveliness {
     pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
 }
 impl ObjectiveTrait for EEOrientationLiveliness {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64 {
         let last_elem = frames[self.arm_idx].1.len() - 1;
         // Since there are 2 ways to measure the distance around the unit sphere of orientations,
         // calculate actual orientation of the end effector both ways.
         let tmp = Quaternion::new(-frames[self.arm_idx].1[last_elem].w, -frames[self.arm_idx].1[last_elem].i, -frames[self.arm_idx].1[last_elem].j, -frames[self.arm_idx].1[last_elem].k);
         let ee_quat2 = UnitQuaternion::from_quaternion(tmp);
         let mut x_val: f64 = 0.0;
-        match v.liveliness.goals[self.goal_idx] {
-            // goal must be a vector
-            Goal::Vector(noise_vec) => {
-                // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
-                let lively_goal = quaternion_exp(quaternion_log(v.frames_core[self.arm_idx].1[last_elem]) + noise_vec);
-                let disp = angle_between(lively_goal, frames[self.arm_idx].1[last_elem]);
-                let disp2 = angle_between(lively_goal, ee_quat2);
-                x_val = disp.min(disp2);
-            },
-            _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
+        if is_core == false {
+            match v.liveliness.goals[self.goal_idx] {
+                // goal must be a vector
+                Goal::Vector(noise_vec) => {
+                    // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
+                    // (v.frames_core[self.arm_idx].1[last_elem] is the orientation from the previous "core solving" round)
+                    let lively_goal = quaternion_exp(quaternion_log(v.frames_core[self.arm_idx].1[last_elem]) + noise_vec);
+                    let disp = angle_between(lively_goal, frames[self.arm_idx].1[last_elem]);
+                    let disp2 = angle_between(lively_goal, ee_quat2);
+                    x_val = disp.min(disp2);
+                },
+                _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
+            }
         }
-        // println!("EEOrientationLiveliness error: {:?}",x_val);
-        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
@@ -308,7 +311,7 @@ impl EEPositionMirroring {
     pub fn new(goal_idx: usize, arm_1_idx: usize, arm_2_idx: usize) -> Self {Self{goal_idx, arm_1_idx, arm_2_idx}}
 }
 impl ObjectiveTrait for EEPositionMirroring {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let last_elem_arm_1 = frames[self.arm_1_idx].0.len() - 1;
         let last_elem_arm_2 = frames[self.arm_2_idx].0.len() - 1;
         let mut x_val:f64 = 0.0;
@@ -330,7 +333,7 @@ impl ObjectiveTrait for EEPositionMirroring {
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
         // println!("EEPositionMirroring error: {:?}",x_val);
-        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
@@ -344,7 +347,7 @@ impl EEOrientationMirroring  {
     pub fn new(goal_idx: usize, arm_1_idx: usize, arm_2_idx: usize) -> Self {Self{goal_idx, arm_1_idx, arm_2_idx}}
 }
 impl ObjectiveTrait for EEOrientationMirroring {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let last_elem_arm_1 = frames[self.arm_1_idx].1.len() - 1;
         let last_elem_arm_2 = frames[self.arm_2_idx].1.len() - 1;
         let tmp = Quaternion::new(-frames[self.arm_2_idx].1[last_elem_arm_2].w, -frames[self.arm_2_idx].1[last_elem_arm_2].i, -frames[self.arm_2_idx].1[last_elem_arm_2].j, -frames[self.arm_2_idx].1[last_elem_arm_2].k);
@@ -369,7 +372,7 @@ impl ObjectiveTrait for EEOrientationMirroring {
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
         // println!("EEOrientationMirroring error: {:?}",x_val);
-        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
@@ -382,9 +385,9 @@ impl EEPositionBounding  {
     pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
 }
 impl ObjectiveTrait for EEPositionBounding {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let x_val:f64 = 0.0;
-        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
@@ -397,9 +400,9 @@ impl EEOrientationBounding  {
     pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
 }
 impl ObjectiveTrait for EEOrientationBounding {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let x_val:f64 = 0.0;
-        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
@@ -412,7 +415,7 @@ impl JointMatch  {
     pub fn new(goal_idx: usize, joint_idx: usize) -> Self {Self{goal_idx, joint_idx}}
 }
 impl ObjectiveTrait for JointMatch {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let mut x_val:f64 = 0.0;
         match v.goals[self.goal_idx].value {
             // goal must be a vector
@@ -424,7 +427,7 @@ impl ObjectiveTrait for JointMatch {
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
         // println!("JointMatch error: {:?}",x_val);
-        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+        groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2)
     }
 }
 
@@ -437,20 +440,22 @@ impl JointLiveliness  {
     pub fn new(goal_idx: usize, joint_idx: usize) -> Self {Self{goal_idx, joint_idx}}
 }
 impl ObjectiveTrait for JointLiveliness {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64 {
         let mut x_val:f64 = 0.0;
-        match v.liveliness.goals[self.goal_idx] {
-            // goal must be a vector
-            Goal::Scalar(noise_val) => {
-                // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
-                // NOTE: xopt_core.len() == joints.len(), whereas x.len() == joints.len()+3
-                let lively_goal = v.xopt_core[self.joint_idx] + noise_val;
-                x_val = (lively_goal-x[self.joint_idx+3]).abs();
-            },
-            _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
+        if is_core == false {
+            match v.liveliness.goals[self.goal_idx] {
+                // goal must be a vector
+                Goal::Scalar(noise_val) => {
+                    // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
+                    // NOTE: xopt_core.len() == joints.len(), whereas x.len() == joints.len()+3
+                    let lively_goal = v.xopt_core[self.joint_idx] + noise_val;
+                    x_val = (lively_goal-x[self.joint_idx+3]).abs();
+                },
+                _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
+            }
         }
         // println!("JointLiveliness error: {:?}",x_val);
-        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+        groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2)
     }
 }
 
@@ -464,7 +469,7 @@ impl JointMirroring  {
     pub fn new(goal_idx: usize, joint_1_idx: usize, joint_2_idx: usize) -> Self {Self{goal_idx, joint_1_idx, joint_2_idx}}
 }
 impl ObjectiveTrait for JointMirroring {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let mut x_val:f64 = 0.0;
         match v.goals[self.goal_idx].value {
             // goal must be a vector
@@ -480,7 +485,7 @@ impl ObjectiveTrait for JointMirroring {
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
         // println!("JointMirroring error: {:?}",x_val);
-        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+        groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2)
     }
 }
 
@@ -492,9 +497,9 @@ impl RootPositionLiveliness  {
     pub fn new(goal_idx: usize) -> Self {Self{goal_idx}}
 }
 impl ObjectiveTrait for RootPositionLiveliness {
-    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: &bool) -> f64 {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64 {
         let mut x_val: f64 = 0.0;
-        if *is_core == false {
+        if is_core == false {
             match v.liveliness.goals[self.goal_idx] {
                 // The goal must be a 3-vector.
                 Goal::Vector(noise_vec) => {
@@ -506,6 +511,6 @@ impl ObjectiveTrait for RootPositionLiveliness {
             }
         }
         // println!("RootPositionLiveliness error: {:?}",x_val);
-        groove_loss(x_val, 0., 2, 3.5, 0.00005, 4)
+        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
