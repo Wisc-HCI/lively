@@ -18,64 +18,52 @@ impl ObjectiveMaster {
         let mut weight_priors: Vec<f64> = Vec::new();
         for i in 0..config.objectives.len() {
             let mut objective_spec = &config.objectives[i];
-            let mut idx: usize = 0;
-            let mut idx_alt: usize = 0;
-            // Determine the index, if it exists (default to 0)
-            match objective_spec.index {
-                Some(v) => idx = v,
-                None => {}
-            }
-            // Determine the secondary index, if it exists (default to 0)
-            match objective_spec.secondary_index {
-                Some(v) => idx_alt = v,
-                None => {}
-            }
             // Match by variant
             match objective_spec.variant {
 
-                // EE Position (Standard)
-                ObjectiveVariant::EEPositionMatch => {
-                    objectives.push(Box::new(EEPositionMatch::new(i,idx)));
+                // Position (Standard)
+                ObjectiveVariant::PositionMatch => {
+                    objectives.push(Box::new(PositionMatch::new(i,objective_spec.indices.clone())));
                 }
-                // EE Orientation (Standard)
-                ObjectiveVariant::EEOrientationMatch => {
-                    objectives.push(Box::new(EEOrientationMatch::new(i,idx)));
+                // Orientation (Standard)
+                ObjectiveVariant::OrientationMatch => {
+                    objectives.push(Box::new(OrientationMatch::new(i,objective_spec.indices.clone())));
                 },
-                // EE Position Liveliness (TODO)
-                ObjectiveVariant::EEPositionLiveliness => {
-                    objectives.push(Box::new(EEPositionLiveliness::new(i,idx)));
+                // Position Liveliness
+                ObjectiveVariant::PositionLiveliness => {
+                    objectives.push(Box::new(PositionLiveliness::new(i,objective_spec.indices.clone())));
                 }
-                // EE Orientation Liveliness (TODO)
-                ObjectiveVariant::EEOrientationLiveliness => {
-                    objectives.push(Box::new(EEOrientationLiveliness::new(i,idx)));
+                // Orientation Liveliness
+                ObjectiveVariant::OrientationLiveliness => {
+                    objectives.push(Box::new(OrientationLiveliness::new(i,objective_spec.indices.clone())));
                 },
-                // EE Position Mirroring (TODO)
-                ObjectiveVariant::EEPositionMirroring => {
-                    objectives.push(Box::new(EEPositionMirroring::new(i,idx,idx_alt)));
+                // Position Mirroring
+                ObjectiveVariant::PositionMirroring => {
+                    objectives.push(Box::new(PositionMirroring::new(i,objective_spec.indices.clone())));
                 }
-                // EE Orientation Mirroring (TODO)
-                ObjectiveVariant::EEOrientationMirroring => {
-                    objectives.push(Box::new(EEOrientationMirroring::new(i,idx,idx_alt)));
+                // Orientation Mirroring
+                ObjectiveVariant::OrientationMirroring => {
+                    objectives.push(Box::new(OrientationMirroring::new(i,objective_spec.indices.clone())));
                 },
-                // EE Position Bounding (TODO)
-                ObjectiveVariant::EEPositionBounding => {
-                    objectives.push(Box::new(EEPositionBounding::new(i,idx)));
+                // Position Bounding (TODO)
+                ObjectiveVariant::PositionBounding => {
+                    objectives.push(Box::new(PositionBounding::new(i,objective_spec.indices.clone())));
                 }
-                // EE Orientation Bounding (TODO)
-                ObjectiveVariant::EEOrientationBounding => {
-                    objectives.push(Box::new(EEOrientationBounding::new(i,idx)));
+                // Orientation Bounding (TODO)
+                ObjectiveVariant::OrientationBounding => {
+                    objectives.push(Box::new(OrientationBounding::new(i,objective_spec.indices.clone())));
                 },
-                // Joint Matching (TODO)
+                // Joint Matching
                 ObjectiveVariant::JointMatch => {
-                    objectives.push(Box::new(JointMatch::new(i,idx)));
+                    objectives.push(Box::new(JointMatch::new(i,objective_spec.indices.clone())));
                 },
-                // Joint Liveliness (TODO)
+                // Joint Liveliness
                 ObjectiveVariant::JointLiveliness => {
-                    objectives.push(Box::new(JointLiveliness::new(i,idx)));
+                    objectives.push(Box::new(JointLiveliness::new(i,objective_spec.indices.clone())));
                 },
-                // Joint Mirroring (TODO)
+                // Joint Mirroring
                 ObjectiveVariant::JointMirroring => {
-                    objectives.push(Box::new(JointMirroring::new(i,idx,idx_alt)));
+                    objectives.push(Box::new(JointMirroring::new(i,objective_spec.indices.clone())));
                 },
                 // Joint Limits (Standard)
                 ObjectiveVariant::JointLimits => {
@@ -87,6 +75,7 @@ impl ObjectiveMaster {
                 },
                 // Environment Collision (Standard)
                 ObjectiveVariant::EnvCollision => {
+                    // TODO: FIX, since this argument is the arm index, not objective index
                     objectives.push(Box::new(EnvCollision::new(i)));
                 },
                 // Velocity Minimization (Standard)
@@ -103,6 +92,10 @@ impl ObjectiveMaster {
                 },
                 ObjectiveVariant::RootPositionLiveliness => {
                     objectives.push(Box::new(RootPositionLiveliness::new(i)));
+                },
+                // Relative Motion Liveliness
+                ObjectiveVariant::RelativeMotionLiveliness => {
+                    objectives.push(Box::new(RelativeMotionLiveliness::new(i,objective_spec.indices.clone())));
                 },
                 ObjectiveVariant::None => {}
             }

@@ -35,51 +35,51 @@ pub trait ObjectiveTrait {
     fn gradient_type(&self) -> usize {return 1}  // manual diff = 0, finite diff = 1
 }
 
-pub struct EEPositionMatch {
+pub struct PositionMatch {
     pub goal_idx: usize,
-    pub arm_idx: usize
+    pub arm_idx: usize,
+    pub joint_idx: usize
 }
-impl EEPositionMatch {
-    pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
+impl PositionMatch {
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, arm_idx:indices[0], joint_idx:indices[1]}}
 }
-impl ObjectiveTrait for EEPositionMatch {
+impl ObjectiveTrait for PositionMatch {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
-        let last_elem = frames[self.arm_idx].0.len() - 1;
         let mut x_val: f64 = 0.0;
         // Double-check that the goal is a 3-vector
         match v.goals[self.goal_idx].value {
             Goal::Vector(goal_vec) => {
-                x_val = ( frames[self.arm_idx].0[last_elem] - goal_vec ).norm();
+                x_val = ( frames[self.arm_idx].0[self.joint_idx] - goal_vec ).norm();
             },
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
-        // println!("EEPositionMatch error: {:?}",x_val);
+        // println!("PositionMatch error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
 
-pub struct EEOrientationMatch {
+pub struct OrientationMatch {
     pub goal_idx: usize,
-    pub arm_idx: usize
+    pub arm_idx: usize,
+    pub joint_idx: usize
 }
-impl EEOrientationMatch {
-    pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
+impl OrientationMatch {
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, arm_idx:indices[0], joint_idx:indices[1]}}
 }
-impl ObjectiveTrait for EEOrientationMatch {
+impl ObjectiveTrait for OrientationMatch {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
-        let last_elem = frames[self.arm_idx].1.len() - 1;
-        let tmp = Quaternion::new(-frames[self.arm_idx].1[last_elem].w, -frames[self.arm_idx].1[last_elem].i, -frames[self.arm_idx].1[last_elem].j, -frames[self.arm_idx].1[last_elem].k);
+        let tmp = Quaternion::new(-frames[self.arm_idx].1[self.joint_idx].w, -frames[self.arm_idx].1[self.joint_idx].i, -frames[self.arm_idx].1[self.joint_idx].j, -frames[self.arm_idx].1[self.joint_idx].k);
         let ee_quat2 = UnitQuaternion::from_quaternion(tmp);
         let mut x_val: f64 = 0.0;
         match v.goals[self.goal_idx].value {
             Goal::Quaternion(goal_quat) => {
-                let disp = angle_between(goal_quat, frames[self.arm_idx].1[last_elem]);
+                let disp = angle_between(goal_quat, frames[self.arm_idx].1[self.joint_idx]);
                 let disp2 = angle_between(goal_quat, ee_quat2);
                 x_val = disp.min(disp2);
             },
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
-        // println!("EEOrientationMatch error: {:?}",x_val);
+        // println!("OrientationMatch error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
@@ -238,49 +238,49 @@ impl ObjectiveTrait for MinimizeJerk {
     }
 }
 
-pub struct EEPositionLiveliness {
+pub struct PositionLiveliness {
     // Adds position liveliness to the specified end effector
     pub goal_idx: usize,
-    pub arm_idx: usize
+    pub arm_idx: usize,
+    pub joint_idx: usize,
 }
-impl EEPositionLiveliness {
-    pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
+impl PositionLiveliness {
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, arm_idx:indices[0], joint_idx:indices[1]}}
 }
-impl ObjectiveTrait for EEPositionLiveliness {
+impl ObjectiveTrait for PositionLiveliness {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64 {
-        let last_elem = frames[self.arm_idx].0.len() - 1;
         let mut x_val: f64 = 0.0;
         if is_core == false {
             match v.liveliness.goals[self.goal_idx] {
                 // The goal must be a 3-vector.
                 Goal::Vector(noise_vec) => {
                     // The error is the difference between the current value and the noise-augmented position solved previously w/o noise.
-                    x_val = ( frames[self.arm_idx].0[last_elem] - (v.frames_core[self.arm_idx].0[last_elem]+noise_vec) ).norm();
-                    // println!("EEPositionLiveliness Objective enabled")
+                    x_val = ( frames[self.arm_idx].0[self.joint_idx] - (v.frames_core[self.arm_idx].0[self.joint_idx]+noise_vec) ).norm();
+                    // println!("PositionLiveliness Objective enabled")
                 },
                 // Ignore if it isn't
                 _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)}
             }
         }
-        // println!("EEPositionLiveliness loss: {:?}",groove_loss(x_val, 0., 2, 3.5, 0.00005, 4));
+        // println!("PositionLiveliness loss: {:?}",groove_loss(x_val, 0., 2, 3.5, 0.00005, 4));
         groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
 
-pub struct EEOrientationLiveliness {
+pub struct OrientationLiveliness {
     // Adds orientation liveliness to the specified end effector
     pub goal_idx: usize,
-    pub arm_idx: usize
+    pub arm_idx: usize,
+    pub joint_idx: usize
 }
-impl EEOrientationLiveliness {
-    pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
+impl OrientationLiveliness {
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, arm_idx:indices[0], joint_idx:indices[1]}}
 }
-impl ObjectiveTrait for EEOrientationLiveliness {
+impl ObjectiveTrait for OrientationLiveliness {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64 {
-        let last_elem = frames[self.arm_idx].1.len() - 1;
         // Since there are 2 ways to measure the distance around the unit sphere of orientations,
         // calculate actual orientation of the end effector both ways.
-        let tmp = Quaternion::new(-frames[self.arm_idx].1[last_elem].w, -frames[self.arm_idx].1[last_elem].i, -frames[self.arm_idx].1[last_elem].j, -frames[self.arm_idx].1[last_elem].k);
+        let tmp = Quaternion::new(-frames[self.arm_idx].1[self.joint_idx].w, -frames[self.arm_idx].1[self.joint_idx].i, -frames[self.arm_idx].1[self.joint_idx].j, -frames[self.arm_idx].1[self.joint_idx].k);
         let ee_quat2 = UnitQuaternion::from_quaternion(tmp);
         let mut x_val: f64 = 0.0;
         if is_core == false {
@@ -288,9 +288,9 @@ impl ObjectiveTrait for EEOrientationLiveliness {
                 // goal must be a vector
                 Goal::Vector(noise_vec) => {
                     // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
-                    // (v.frames_core[self.arm_idx].1[last_elem] is the orientation from the previous "core solving" round)
-                    let lively_goal = quaternion_exp(quaternion_log(v.frames_core[self.arm_idx].1[last_elem]) + noise_vec);
-                    let disp = angle_between(lively_goal, frames[self.arm_idx].1[last_elem]);
+                    // (v.frames_core[self.arm_idx].1[self.joint_idx] is the orientation from the previous "core solving" round)
+                    let lively_goal = quaternion_exp(quaternion_log(v.frames_core[self.arm_idx].1[self.joint_idx]) + noise_vec);
+                    let disp = angle_between(lively_goal, frames[self.arm_idx].1[self.joint_idx]);
                     let disp2 = angle_between(lively_goal, ee_quat2);
                     x_val = disp.min(disp2);
                 },
@@ -301,56 +301,93 @@ impl ObjectiveTrait for EEOrientationLiveliness {
     }
 }
 
-pub struct EEPositionMirroring {
+pub struct PositionMirroring {
     // Matches the position between two joints, with a difference according to the Vector3 provided in goals.
     pub goal_idx: usize,
     pub arm_1_idx: usize,
-    pub arm_2_idx: usize
+    pub arm_2_idx: usize,
+    pub joint_1_idx: usize,
+    pub joint_2_idx: usize
 }
-impl EEPositionMirroring {
-    pub fn new(goal_idx: usize, arm_1_idx: usize, arm_2_idx: usize) -> Self {Self{goal_idx, arm_1_idx, arm_2_idx}}
+impl PositionMirroring {
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, arm_1_idx:indices[0], joint_1_idx:indices[1], arm_2_idx:indices[2], joint_2_idx:indices[3]}}
 }
-impl ObjectiveTrait for EEPositionMirroring {
+impl ObjectiveTrait for PositionMirroring {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
-        let last_elem_arm_1 = frames[self.arm_1_idx].0.len() - 1;
-        let last_elem_arm_2 = frames[self.arm_2_idx].0.len() - 1;
         let mut x_val:f64 = 0.0;
         match v.goals[self.goal_idx].value {
             // goal must be a vector
             Goal::Vector(offset_vec) => {
                 // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
                 // NOTE: xopt_core.len() == joints.len(), whereas x.len() == joints.len()+3
-                let arm_1_pos = frames[self.arm_1_idx].0[last_elem_arm_1];
-                let arm_2_pos = frames[self.arm_2_idx].0[last_elem_arm_2];
+                let arm_1_pos = frames[self.arm_1_idx].0[self.joint_1_idx];
+                let arm_2_pos = frames[self.arm_2_idx].0[self.joint_2_idx];
                 x_val = ((arm_1_pos-arm_2_pos)-offset_vec).norm();
             },
             // If there is no goal, assume it is zero
             Goal::None => {
-                let arm_1_pos = frames[self.arm_1_idx].0[last_elem_arm_1];
-                let arm_2_pos = frames[self.arm_2_idx].0[last_elem_arm_2];
+                let arm_1_pos = frames[self.arm_1_idx].0[self.joint_1_idx];
+                let arm_2_pos = frames[self.arm_2_idx].0[self.joint_2_idx];
                 x_val = (arm_1_pos-arm_2_pos).norm();
             }
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
-        // println!("EEPositionMirroring error: {:?}",x_val);
+        // println!("PositionMirroring error: {:?}",x_val);
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
-pub struct EEOrientationMirroring {
+pub struct RelativeMotionLiveliness {
+    // Defining a vector line between two joints, this objective promotes lively motion of the second joint along that vector
+    pub goal_idx: usize,
+    pub arm_1_idx: usize,
+    pub arm_2_idx: usize,
+    pub joint_1_idx: usize,
+    pub joint_2_idx: usize
+}
+impl RelativeMotionLiveliness {
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, arm_1_idx:indices[0], joint_1_idx:indices[1], arm_2_idx:indices[2], joint_2_idx:indices[3]}}
+}
+impl ObjectiveTrait for RelativeMotionLiveliness {
+    fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64 {
+        let mut x_val:f64 = 0.0;
+        if is_core {
+            match v.goals[self.goal_idx].value {
+                // goal must be a vector
+                Goal::Scalar(offset) => {
+                    // The error is the difference between the current value and the position along the source-target vector.
+                    let src_pos = frames[self.arm_2_idx].0[self.joint_2_idx];
+                    // pos_1 is the source position
+                    let target_pos_orig = v.frames_core[self.arm_1_idx].0[self.joint_1_idx];
+                    // target_pos_orig is the position for target from the core round
+                    let unit_vector = (target_pos_orig - src_pos).normalize();
+                    // diff is the difference between the above. Used for generating the "vector"
+                    let target_pos = unit_vector * offset + target_pos_orig;
+                    // target position is the scaled offset applied to the original target position
+                    x_val = (src_pos-target_pos).norm();
+                },
+                _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
+            }
+        }
+        // println!("RelativeMotionLiveliness error: {:?}",x_val);
+        groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2)
+    }
+}
+
+pub struct OrientationMirroring {
     // Matches the orientation between two joints, with a difference according to the Vector3 provided in goals.
     pub goal_idx: usize,
     pub arm_1_idx: usize,
-    pub arm_2_idx: usize
+    pub arm_2_idx: usize,
+    pub joint_1_idx: usize,
+    pub joint_2_idx: usize
 }
-impl EEOrientationMirroring  {
-    pub fn new(goal_idx: usize, arm_1_idx: usize, arm_2_idx: usize) -> Self {Self{goal_idx, arm_1_idx, arm_2_idx}}
+impl OrientationMirroring  {
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, arm_1_idx:indices[0], joint_1_idx:indices[1], arm_2_idx:indices[2], joint_2_idx:indices[3]}}
 }
-impl ObjectiveTrait for EEOrientationMirroring {
+impl ObjectiveTrait for OrientationMirroring {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
-        let last_elem_arm_1 = frames[self.arm_1_idx].1.len() - 1;
-        let last_elem_arm_2 = frames[self.arm_2_idx].1.len() - 1;
-        let tmp = Quaternion::new(-frames[self.arm_2_idx].1[last_elem_arm_2].w, -frames[self.arm_2_idx].1[last_elem_arm_2].i, -frames[self.arm_2_idx].1[last_elem_arm_2].j, -frames[self.arm_2_idx].1[last_elem_arm_2].k);
+        let tmp = Quaternion::new(-frames[self.arm_2_idx].1[self.joint_2_idx].w, -frames[self.arm_2_idx].1[self.joint_2_idx].i, -frames[self.arm_2_idx].1[self.joint_2_idx].j, -frames[self.arm_2_idx].1[self.joint_2_idx].k);
         let ee_2_quat2 = UnitQuaternion::from_quaternion(tmp);
         let mut x_val:f64 = 0.0;
         match v.goals[self.goal_idx].value {
@@ -358,48 +395,50 @@ impl ObjectiveTrait for EEOrientationMirroring {
             Goal::Vector(offset_ori) => {
                 // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
                 // NOTE: xopt_core.len() == joints.len(), whereas x.len() == joints.len()+3
-                let offset_arm_1 = quaternion_exp(quaternion_log(v.frames_core[self.arm_1_idx].1[last_elem_arm_1]) + offset_ori);
-                let disp = angle_between(offset_arm_1, frames[self.arm_2_idx].1[last_elem_arm_2]);
+                let offset_arm_1 = quaternion_exp(quaternion_log(v.frames_core[self.arm_1_idx].1[self.joint_1_idx]) + offset_ori);
+                let disp = angle_between(offset_arm_1, frames[self.arm_2_idx].1[self.joint_2_idx]);
                 let disp2 = angle_between(offset_arm_1, ee_2_quat2);
                 x_val = disp.min(disp2);
             },
             // If there is no goal, assume it is zero
             Goal::None => {
-                let disp = angle_between(v.frames_core[self.arm_1_idx].1[last_elem_arm_1], frames[self.arm_2_idx].1[last_elem_arm_2]);
-                let disp2 = angle_between(v.frames_core[self.arm_1_idx].1[last_elem_arm_1], ee_2_quat2);
+                let disp = angle_between(v.frames_core[self.arm_1_idx].1[self.joint_1_idx], frames[self.arm_2_idx].1[self.joint_2_idx]);
+                let disp2 = angle_between(v.frames_core[self.arm_1_idx].1[self.joint_1_idx], ee_2_quat2);
                 x_val = disp.min(disp2);
             }
             _ => {println!("Mismatched objective goals for objective with goal idx {:?}", self.goal_idx)} // Some odd condition where incorrect input was provided
         }
-        // println!("EEOrientationMirroring error: {:?}",x_val);
+        // println!("OrientationMirroring error: {:?}",x_val);
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
-pub struct EEPositionBounding {
+pub struct PositionBounding {
     // Bounds the position within a region according to the input provided in goals.
     pub goal_idx: usize,
-    pub arm_idx: usize
+    pub arm_idx: usize,
+    pub joint_idx: usize
 }
-impl EEPositionBounding  {
-    pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
+impl PositionBounding  {
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, arm_idx:indices[0], joint_idx:indices[1]}}
 }
-impl ObjectiveTrait for EEPositionBounding {
+impl ObjectiveTrait for PositionBounding {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let x_val:f64 = 0.0;
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
-pub struct EEOrientationBounding {
+pub struct OrientationBounding {
     // Bounds the orientation within a region on the unit sphere according to the input provided in goals.
     pub goal_idx: usize,
-    pub arm_idx: usize
+    pub arm_idx: usize,
+    pub joint_idx: usize
 }
-impl EEOrientationBounding  {
-    pub fn new(goal_idx: usize, arm_idx: usize) -> Self {Self{goal_idx, arm_idx}}
+impl OrientationBounding  {
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, arm_idx:indices[0], joint_idx:indices[1]}}
 }
-impl ObjectiveTrait for EEOrientationBounding {
+impl ObjectiveTrait for OrientationBounding {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
         let x_val:f64 = 0.0;
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
@@ -412,7 +451,7 @@ pub struct JointMatch {
     pub joint_idx: usize
 }
 impl JointMatch  {
-    pub fn new(goal_idx: usize, joint_idx: usize) -> Self {Self{goal_idx, joint_idx}}
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, joint_idx:indices[0]}}
 }
 impl ObjectiveTrait for JointMatch {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {
@@ -437,7 +476,7 @@ pub struct JointLiveliness {
     pub joint_idx: usize
 }
 impl JointLiveliness  {
-    pub fn new(goal_idx: usize, joint_idx: usize) -> Self {Self{goal_idx, joint_idx}}
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, joint_idx:indices[0]}}
 }
 impl ObjectiveTrait for JointLiveliness {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, is_core: bool) -> f64 {
@@ -466,7 +505,7 @@ pub struct JointMirroring  {
     pub joint_2_idx: usize
 }
 impl JointMirroring  {
-    pub fn new(goal_idx: usize, joint_1_idx: usize, joint_2_idx: usize) -> Self {Self{goal_idx, joint_1_idx, joint_2_idx}}
+    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {Self{goal_idx, joint_1_idx:indices[0], joint_2_idx:indices[1]}}
 }
 impl ObjectiveTrait for JointMirroring {
     fn call(&self, x: &[f64], v: &RelaxedIKVars, frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>, _is_core: bool) -> f64 {

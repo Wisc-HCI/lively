@@ -14,9 +14,7 @@ NN_SPEC_FIELDS = {'coefs', 'intercepts', 'split_point'}
 
 MODE_CONFIG_FIELDS = {'name', 'goals'}
 
-OBJECTIVE_SPEC_FIELDS = {
-        'variant', 'tag', 'index', 'secondary_index', 'scale', 'shape', 'frequency'
-    }
+OBJECTIVE_SPEC_FIELDS = {'variant', 'tag', 'indices', 'scale', 'shape', 'frequency'}
 
 CUBOID_FIELDS = {'name','x_halflength','y_halflength','z_halflength','rx','ry','rz','tx','ty','tz','is_dynamic','coordinate_frame'}
 
@@ -45,7 +43,7 @@ def parse_config_data(data:dict) -> Config:
                 obj = Cuboid(**{key:value for key,value in content.items() if key in CUBOID_FIELDS })
             elif set(content.keys()).issuperset(SPHERE_FIELDS):
                 obj = Sphere(**{key:value for key,value in content.items() if key in SPHERE_FIELDS })
-            elif 'variant' in content.keys() and set(content.keys()).issubset(OBJECTIVE_SPEC_FIELDS):
+            elif 'variant' in content.keys() and 'indices' in content.keys() and set(content.keys()).issubset(OBJECTIVE_SPEC_FIELDS):
                 obj = ObjectiveSpec(**{key:value for key,value in content.items() if key in OBJECTIVE_SPEC_FIELDS })
             elif set(content.keys()).issubset(GOAL_SPEC_FIELDS):
                 obj = GoalSpec(**content)

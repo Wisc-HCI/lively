@@ -18,14 +18,14 @@ pub enum EnvironmentMode {
 
 #[derive(Clone,Debug,PartialEq)]
 pub enum ObjectiveVariant {
-    EEPositionMatch,
-    EEOrientationMatch,
-    EEPositionLiveliness,
-    EEOrientationLiveliness,
-    EEPositionMirroring,
-    EEOrientationMirroring,
-    EEPositionBounding,
-    EEOrientationBounding,
+    PositionMatch,
+    OrientationMatch,
+    PositionLiveliness,
+    OrientationLiveliness,
+    PositionMirroring,
+    OrientationMirroring,
+    PositionBounding,
+    OrientationBounding,
     JointMatch,
     JointLiveliness,
     JointMirroring,
@@ -35,6 +35,7 @@ pub enum ObjectiveVariant {
     MinimizeVelocity,
     MinimizeAcceleration,
     MinimizeJerk,
+    RelativeMotionLiveliness,
     RootPositionLiveliness,
     None
 }
@@ -84,14 +85,14 @@ impl From<String> for EnvironmentMode {
 impl From<ObjectiveVariant> for String {
     fn from(variant: ObjectiveVariant) -> String {
         match variant {
-            ObjectiveVariant::EEPositionMatch => String::from("ee_position_match"),
-            ObjectiveVariant::EEOrientationMatch => String::from("ee_orientation_match"),
-            ObjectiveVariant::EEPositionLiveliness => String::from("ee_position_liveliness"),
-            ObjectiveVariant::EEOrientationLiveliness => String::from("ee_orientation_liveliness"),
-            ObjectiveVariant::EEPositionMirroring => String::from("ee_position_mirroring"),
-            ObjectiveVariant::EEOrientationMirroring => String::from("ee_orientation_mirroring"),
-            ObjectiveVariant::EEPositionBounding => String::from("ee_position_bounding"),
-            ObjectiveVariant::EEOrientationBounding => String::from("ee_orientation_bounding"),
+            ObjectiveVariant::PositionMatch => String::from("position_match"),
+            ObjectiveVariant::OrientationMatch => String::from("orientation_match"),
+            ObjectiveVariant::PositionLiveliness => String::from("position_liveliness"),
+            ObjectiveVariant::OrientationLiveliness => String::from("orientation_liveliness"),
+            ObjectiveVariant::PositionMirroring => String::from("position_mirroring"),
+            ObjectiveVariant::OrientationMirroring => String::from("orientation_mirroring"),
+            ObjectiveVariant::PositionBounding => String::from("position_bounding"),
+            ObjectiveVariant::OrientationBounding => String::from("orientation_bounding"),
             ObjectiveVariant::JointMatch => String::from("joint_match"),
             ObjectiveVariant::JointLiveliness => String::from("joint_liveliness"),
             ObjectiveVariant::JointMirroring => String::from("joint_mirroring"),
@@ -101,6 +102,7 @@ impl From<ObjectiveVariant> for String {
             ObjectiveVariant::MinimizeVelocity => String::from("min_velocity"),
             ObjectiveVariant::MinimizeAcceleration => String::from("min_acceleration"),
             ObjectiveVariant::MinimizeJerk => String::from("min_jerk"),
+            ObjectiveVariant::RelativeMotionLiveliness => String::from("relative_motion_liveliness"),
             ObjectiveVariant::RootPositionLiveliness => String::from("base_link_position_liveliness"),
             ObjectiveVariant::None => String::from("None")
         }
@@ -110,14 +112,14 @@ impl From<ObjectiveVariant> for String {
 impl From<String> for ObjectiveVariant {
     fn from(variant: String) -> ObjectiveVariant {
         match variant.as_str() {
-            "ee_position_match" => ObjectiveVariant::EEPositionMatch,
-            "ee_orientation_match" => ObjectiveVariant::EEOrientationMatch,
-            "ee_position_liveliness" => ObjectiveVariant::EEPositionLiveliness,
-            "ee_orientation_liveliness" => ObjectiveVariant::EEOrientationLiveliness,
-            "ee_position_bounding" => ObjectiveVariant::EEPositionBounding,
-            "ee_orientation_bounding" => ObjectiveVariant::EEOrientationBounding,
-            "ee_position_mirroring" => ObjectiveVariant::EEPositionMirroring,
-            "ee_orientation_mirroring" => ObjectiveVariant::EEOrientationMirroring,
+            "position_match" => ObjectiveVariant::PositionMatch,
+            "orientation_match" => ObjectiveVariant::OrientationMatch,
+            "position_liveliness" => ObjectiveVariant::PositionLiveliness,
+            "orientation_liveliness" => ObjectiveVariant::OrientationLiveliness,
+            "position_bounding" => ObjectiveVariant::PositionBounding,
+            "orientation_bounding" => ObjectiveVariant::OrientationBounding,
+            "position_mirroring" => ObjectiveVariant::PositionMirroring,
+            "orientation_mirroring" => ObjectiveVariant::OrientationMirroring,
             "joint_match" => ObjectiveVariant::JointMatch,
             "joint_liveliness" => ObjectiveVariant::JointLiveliness,
             "joint_mirroring" => ObjectiveVariant::JointMirroring,
@@ -127,6 +129,7 @@ impl From<String> for ObjectiveVariant {
             "min_velocity" => ObjectiveVariant::MinimizeVelocity,
             "min_acceleration" => ObjectiveVariant::MinimizeAcceleration,
             "min_jerk" => ObjectiveVariant::MinimizeJerk,
+            "relative_motion_liveliness" => ObjectiveVariant::RelativeMotionLiveliness,
             "base_link_position_liveliness" => ObjectiveVariant::RootPositionLiveliness,
             "None" => ObjectiveVariant::None,
             _ => ObjectiveVariant::None // Default to None

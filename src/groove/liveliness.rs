@@ -29,8 +29,8 @@ impl Liveliness {
             let mut shape:Vec<f64> = vec![1.0,1.0,1.0];
             let mut freq:f64 = 1.0;
             match objective.variant {
-                ObjectiveVariant::EEPositionLiveliness => {
-                    // println!("EEPositionLiveliness added");
+                ObjectiveVariant::PositionLiveliness => {
+                    // println!("PositionLiveliness added");
                     goals.push(Goal::Vector(Vector3::new(0.0,0.0,0.0)));
                     seeds.push(Goal::Vector(Vector3::new(f64::from(rng.gen_range(0..1000)),f64::from(rng.gen_range(0..1000)),f64::from(rng.gen_range(0..1000)))));
                     match objective.shape {
@@ -45,8 +45,8 @@ impl Liveliness {
                     shapes.push(shape);
                     freqs.push(freq);
                 },
-                ObjectiveVariant::EEOrientationLiveliness => {
-                    // println!("EEOrientationLiveliness added");
+                ObjectiveVariant::OrientationLiveliness => {
+                    // println!("OrientationLiveliness added");
                     goals.push(Goal::Vector(Vector3::new(0.0,0.0,0.0)));
                     seeds.push(Goal::Vector(Vector3::new(f64::from(rng.gen_range(0..1000)),f64::from(rng.gen_range(0..1000)),f64::from(rng.gen_range(0..1000)))));
                     match objective.shape {
@@ -62,6 +62,22 @@ impl Liveliness {
                     freqs.push(freq);
                 },
                 ObjectiveVariant::JointLiveliness => {
+                    // println!("JointLiveliness added");
+                    goals.push(Goal::Scalar(0.0));
+                    seeds.push(Goal::Scalar(f64::from(rng.gen_range(0..1000))));
+                    match objective.scale {
+                        Some(s) => size = s.clone(),
+                        None => {}
+                    }
+                    match objective.frequency {
+                        Some(f) => freq = f.clone(),
+                        None => {}
+                    }
+                    sizes.push(size);
+                    shapes.push(shape);
+                    freqs.push(freq);
+                },
+                ObjectiveVariant::RelativeMotionLiveliness => {
                     // println!("JointLiveliness added");
                     goals.push(Goal::Scalar(0.0));
                     seeds.push(Goal::Scalar(f64::from(rng.gen_range(0..1000))));

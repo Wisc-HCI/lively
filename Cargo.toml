@@ -1,6 +1,6 @@
 [package]
 name = "lively_ik_core"
-version = "0.1.0"
+version = "0.1.3"
 authors = ["djrakita <djrakita@gmail.com>","andrewjschoen <schoen.andrewj@gmail.com>"]
 edition = "2018"
 

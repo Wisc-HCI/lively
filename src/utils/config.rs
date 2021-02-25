@@ -13,9 +13,7 @@ pub struct ObjectiveSpec {
     #[pyo3(get, set)]
     pub tag: String,
     #[pyo3(get, set)]
-    pub index: Option<usize>,
-    #[pyo3(get, set)]
-    pub secondary_index: Option<usize>,
+    pub indices: Vec<usize>,
     #[pyo3(get, set)]
     // Scale is used for single-dimension objectives, such as joint values
     pub scale: Option<f64>,
@@ -29,9 +27,9 @@ pub struct ObjectiveSpec {
 #[pymethods]
 impl ObjectiveSpec {
     #[new]
-    fn new(variant: String, tag: String, index: Option<usize>, secondary_index: Option<usize>, scale: Option<f64>, shape: Option<Vec<f64>>, frequency: Option<f64>) -> Self {
+    fn new(variant: String, tag: String, indices: Vec<usize>, scale: Option<f64>, shape: Option<Vec<f64>>, frequency: Option<f64>) -> Self {
         let variant_enum = ObjectiveVariant::from(variant);
-        Self { variant: variant_enum, tag, index, secondary_index, scale, shape, frequency }
+        Self { variant: variant_enum, tag, indices, scale, shape, frequency }
     }
     #[getter]
     fn get_variant(&self) -> PyResult<String> {

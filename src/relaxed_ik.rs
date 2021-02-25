@@ -35,7 +35,7 @@ impl LivelyIK {
         // println!("Creating RelaxedIKVars");
         let vars = RelaxedIKVars::new(config.clone());
         // println!("Creating ObjectiveMaster");
-        let mut om = ObjectiveMaster::new(config.clone());
+        let om = ObjectiveMaster::new(config.clone());
         // println!("Creating OptimizationEngine");
         let groove = OptimizationEngineOpen::new(vars.robot.num_dof.clone()+3);
         let groove_nlopt = OptimizationEngineNLopt::new();
