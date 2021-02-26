@@ -8,7 +8,7 @@ use crate::utils::config::{*};
 use crate::utils::settings::{*};
 use crate::utils::history::History;
 // use crate::utils::file_utils::{*};
-use crate::utils::goals::GoalSpec;
+use crate::utils::goals::ObjectiveInput;
 use crate::groove::env_collision::{*};
 use ncollide3d::pipeline::{*};
 use ncollide3d::query::{*};
@@ -28,7 +28,7 @@ pub struct RelaxedIKVars {
     pub offset: Vec<f64>,
     pub history: History,
     pub history_core: History,
-    pub goals: Vec<GoalSpec>,
+    pub goals: Vec<ObjectiveInput>,
     pub liveliness: Liveliness,
     pub init_ee_positions: Vec<Vector3<f64>>,
     pub init_ee_quats: Vec<UnitQuaternion<f64>>,
@@ -47,12 +47,7 @@ impl RelaxedIKVars {
         let num_chains = config.joint_names.len();
         let sampler = ThreadRobotSampler::new(robot.clone());
 
-        let mut goals: Vec<GoalSpec> = Vec::new();
-        for mode_spec in &config.modes {
-            if mode_spec.name == "default" {
-                goals = mode_spec.goals.clone();
-            }
-        }
+        let goals: Vec<ObjectiveInput> = config.default_inputs();
 
         let mut initial_x: Vec<f64> = vec![0.0,0.0,0.0];
         for starting_joint_value in config.starting_config.clone() {

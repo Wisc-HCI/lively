@@ -7,7 +7,7 @@ use crate::groove::objective_master::ObjectiveMaster;
 // use crate::utils::transformations::{*};
 // use crate::utils::yaml_utils::{*};
 use crate::utils::config::{Config,EnvironmentSpec};
-use crate::utils::goals::{Goal,GoalSpec};
+use crate::utils::goals::{Goal,ObjectiveInput};
 use crate::utils::settings::{*};
 // use crate::utils::sampler::ThreadSampler;
 // use nalgebra::{Vector3, UnitQuaternion, Quaternion};
@@ -43,7 +43,7 @@ impl LivelyIK {
         Self { config, vars, om, groove, groove_nlopt }
     }
 
-    fn solve(&mut self, goals: Vec<GoalSpec>, time: f64, world: Option<EnvironmentSpec>, _precise: Option<bool>) -> PyResult<(Vec<f64>,Vec<f64>)> {
+    fn solve(&mut self, goals: Vec<ObjectiveInput>, time: f64, world: Option<EnvironmentSpec>, _precise: Option<bool>) -> PyResult<(Vec<f64>,Vec<f64>)> {
         // Will be the output of solve. N=num_dof
         let mut out_x = self.vars.xopt.clone();
         // Will be the output of solving for core. N=num_dof

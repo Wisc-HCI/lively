@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 use nalgebra::{DMatrix, Vector3};
 // use nalgebra::{DMatrix};
 use crate::utils::shapes::{Sphere, Cuboid, PC};
-use crate::utils::goals::GoalSpec;
+use crate::utils::goals::{GoalSpec,ObjectiveInput};
 use crate::utils::conversions::{*};
 use crate::utils::settings::{*};
 
@@ -107,14 +107,31 @@ pub struct ModeConfig {
     #[pyo3(get, set)]
     pub name: String,
     #[pyo3(get, set)]
-    pub goals: Vec<GoalSpec>
+    pub weights: Vec<f64>
 }
 
 #[pymethods]
 impl ModeConfig {
     #[new]
-    fn new(name: String, goals: Vec<GoalSpec>) -> Self {
-        Self { name, goals }
+    fn new(name: String, weights: Vec<f64>) -> Self {
+        Self { name, weights }
+    }
+}
+
+#[pyclass]
+#[derive(Clone,Debug)]
+pub struct GoalConfig {
+    #[pyo3(get, set)]
+    pub name: String,
+    #[pyo3(get, set)]
+    pub values: Vec<GoalSpec>
+}
+
+#[pymethods]
+impl GoalConfig {
+    #[new]
+    fn new(name: String, values: Vec<GoalSpec>) -> Self {
+        Self { name, values }
     }
 }
 
@@ -131,6 +148,8 @@ pub struct Config {
     pub ee_fixed_joints: Vec<String>,
     #[pyo3(get, set)]
     pub fixed_frame: String,
+    #[pyo3(get, set)]
+    pub goals: Vec<GoalConfig>,
     #[pyo3(get, set)]
     pub joint_limits: Vec<[f64; 2]>,
     #[pyo3(get, set)]
@@ -170,7 +189,7 @@ pub struct Config {
 impl Config {
     #[new]
     fn new(axis_types: Vec<Vec<String>>, base_link_motion_bounds: Vec<[f64; 2]>,
-           static_environment: EnvironmentSpec, ee_fixed_joints: Vec<String>, fixed_frame: String,
+           static_environment: EnvironmentSpec, ee_fixed_joints: Vec<String>, fixed_frame: String, goals: Vec<GoalConfig>,
            joint_limits: Vec<[f64; 2]>, joint_names: Vec<Vec<String>>, joint_ordering: Vec<String>,
            joint_types: Vec<Vec<String>>, modes: Vec<ModeConfig>, mode_control: String, mode_environment: String,
            nn_jointpoint: NNSpec, nn_main: NNSpec, objectives: Vec<ObjectiveSpec>, states: Vec<Vec<f64>>,
@@ -183,7 +202,7 @@ impl Config {
        let mode_env_setting = EnvironmentMode::from(mode_environment);
 
        Self { axis_types, base_link_motion_bounds, static_environment, ee_fixed_joints,
-              fixed_frame, joint_limits, joint_names, joint_ordering, joint_types, modes,
+              fixed_frame, goals, joint_limits, joint_names, joint_ordering, joint_types, modes,
               mode_control: mode_control_setting, mode_environment: mode_env_setting,
               nn_jointpoint, nn_main, objectives, states, robot_link_radius, rot_offsets,
               starting_config, urdf, velocity_limits, disp_offsets: disp_offset_vectors,
@@ -238,16 +257,42 @@ impl Config {
     fn get_default_goals(&self) -> PyResult<Vec<GoalSpec>> {
         return Ok(self.default_goals())
     }
+
+    #[getter]
+    fn get_default_weights(&self) -> PyResult<Vec<f64>> {
+        return Ok(self.default_weights())
+    }
+
+    #[getter]
+    fn get_default_inputs(&self) -> PyResult<Vec<ObjectiveInput>> {
+        return Ok(self.default_inputs())
+    }
 }
 
 impl Config {
-    pub fn default_goals(&self) -> Vec<GoalSpec> {
-        let mut default_goals:Vec<GoalSpec> = Vec::new();
+    pub fn default_weights(&self) -> Vec<f64> {
+        let mut default_weights:Vec<f64> = Vec::new();
         for mode_config in self.modes.clone() {
             match mode_config.name.as_str() {
                 "default" => {
+                    // Transfer contents to default weights
+                    for weight in mode_config.weights.clone() {
+                        default_weights.push(weight)
+                    }
+                    break;
+                },
+                _ => {}
+            }
+        }
+        return default_weights;
+    }
+    pub fn default_goals(&self) -> Vec<GoalSpec> {
+        let mut default_goals:Vec<GoalSpec> = Vec::new();
+        for goal_config in self.goals.clone() {
+            match goal_config.name.as_str() {
+                "default" => {
                     // Transfer contents to default goals
-                    for goal in mode_config.goals.clone() {
+                    for goal in goal_config.values.clone() {
                         default_goals.push(goal)
                     }
                     break;
@@ -256,5 +301,14 @@ impl Config {
             }
         }
         return default_goals;
+    }
+    pub fn default_inputs(&self) -> Vec<ObjectiveInput> {
+        let default_goals = self.default_goals();
+        let default_weights = self.default_weights();
+        let mut default_inputs: Vec<ObjectiveInput> = Vec::new();
+        for i in 0..default_goals.len() {
+            default_inputs.push(ObjectiveInput {value:default_goals[i].value, weight:default_weights[i]})
+        }
+        return default_inputs;
     }
 }

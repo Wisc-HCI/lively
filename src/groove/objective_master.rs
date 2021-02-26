@@ -101,12 +101,7 @@ impl ObjectiveMaster {
             }
         }
 
-        // Transfer default goals weights to weight_priors
-        for goal in config.default_goals() {
-            weight_priors.push(goal.weight)
-        }
-
-        Self {objectives, num_chains, weight_priors, finite_diff_grad: true} // fix this
+        Self {objectives, num_chains, weight_priors: config.default_weights(), finite_diff_grad: true} // fix this
     }
 
     pub fn tune_weight_priors(&mut self, vars: &RelaxedIKVars) {
