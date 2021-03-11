@@ -14,7 +14,7 @@ impl OptimizationEngineOpen {
         OptimizationEngineOpen { dim, cache }
     }
 
-    pub fn optimize(&mut self, x: &mut [f64], v: &RelaxedIKVars, om: &ObjectiveMaster, max_iter: usize, is_core: bool) {
+    pub fn optimize(&mut self, x: &mut [f64], v: &RelaxedIKVars, om: &ObjectiveMaster, max_iter: usize, is_core: bool) -> f64 {
         let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
             let (my_obj, my_grad) = om.gradient(u, v, is_core);
             for i in 0..my_grad.len() {
@@ -36,7 +36,12 @@ impl OptimizationEngineOpen {
         let mut panoc = PANOCOptimizer::new(problem, &mut self.cache).with_max_iter(max_iter).with_tolerance(0.0005);
 
         // Invoke the solver
-        let status = panoc.solve(x);
+        let result = panoc.solve(x);
+
+        match result {
+            Err(err) => return f64::INFINITY.clone(),
+            _ => return result.unwrap().cost_value()
+        }
         // println!("Status: {:?}",status);
     }
 }

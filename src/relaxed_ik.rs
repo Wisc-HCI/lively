@@ -12,6 +12,7 @@ use crate::utils::settings::{*};
 // use crate::utils::sampler::ThreadSampler;
 // use nalgebra::{Vector3, UnitQuaternion, Quaternion};
 use std::os::raw::{c_double, c_int};
+use rand::{thread_rng, Rng};
 
 #[repr(C)]
 pub struct Opt {
@@ -43,7 +44,10 @@ impl LivelyIK {
         Self { config, vars, om, groove, groove_nlopt }
     }
 
-    fn solve(&mut self, goals: Vec<ObjectiveInput>, time: f64, world: Option<EnvironmentSpec>, _precise: Option<bool>) -> PyResult<(Vec<f64>,Vec<f64>)> {
+    fn solve(&mut self, goals: Vec<ObjectiveInput>, time: f64, world: Option<EnvironmentSpec>, max_retries: Option<u64>) -> PyResult<(Vec<f64>,Vec<f64>)> {
+        // RNG Gen
+        let mut rng = thread_rng();
+
         // Will be the output of solve. N=num_dof
         let mut out_x = self.vars.xopt.clone();
         // Will be the output of solving for core. N=num_dof
@@ -95,23 +99,78 @@ impl LivelyIK {
                 // Right now, doing this causes errors because vars.env_collision.active_obstacles isn't populated
                 self.om.tune_weight_priors(&self.vars);
             }
-            // Run without liveliness (core objectives)
-            self.groove.optimize(&mut xopt_core, &self.vars, &self.om, 100, true);
-            for i in 0..out_x_core.len() {
-                out_x_core[i] = xopt_core[i+3];
+
+            let mut best_xopt_core = xopt_core.clone();
+            let mut best_cost = f64::INFINITY.clone();
+
+            // If precise, run until error is sufficiently low, or the max_retries is met
+            let max_tries: u64;
+            match max_retries {
+                Some(value) => {max_tries = value+1},
+                None => {max_tries = 1}
             }
+
+            let mut try_count = 0;
+
+            // Run without liveliness (core objectives)
+            // Run until the max_retries is met, or the solution could be improved
+            while try_count < max_tries && (try_count == 0 || best_cost > 250.0) {
+                let try_cost = self.groove.optimize(&mut xopt_core, &self.vars, &self.om, 150, true);
+                if try_cost < best_cost {
+                    best_xopt_core = xopt_core.clone();
+                    best_cost = try_cost;
+                }
+                try_count += 1;
+
+                // Randomly generate a new starting point
+                for i in 0..xopt_core.len() {
+                    if self.vars.robot.upper_bounds[i]-self.vars.robot.lower_bounds[i] <= 0.0 {
+                        xopt_core[i] = self.vars.robot.lower_bounds[i]
+                    } else {
+                        xopt_core[i] = rng.gen_range(self.vars.robot.lower_bounds[i]..self.vars.robot.upper_bounds[i]);
+                    }
+                }
+            }
+            // println!("Best cost (core): {:?}",best_cost);
+            for i in 0..out_x_core.len() {
+                out_x_core[i] = best_xopt_core[i+3];
+            }
+            let frames_core = self.vars.robot.get_frames(&best_xopt_core.clone());
+
             self.vars.xopt_core = out_x_core.clone();
             self.vars.history_core.update(out_x_core.clone());
-            self.vars.frames_core = self.vars.robot.get_frames(&xopt_core.clone());
+            self.vars.frames_core = self.vars.robot.get_frames(&best_xopt_core.clone());
 
             // Run with liveliness (all objectives)
-            self.groove.optimize(&mut xopt, &self.vars, &self.om, 100, false);
-            for i in 0..out_x_core.len() {
-                out_x[i] = xopt[i+3];
+            let mut best_xopt = xopt.clone();
+            best_cost = f64::INFINITY.clone();
+            try_count = 0;
+
+            // Run until the max_retries is met, or the solution could be improved
+            while try_count < max_tries && (try_count == 0 || best_cost > 250.0) {
+                let try_cost = self.groove.optimize(&mut xopt, &self.vars, &self.om, 150, false);
+                if try_cost < best_cost {
+                    best_xopt = xopt.clone();
+                    best_cost = try_cost;
+                }
+                try_count += 1;
+                // Randomly generate a new starting point
+                for i in 0..xopt.len() {
+                    if self.vars.robot.upper_bounds[i]-self.vars.robot.lower_bounds[i] <= 0.0 {
+                        xopt[i] = self.vars.robot.lower_bounds[i]
+                    } else {
+                        xopt[i] = rng.gen_range(self.vars.robot.lower_bounds[i]..self.vars.robot.upper_bounds[i]);
+                    }
+                }
             }
+            // println!("Best cost: {:?}",best_cost);
+            for i in 0..out_x.len() {
+                out_x[i] = best_xopt[i+3];
+            }
+
             self.vars.xopt = out_x.clone();
             self.vars.history.update(out_x.clone());
-            self.vars.offset = vec![xopt[0],xopt[1],xopt[2]]
+            self.vars.offset = vec![best_xopt[0],best_xopt[1],best_xopt[2]]
         }
 
         // println!("OUTX-CORE {:?},\nOUTX {:?}",xopt_core,xopt);

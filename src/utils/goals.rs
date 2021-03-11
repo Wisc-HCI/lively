@@ -23,6 +23,7 @@ pub enum Goal {
     Scalar(f64), // input is a float
     Vector(Vector3<f64>), // input is a 3-vector
     Quaternion(UnitQuaternion<f64>), // input is a quaternion
+    Pose((Vector3<f64>, UnitQuaternion<f64>)), // input is a vector and quaternion
     None
 }
 
@@ -35,11 +36,12 @@ pub struct GoalSpec {
 #[pymethods]
 impl GoalSpec {
     #[new]
-    fn new(scalar: Option<f64>, vector: Option<Vec<f64>>, quaternion: Option<Vec<f64>>) -> Self {
+    fn new(scalar: Option<f64>, vector: Option<Vec<f64>>, quaternion: Option<Vec<f64>>, pose: Option<(Vec<f64>, Vec<f64>)>) -> Self {
         let mut value: Goal = Goal::None;
         match scalar {Some(s) => value = Goal::Scalar(s), None => {}};
         match vector {Some(v) => value = Goal::Vector(vec_to_vector(v)), None => {}};
         match quaternion {Some(q) => value = Goal::Quaternion(vec_to_quat(q)), None => {}};
+        match pose {Some(p) => value = Goal::Pose((vec_to_vector(p.0),vec_to_quat(p.1))), None => {}};
         return Self { value }
     }
 
@@ -50,6 +52,7 @@ impl GoalSpec {
             Goal::Scalar(s) => response = Option::Some(s),
             Goal::Vector(_v) => response = Option::None,
             Goal::Quaternion(_q) => response = Option::None,
+            Goal::Pose(_p) => response = Option::None,
             Goal::None => response = Option::None,
         }
         return Ok(response)
@@ -68,6 +71,7 @@ impl GoalSpec {
             Goal::Scalar(_s) => response = Option::None,
             Goal::Vector(v) => response = Option::Some(vector_to_vec(v)),
             Goal::Quaternion(_q) => response = Option::None,
+            Goal::Pose(_p) => response = Option::None,
             Goal::None => response = Option::None,
         }
         return Ok(response)
@@ -86,6 +90,7 @@ impl GoalSpec {
             Goal::Scalar(_s) => response = Option::None,
             Goal::Vector(_v) => response = Option::None,
             Goal::Quaternion(q) => response = Option::Some(quat_to_vec(q)),
+            Goal::Pose(_p) => response = Option::None,
             Goal::None => response = Option::None,
         }
         return Ok(response)
@@ -94,6 +99,25 @@ impl GoalSpec {
     #[setter(quaternion)]
     fn set_quaternion(&mut self, quaternion: Vec<f64>) -> PyResult<()> {
         self.value = Goal::Quaternion(vec_to_quat(quaternion));
+        return Ok(())
+    }
+
+    #[getter(pose)]
+    fn get_pose(&self) -> PyResult<Option<(Vec<f64>,Vec<f64>)>> {
+        let response: Option<(Vec<f64>,Vec<f64>)>;
+        match self.value {
+            Goal::Scalar(_s) => response = Option::None,
+            Goal::Vector(_v) => response = Option::None,
+            Goal::Quaternion(_q) => response = Option::None,
+            Goal::Pose(p) => response = Option::Some((vector_to_vec(p.0),quat_to_vec(p.1))),
+            Goal::None => response = Option::None,
+        }
+        return Ok(response)
+    }
+
+    #[setter(pose)]
+    fn set_pose(&mut self, pose: (Vec<f64>,Vec<f64>)) -> PyResult<()> {
+        self.value = Goal::Pose((vec_to_vector(pose.0),vec_to_quat(pose.1)));
         return Ok(())
     }
 
@@ -108,6 +132,7 @@ impl GoalSpec {
             Goal::Scalar(s) => response = format!("<GoalSpec scalar: {:?}>", s),
             Goal::Vector(v) => response = format!("<GoalSpec vector: {:?},{:?},{:?}>", v.x, v.y, v.z),
             Goal::Quaternion(q) => response = format!("<GoalSpec quaternion: {:?},{:?},{:?},{:?}>", q[0], q[1], q[2], q[3]),
+            Goal::Pose(p) => response = format!("<GoalSpec pose: ({:?},{:?},{:?}) ({:?},{:?},{:?},{:?})>", p.0[0], p.0[1], p.0[2], p.1[0], p.1[1], p.1[2], p.1[3]),
             Goal::None => {}
         }
         return Ok(response)
@@ -129,11 +154,12 @@ pub struct ObjectiveInput {
 #[pymethods]
 impl ObjectiveInput {
     #[new]
-    fn new(weight: f64, scalar: Option<f64>, vector: Option<Vec<f64>>, quaternion: Option<Vec<f64>>) -> Self {
+    fn new(weight: f64, scalar: Option<f64>, vector: Option<Vec<f64>>, quaternion: Option<Vec<f64>>, pose: Option<(Vec<f64>, Vec<f64>)>) -> Self {
         let mut value: Goal = Goal::None;
         match scalar {Some(s) => value = Goal::Scalar(s), None => {}};
         match vector {Some(v) => value = Goal::Vector(vec_to_vector(v)), None => {}};
         match quaternion {Some(q) => value = Goal::Quaternion(vec_to_quat(q)), None => {}};
+        match pose {Some(p) => value = Goal::Pose((vec_to_vector(p.0),vec_to_quat(p.1))), None => {}};
         return Self { weight, value }
     }
 
@@ -144,6 +170,7 @@ impl ObjectiveInput {
             Goal::Scalar(s) => response = Option::Some(s),
             Goal::Vector(_v) => response = Option::None,
             Goal::Quaternion(_q) => response = Option::None,
+            Goal::Pose(_p) => response = Option::None,
             Goal::None => response = Option::None,
         }
         return Ok(response)
@@ -162,6 +189,7 @@ impl ObjectiveInput {
             Goal::Scalar(_s) => response = Option::None,
             Goal::Vector(v) => response = Option::Some(vector_to_vec(v)),
             Goal::Quaternion(_q) => response = Option::None,
+            Goal::Pose(_p) => response = Option::None,
             Goal::None => response = Option::None,
         }
         return Ok(response)
@@ -180,6 +208,7 @@ impl ObjectiveInput {
             Goal::Scalar(_s) => response = Option::None,
             Goal::Vector(_v) => response = Option::None,
             Goal::Quaternion(q) => response = Option::Some(quat_to_vec(q)),
+            Goal::Pose(_p) => response = Option::None,
             Goal::None => response = Option::None,
         }
         return Ok(response)
@@ -188,6 +217,25 @@ impl ObjectiveInput {
     #[setter(quaternion)]
     fn set_quaternion(&mut self, quaternion: Vec<f64>) -> PyResult<()> {
         self.value = Goal::Quaternion(vec_to_quat(quaternion));
+        return Ok(())
+    }
+
+    #[getter(pose)]
+    fn get_pose(&self) -> PyResult<Option<(Vec<f64>,Vec<f64>)>> {
+        let response: Option<(Vec<f64>,Vec<f64>)>;
+        match self.value {
+            Goal::Scalar(_s) => response = Option::None,
+            Goal::Vector(_v) => response = Option::None,
+            Goal::Quaternion(_q) => response = Option::None,
+            Goal::Pose(p) => response = Option::Some((vector_to_vec(p.0),quat_to_vec(p.1))),
+            Goal::None => response = Option::None,
+        }
+        return Ok(response)
+    }
+
+    #[setter(pose)]
+    fn set_pose(&mut self, pose: (Vec<f64>,Vec<f64>)) -> PyResult<()> {
+        self.value = Goal::Pose((vec_to_vector(pose.0),vec_to_quat(pose.1)));
         return Ok(())
     }
 
@@ -203,6 +251,7 @@ impl ObjectiveInput {
             Goal::Scalar(s) => response = format!("<ObjectiveInput weight: {:?}, scalar: {:?}>", weight, s),
             Goal::Vector(v) => response = format!("<ObjectiveInput weight: {:?}, vector: {:?},{:?},{:?}>", weight, v.x, v.y, v.z),
             Goal::Quaternion(q) => response = format!("<ObjectiveInput weight: {:?}, quaternion: {:?},{:?},{:?},{:?}>", weight, q[0], q[1], q[2], q[3]),
+            Goal::Pose(p) => response = format!("<ObjectiveInput weight: {:?}, pose: ({:?},{:?},{:?}) ({:?},{:?},{:?},{:?})>", weight, p.0[0], p.0[1], p.0[2], p.1[0], p.1[1], p.1[2], p.1[3]),
             Goal::None => {}
         }
         return Ok(response)
