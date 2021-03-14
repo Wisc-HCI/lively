@@ -2,6 +2,7 @@ use crate::groove::objective::*;
 use crate::groove::vars::RelaxedIKVars;
 use crate::utils::config::*;
 use crate::utils::settings::*;
+use nalgebra::Vector3;
 
 pub struct ObjectiveMaster {
     pub objectives: Vec<Box<dyn ObjectiveTrait + Send>>,
@@ -63,8 +64,14 @@ impl ObjectiveMaster {
                 }
                 // Position Bounding (TODO)
                 ObjectiveVariant::PositionBounding => {
+                    let shape: Vector3<f64>;
+                    match objective_spec.shape.clone() {
+                        Some(vec) => shape = Vector3::new(vec[0], vec[1], vec[2]),
+                        None => shape = Vector3::new(0.0, 0.0, 0.0),
+                    }
                     objectives.push(Box::new(PositionBounding::new(
                         i,
+                        shape,
                         objective_spec.indices.clone(),
                     )));
                 }
@@ -103,8 +110,7 @@ impl ObjectiveMaster {
                 }
                 // Environment Collision (Standard)
                 ObjectiveVariant::EnvCollision => {
-                    // TODO: FIX, since this argument is the arm index, not objective index
-                    objectives.push(Box::new(EnvCollision::new(i)));
+                    objectives.push(Box::new(EnvCollision::new(objective_spec.indices[0])));
                 }
                 // Velocity Minimization (Standard)
                 ObjectiveVariant::MinimizeVelocity => {
@@ -127,6 +133,14 @@ impl ObjectiveMaster {
                         i,
                         objective_spec.indices.clone(),
                     )));
+                }
+                // Gravity
+                ObjectiveVariant::Gravity => {
+                    objectives.push(Box::new(Gravity::new(objective_spec.indices.clone())));
+                }
+                // Macro for Smoothness
+                ObjectiveVariant::MacroSmoothness => {
+                    objectives.push(Box::new(MacroSmoothness::new()));
                 }
                 ObjectiveVariant::None => {}
             }

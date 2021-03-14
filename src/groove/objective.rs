@@ -2,7 +2,7 @@ use crate::utils::goals::*;
 use crate::utils::transformations::*;
 // use std::cmp;
 use crate::groove::vars::RelaxedIKVars;
-use nalgebra::geometry::{Point3, Quaternion, UnitQuaternion};
+use nalgebra::geometry::{Isometry3, Point3, Quaternion, Translation3, UnitQuaternion};
 use nalgebra::{one, Vector3};
 use ncollide3d::{query, shape};
 use std::ops::Deref;
@@ -246,17 +246,15 @@ impl ObjectiveTrait for JointLimits {
         for i in 0..v.robot.lower_bounds.len() {
             let l = v.robot.lower_bounds[i];
             let u = v.robot.upper_bounds[i];
-            let range = u - l;
-            match range {
+            if u - l <= 0.0 {
                 // In cases where the upper and lower limits are the same,
                 // just compare the lower limit to the x value.
-                range if range == 0.0 => sum += a * (x[i] - l).abs().powi(50),
+                sum += a * (x[i] - l).abs().powi(50);
+            } else {
                 // Otherwise, compare as normal
-                _ => {
-                    let r = (x[i] - l) / (u - l);
-                    let n = 2.0 * (r - 0.5);
-                    sum += a * n.powi(50);
-                }
+                let r = (x[i] - l) / (u - l);
+                let n = 2.0 * (r - 0.5);
+                sum += a * n.powi(50);
             }
         }
         // println!("JointLimits error: {:?}",sum);
@@ -337,6 +335,69 @@ impl ObjectiveTrait for MinimizeJerk {
         x_val = x_val.sqrt();
         // println!("MinimizeJerk error: {:?}",x_val);
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+}
+
+pub struct MacroSmoothness {
+    velocity_objective: MinimizeVelocity,
+    acceleration_objective: MinimizeAcceleration,
+    jerk_objective: MinimizeJerk,
+}
+
+impl MacroSmoothness {
+    pub fn new() -> Self {
+        Self {
+            velocity_objective: MinimizeVelocity,
+            acceleration_objective: MinimizeAcceleration,
+            jerk_objective: MinimizeJerk,
+        }
+    }
+}
+
+impl ObjectiveTrait for MacroSmoothness {
+    fn call(
+        &self,
+        x: &[f64],
+        v: &RelaxedIKVars,
+        frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        is_core: bool,
+    ) -> f64 {
+        let velocity_cost = self.velocity_objective.call(x, v, frames, is_core);
+        let acceleration_cost = self.acceleration_objective.call(x, v, frames, is_core);
+        let jerk_cost = self.jerk_objective.call(x, v, frames, is_core);
+        return 7.0 * velocity_cost + 2.0 * acceleration_cost + jerk_cost;
+    }
+}
+
+pub struct Gravity {
+    pub arm_idx: usize,
+    pub joint_idx: usize,
+}
+
+impl Gravity {
+    pub fn new(indices: Vec<usize>) -> Self {
+        Self {
+            arm_idx: indices[0],
+            joint_idx: indices[1],
+        }
+    }
+}
+
+impl ObjectiveTrait for Gravity {
+    fn call(
+        &self,
+        _x: &[f64],
+        v: &RelaxedIKVars,
+        frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        is_core: bool,
+    ) -> f64 {
+        let mut x_val: f64 = 0.0;
+        if is_core == false {
+            let gravity_goal = v.frames_core[self.arm_idx].0[self.joint_idx][2] - 0.1;
+            x_val = (gravity_goal - frames[self.arm_idx].0[self.joint_idx][2]).abs();
+        }
+        // println!("PositionLiveliness loss: {:?}",groove_loss(x_val, 0., 2, 3.5, 0.00005, 4));
+        groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
 
@@ -623,13 +684,15 @@ pub struct PositionBounding {
     pub goal_idx: usize,
     pub arm_idx: usize,
     pub joint_idx: usize,
+    pub shape: Vector3<f64>,
 }
 impl PositionBounding {
-    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {
+    pub fn new(goal_idx: usize, shape: Vector3<f64>, indices: Vec<usize>) -> Self {
         Self {
             goal_idx,
             arm_idx: indices[0],
             joint_idx: indices[1],
+            shape,
         }
     }
 }
@@ -637,12 +700,46 @@ impl ObjectiveTrait for PositionBounding {
     fn call(
         &self,
         _x: &[f64],
-        _v: &RelaxedIKVars,
-        _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        v: &RelaxedIKVars,
+        frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
         _is_core: bool,
     ) -> f64 {
-        let x_val: f64 = 0.0;
-        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+        let mut x_val: f64 = 0.0;
+        let position = Point3::from(frames[self.arm_idx].0[self.joint_idx]);
+
+        match v.goals[self.goal_idx].value {
+            // Goal must be a position/orientation pair
+            Goal::Pose(pose_pair) => {
+                // Translate position into coordinate frame of ellipse based on pose_pair
+                let transform = Isometry3::from_parts(Translation3::from(pose_pair.0), pose_pair.1);
+                let pos = transform.inverse_transform_point(&position);
+                x_val = (pos[0].powi(1) / self.shape[0].powi(2)
+                    + pos[1].powi(2) / self.shape[1].powi(2)
+                    + pos[2].powi(2) / self.shape[2].powi(2))
+                .powi(2)
+            }
+            // If there is no goal, assume it is the position/orientation from core
+            Goal::None => {
+                let pose_pair = (
+                    v.frames_core[self.arm_idx].0[self.joint_idx],
+                    v.frames_core[self.arm_idx].1[self.joint_idx],
+                );
+                // Translate position into coordinate frame of ellipse based on pose_pair
+                let transform = Isometry3::from_parts(Translation3::from(pose_pair.0), pose_pair.1);
+                let pos = transform.inverse_transform_point(&position);
+
+                x_val = (pos[0].powi(1) / self.shape[0].powi(2)
+                    + pos[1].powi(2) / self.shape[1].powi(2)
+                    + pos[2].powi(2) / self.shape[2].powi(2))
+                .powi(2)
+            }
+            _ => println!(
+                "Mismatched objective goals for objective with goal idx {:?}",
+                self.goal_idx
+            ), // Some odd condition where incorrect input was provided
+        }
+
+        groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
 

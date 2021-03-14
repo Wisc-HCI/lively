@@ -21,7 +21,7 @@ impl OptimizationEngineOpen {
         om: &ObjectiveMaster,
         max_iter: usize,
         is_core: bool,
-    ) {
+    ) -> f64 {
         let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
             let (_my_obj, my_grad) = om.gradient(u, v, is_core);
             for i in 0..my_grad.len() {
@@ -48,7 +48,12 @@ impl OptimizationEngineOpen {
             .with_tolerance(0.0005);
 
         // Invoke the solver
-        let _status = panoc.solve(x);
+        let result = panoc.solve(x);
+
+        match result {
+            Err(err) => return f64::INFINITY.clone(),
+            _ => return result.unwrap().cost_value(),
+        }
         // println!("Status: {:?}",status);
     }
 }

@@ -22,7 +22,7 @@ CUBOID_FIELDS = {'name','x_halflength','y_halflength','z_halflength','rx','ry','
 
 SPHERE_FIELDS = {'name','radius','tx','ty','tz','is_dynamic','coordinate_frame'}
 
-GOAL_SPEC_FIELDS = {'scalar','vector','quaternion'}
+GOAL_SPEC_FIELDS = {'scalar','vector','quaternion','pose'}
 
 OBJECTIVE_INPUT_FIELDS = {'weight', 'scalar','vector','quaternion'}
 
