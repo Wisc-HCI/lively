@@ -51,7 +51,7 @@ impl OptimizationEngineOpen {
         let result = panoc.solve(x);
 
         match result {
-            Err(err) => return f64::INFINITY.clone(),
+            Err(_err) => return f64::INFINITY.clone(),
             _ => return result.unwrap().cost_value(),
         }
         // println!("Status: {:?}",status);
