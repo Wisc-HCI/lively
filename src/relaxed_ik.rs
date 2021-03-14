@@ -1,14 +1,14 @@
-use pyo3::prelude::*;
-use crate::groove::vars::RelaxedIKVars;
-use crate::groove::groove::{OptimizationEngineOpen, OptimizationEngineNLopt};
+use crate::groove::groove::{OptimizationEngineNLopt, OptimizationEngineOpen};
 use crate::groove::objective_master::ObjectiveMaster;
+use crate::groove::vars::RelaxedIKVars;
+use pyo3::prelude::*;
 // use crate::utils::file_utils::{*};
 // use crate::utils::subscriber_utils::EEPoseGoalsSubscriber;
 // use crate::utils::transformations::{*};
 // use crate::utils::yaml_utils::{*};
-use crate::utils::config::{Config,EnvironmentSpec};
-use crate::utils::goals::{Goal,ObjectiveInput};
-use crate::utils::settings::{*};
+use crate::utils::config::{Config, EnvironmentSpec};
+use crate::utils::goals::{Goal, ObjectiveInput};
+use crate::utils::settings::*;
 // use crate::utils::sampler::ThreadSampler;
 // use nalgebra::{Vector3, UnitQuaternion, Quaternion};
 use std::os::raw::{c_double, c_int};
@@ -25,7 +25,7 @@ pub struct LivelyIK {
     pub vars: RelaxedIKVars,
     pub om: ObjectiveMaster,
     pub groove: OptimizationEngineOpen,
-    pub groove_nlopt: OptimizationEngineNLopt
+    pub groove_nlopt: OptimizationEngineNLopt,
 }
 
 #[pymethods]
@@ -37,13 +37,25 @@ impl LivelyIK {
         // println!("Creating ObjectiveMaster");
         let om = ObjectiveMaster::new(config.clone());
         // println!("Creating OptimizationEngine");
-        let groove = OptimizationEngineOpen::new(vars.robot.num_dof.clone()+3);
+        let groove = OptimizationEngineOpen::new(vars.robot.num_dof.clone() + 3);
         let groove_nlopt = OptimizationEngineNLopt::new();
 
-        Self { config, vars, om, groove, groove_nlopt }
+        Self {
+            config,
+            vars,
+            om,
+            groove,
+            groove_nlopt,
+        }
     }
 
-    fn solve(&mut self, goals: Vec<ObjectiveInput>, time: f64, world: Option<EnvironmentSpec>, _precise: Option<bool>) -> PyResult<(Vec<f64>,Vec<f64>)> {
+    fn solve(
+        &mut self,
+        goals: Vec<ObjectiveInput>,
+        time: f64,
+        world: Option<EnvironmentSpec>,
+        _precise: Option<bool>,
+    ) -> PyResult<(Vec<f64>, Vec<f64>)> {
         // Will be the output of solve. N=num_dof
         let mut out_x = self.vars.xopt.clone();
         // Will be the output of solving for core. N=num_dof
@@ -51,7 +63,7 @@ impl LivelyIK {
         // Will be the output of the optimization. N=num_dof+3
         let mut xopt = self.vars.offset.clone();
         // Will be the output of the core optimization. N=num_dof+3
-        let mut xopt_core = vec![0.0,0.0,0.0];
+        let mut xopt_core = vec![0.0, 0.0, 0.0];
 
         for i in 0..out_x.len() {
             xopt.push(out_x[i])
@@ -62,16 +74,20 @@ impl LivelyIK {
         }
 
         if goals.len() != self.config.objectives.len() {
-            println!("Mismatch between goals (n={:?}) and objectives (n={:?})", goals.len(), self.config.objectives.len());
-            return Ok((self.vars.offset.clone(),out_x));
+            println!(
+                "Mismatch between goals (n={:?}) and objectives (n={:?})",
+                goals.len(),
+                self.config.objectives.len()
+            );
+            return Ok((self.vars.offset.clone(), out_x));
         }
 
         for goal_idx in 0..goals.clone().len() {
             self.om.weight_priors[goal_idx] = goals[goal_idx].weight;
             match goals[goal_idx].value {
                 // Only update if the goal is specified.
-                Goal::None => {},
-                _ => {self.vars.goals[goal_idx].value = goals[goal_idx].value}
+                Goal::None => {}
+                _ => self.vars.goals[goal_idx].value = goals[goal_idx].value,
             }
         }
 
@@ -82,41 +98,41 @@ impl LivelyIK {
 
         match world {
             // Update the collision world
-            Some(env) => {
-
-            },
+            Some(_env) => {}
             // Keep the same one as previous
             None => {}
         }
 
-        let in_collision = false;//self.vars.update_collision_world();
+        let in_collision = false; //self.vars.update_collision_world();
         if !in_collision {
             if self.config.mode_environment == EnvironmentMode::ECAA {
                 // Right now, doing this causes errors because vars.env_collision.active_obstacles isn't populated
                 self.om.tune_weight_priors(&self.vars);
             }
             // Run without liveliness (core objectives)
-            self.groove.optimize(&mut xopt_core, &self.vars, &self.om, 100, true);
+            self.groove
+                .optimize(&mut xopt_core, &self.vars, &self.om, 100, true);
             for i in 0..out_x_core.len() {
-                out_x_core[i] = xopt_core[i+3];
+                out_x_core[i] = xopt_core[i + 3];
             }
             self.vars.xopt_core = out_x_core.clone();
             self.vars.history_core.update(out_x_core.clone());
             self.vars.frames_core = self.vars.robot.get_frames(&xopt_core.clone());
 
             // Run with liveliness (all objectives)
-            self.groove.optimize(&mut xopt, &self.vars, &self.om, 100, false);
+            self.groove
+                .optimize(&mut xopt, &self.vars, &self.om, 100, false);
             for i in 0..out_x_core.len() {
-                out_x[i] = xopt[i+3];
+                out_x[i] = xopt[i + 3];
             }
             self.vars.xopt = out_x.clone();
             self.vars.history.update(out_x.clone());
-            self.vars.offset = vec![xopt[0],xopt[1],xopt[2]]
+            self.vars.offset = vec![xopt[0], xopt[1], xopt[2]]
         }
 
         // println!("OUTX-CORE {:?},\nOUTX {:?}",xopt_core,xopt);
 
-        return Ok((self.vars.offset.clone(),out_x))
+        return Ok((self.vars.offset.clone(), out_x));
     }
 }
 

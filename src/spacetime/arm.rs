@@ -1,4 +1,4 @@
-use nalgebra::{Matrix3, Vector3, Rotation3, UnitQuaternion};
+use nalgebra::{Matrix3, Rotation3, UnitQuaternion, Vector3};
 
 #[derive(Clone, Debug)]
 pub struct Arm {
@@ -24,14 +24,17 @@ pub struct Arm {
     __is_neg_x: Vec<bool>,
     __is_neg_y: Vec<bool>,
     __is_neg_z: Vec<bool>,
-    __aux_matrix: Matrix3<f64>
+    __aux_matrix: Matrix3<f64>,
 }
 
-impl Arm{
-    pub fn new(axis_types: Vec<String>,
-        displacements: Vec<Vector3<f64>>, disp_offset: Vector3<f64>,
-        rot_offsets: Vec<Vec<f64>>, joint_types: Vec<String>) -> Arm {
-
+impl Arm {
+    pub fn new(
+        axis_types: Vec<String>,
+        displacements: Vec<Vector3<f64>>,
+        disp_offset: Vector3<f64>,
+        rot_offsets: Vec<Vec<f64>>,
+        joint_types: Vec<String>,
+    ) -> Arm {
         let num_dof = axis_types.len();
 
         let mut __do_rot_offset: Vec<bool> = Vec::new();
@@ -52,16 +55,16 @@ impl Arm{
         let mut rot_offset_matrices: Vec<Matrix3<f64>> = Vec::new();
         let mut rot_offset_quats: Vec<UnitQuaternion<f64>> = Vec::new();
         for i in 0..rot_offsets.len() {
-            rot_offset_matrices.push( euler_triple_to_3x3(&rot_offsets[i]) );
+            rot_offset_matrices.push(euler_triple_to_3x3(&rot_offsets[i]));
             let r = Rotation3::from_matrix_unchecked(rot_offset_matrices[i]);
-            rot_offset_quats.push( UnitQuaternion::from_rotation_matrix(&r)  );
+            rot_offset_quats.push(UnitQuaternion::from_rotation_matrix(&r));
         }
 
         let mut out_positions: Vec<Vector3<f64>> = Vec::new();
         let mut out_rot_mats: Vec<Matrix3<f64>> = Vec::new();
         let mut out_rot_quats: Vec<UnitQuaternion<f64>> = Vec::new();
-        for i in 0..rot_offsets.len() {
-            out_positions.push(Vector3::new(0.,0.,0.));
+        for _ in 0..rot_offsets.len() {
+            out_positions.push(Vector3::new(0., 0., 0.));
             out_rot_mats.push(Matrix3::identity());
             out_rot_quats.push(UnitQuaternion::identity());
         }
@@ -77,13 +80,13 @@ impl Arm{
                 __is_prismatic.push(true);
                 __is_revolute_or_continuous.push(false);
                 __is_fixed.push(false);
-            }
-            else if joint_types[i] == String::from("continuous") || joint_types[i] == String::from("revolute") {
+            } else if joint_types[i] == String::from("continuous")
+                || joint_types[i] == String::from("revolute")
+            {
                 __is_prismatic.push(false);
                 __is_revolute_or_continuous.push(true);
                 __is_fixed.push(false);
-            }
-            else if joint_types[i] == String::from("fixed")  {
+            } else if joint_types[i] == String::from("fixed") {
                 __is_prismatic.push(false);
                 __is_revolute_or_continuous.push(false);
                 __is_fixed.push(true);
@@ -107,32 +110,46 @@ impl Arm{
             __is_neg_z.push(false);
             if axis_types[i] == String::from("X") || axis_types[i] == String::from("x") {
                 __is_x[i] = true;
-            }
-            else if axis_types[i] == String::from("X") || axis_types[i] == String::from("x") {
+            } else if axis_types[i] == String::from("X") || axis_types[i] == String::from("x") {
                 __is_x[i] = true;
-            }
-            else if axis_types[i] == String::from("Y") || axis_types[i] == String::from("y") {
+            } else if axis_types[i] == String::from("Y") || axis_types[i] == String::from("y") {
                 __is_y[i] = true;
-            }
-            else if axis_types[i] == String::from("Z") || axis_types[i] == String::from("z") {
+            } else if axis_types[i] == String::from("Z") || axis_types[i] == String::from("z") {
                 __is_z[i] = true;
-            }
-            else if axis_types[i] == String::from("-x"){
+            } else if axis_types[i] == String::from("-x") {
                 __is_neg_x[i] = true;
-            }
-            else if axis_types[i] == String::from("-y"){
+            } else if axis_types[i] == String::from("-y") {
                 __is_neg_y[i] = true;
-            }
-            else if axis_types[i] == String::from("-z"){
+            } else if axis_types[i] == String::from("-z") {
                 __is_neg_z[i] = true;
             }
         }
 
-
-        Arm{axis_types, displacements, disp_offset, pos_offsets, rot_offsets, rot_offset_matrices, rot_offset_quats,
-            joint_types, num_dof, out_positions, out_rot_mats, out_rot_quats, __do_rot_offset, __is_prismatic,
-            __is_revolute_or_continuous, __is_fixed, __is_x, __is_y, __is_z, __is_neg_x, __is_neg_y,
-            __is_neg_z, __aux_matrix}
+        Arm {
+            axis_types,
+            displacements,
+            disp_offset,
+            pos_offsets,
+            rot_offsets,
+            rot_offset_matrices,
+            rot_offset_quats,
+            joint_types,
+            num_dof,
+            out_positions,
+            out_rot_mats,
+            out_rot_quats,
+            __do_rot_offset,
+            __is_prismatic,
+            __is_revolute_or_continuous,
+            __is_fixed,
+            __is_x,
+            __is_y,
+            __is_z,
+            __is_neg_x,
+            __is_neg_y,
+            __is_neg_z,
+            __aux_matrix,
+        }
     }
 
     // pub fn get_frames(&mut self, x: &[f64]) {
@@ -187,15 +204,14 @@ impl Arm{
                 }
 
                 pt = rot_quat * self.displacements[i] + pt;
-                if self.__do_rot_offset[i+1] {
+                if self.__do_rot_offset[i + 1] {
                     rot_quat = rot_quat * self.rot_offset_quats[i + 1];
                 }
                 out_positions.push(pt.clone());
                 out_rot_quats.push(rot_quat.clone());
 
                 joint_idx += 1;
-            }
-            else if self.__is_prismatic[i] {
+            } else if self.__is_prismatic[i] {
                 let joint_val = x[joint_idx];
                 if self.__is_x[joint_idx] {
                     pt = rot_quat * self.displacements[i] + pt + Vector3::new(joint_val, 0., 0.);
@@ -210,17 +226,16 @@ impl Arm{
                 } else if self.__is_neg_z[joint_idx] {
                     pt = rot_quat * self.displacements[i] + pt + Vector3::new(0., 0., -joint_val);
                 }
-                if self.__do_rot_offset[i+1] {
+                if self.__do_rot_offset[i + 1] {
                     rot_quat = rot_quat * self.rot_offset_quats[i + 1];
                 }
                 out_positions.push(pt.clone());
                 out_rot_quats.push(rot_quat.clone());
                 joint_idx += 1;
-            }
-            else {
+            } else {
                 pt = rot_quat * self.displacements[i] + pt;
-                if self.__do_rot_offset[i+1] {
-                    rot_quat = rot_quat * self.rot_offset_quats[i+1];
+                if self.__do_rot_offset[i + 1] {
+                    rot_quat = rot_quat * self.rot_offset_quats[i + 1];
                 }
                 out_positions.push(pt.clone());
                 out_rot_quats.push(rot_quat.clone());
@@ -253,13 +268,12 @@ impl Arm{
                 }
 
                 pt = rot_quat * self.displacements[i] + pt;
-                if self.__do_rot_offset[i+1] {
+                if self.__do_rot_offset[i + 1] {
                     rot_quat = rot_quat * self.rot_offset_quats[i + 1];
                 }
 
                 joint_idx += 1;
-            }
-            else if self.__is_prismatic[i] {
+            } else if self.__is_prismatic[i] {
                 let joint_val = x[joint_idx];
                 if self.__is_x[joint_idx] {
                     pt = rot_quat * self.displacements[i] + pt + Vector3::new(joint_val, 0., 0.);
@@ -274,15 +288,14 @@ impl Arm{
                 } else if self.__is_neg_z[joint_idx] {
                     pt = rot_quat * self.displacements[i] + pt + Vector3::new(0., 0., -joint_val);
                 }
-                if self.__do_rot_offset[i+1] {
+                if self.__do_rot_offset[i + 1] {
                     rot_quat = rot_quat * self.rot_offset_quats[i + 1];
                 }
                 joint_idx += 1;
-            }
-            else {
+            } else {
                 pt = rot_quat * self.displacements[i] + pt;
-                if self.__do_rot_offset[i+1] {
-                    rot_quat = rot_quat * self.rot_offset_quats[i+1];
+                if self.__do_rot_offset[i + 1] {
+                    rot_quat = rot_quat * self.rot_offset_quats[i + 1];
                 }
             }
         }
@@ -291,19 +304,19 @@ impl Arm{
     }
 
     pub fn get_ee_position(&self, x: &[f64]) -> Vector3<f64> {
-        let (positions, quaternions) = self.get_frames(x);
+        let (positions, _quaternions) = self.get_frames(x);
         let last_index = positions.len() - 1;
         positions[last_index]
     }
 
     pub fn get_ee_rot_mat(&self, x: &[f64]) -> Matrix3<f64> {
-        let (positions, quaternions) = self.get_frames(x);
+        let (_positions, quaternions) = self.get_frames(x);
         let last_index = quaternions.len() - 1;
         *quaternions[last_index].to_rotation_matrix().matrix()
     }
 
     pub fn get_ee_quat(&self, x: &[f64]) -> UnitQuaternion<f64> {
-        let (positions, quaternions) = self.get_frames(x);
+        let (_positions, quaternions) = self.get_frames(x);
         let last_index = quaternions.len() - 1;
         quaternions[last_index]
     }
@@ -469,15 +482,45 @@ impl Arm{
 }
 
 pub fn get_rot_x(val: f64) -> Matrix3<f64> {
-    Matrix3::new(1., 0., 0., 0., val.cos(), -val.sin(), 0.0, val.sin(), val.cos())
+    Matrix3::new(
+        1.,
+        0.,
+        0.,
+        0.,
+        val.cos(),
+        -val.sin(),
+        0.0,
+        val.sin(),
+        val.cos(),
+    )
 }
 
 pub fn get_rot_y(val: f64) -> Matrix3<f64> {
-    Matrix3::new(val.cos(), 0.0, val.sin(), 0., 1., 0., -val.sin(), 0., val.cos())
+    Matrix3::new(
+        val.cos(),
+        0.0,
+        val.sin(),
+        0.,
+        1.,
+        0.,
+        -val.sin(),
+        0.,
+        val.cos(),
+    )
 }
 
 pub fn get_rot_z(val: f64) -> Matrix3<f64> {
-    Matrix3::new(val.cos(), -val.sin(), 0., val.sin(), val.cos(), 0., 0., 0., 1.)
+    Matrix3::new(
+        val.cos(),
+        -val.sin(),
+        0.,
+        val.sin(),
+        val.cos(),
+        0.,
+        0.,
+        0.,
+        1.,
+    )
 }
 
 pub fn get_neg_rot_x(val: f64) -> Matrix3<f64> {
@@ -516,11 +559,11 @@ pub fn get_neg_quat_z(val: f64) -> UnitQuaternion<f64> {
     get_quat_z(-val)
 }
 
-pub fn euler_triple_to_3x3(t: &Vec<f64>) -> Matrix3<f64>{
+pub fn euler_triple_to_3x3(t: &Vec<f64>) -> Matrix3<f64> {
     let xm = get_rot_x(t[0]);
     let ym = get_rot_y(t[1]);
     let zm = get_rot_z(t[2]);
 
-    let zy = zm*ym;
-    zy*xm
+    let zy = zm * ym;
+    zy * xm
 }

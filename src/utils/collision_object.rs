@@ -1,14 +1,13 @@
 use ncollide3d::query;
-use ncollide3d::query::{Proximity};
+use ncollide3d::query::Proximity;
 // use ncollide3d::shape::FeatureId;
-use ncollide3d::shape::{Ball, Cuboid, Capsule, Shape};
-use ncollide3d::bounding_volume::{self, BoundingVolume, BoundingSphere, AABB};
+use ncollide3d::bounding_volume::{self, BoundingSphere, BoundingVolume, AABB};
+use ncollide3d::shape::{Ball, Capsule, Cuboid, Shape};
 // use ncollide3d::transformation;
 // use crate::utils::transformations;
+use nalgebra::{Isometry3, Quaternion, Translation3, UnitQuaternion, Vector3};
 use std::boxed::Box;
-use nalgebra::{UnitQuaternion, Vector3, Translation3, Quaternion, Isometry3};
 // use std::borrow::BorrowMut;
-
 
 pub struct CollisionObject {
     pub shape: Box<dyn Shape<f64>>,
@@ -23,19 +22,30 @@ pub struct CollisionObject {
 
 impl CollisionObject {
     pub fn new(shape: Box<dyn Shape<f64>>) -> Self {
-        let bounding_sphere = bounding_volume::bounding_sphere(&(*shape), &nalgebra::Isometry3::identity());
-        let base_bounding_sphere = bounding_volume::bounding_sphere(&(*shape), &nalgebra::Isometry3::identity());
+        let bounding_sphere =
+            bounding_volume::bounding_sphere(&(*shape), &nalgebra::Isometry3::identity());
+        let base_bounding_sphere =
+            bounding_volume::bounding_sphere(&(*shape), &nalgebra::Isometry3::identity());
         let bounding_aabb = bounding_volume::aabb(&(*shape), &nalgebra::Isometry3::identity());
         let base_bounding_aabb = bounding_volume::aabb(&(*shape), &nalgebra::Isometry3::identity());
 
-        let curr_translation = Translation3::new(0.,0.,0.);
+        let curr_translation = Translation3::new(0., 0., 0.);
 
         let curr_orientation = UnitQuaternion::from_quaternion(Quaternion::new(1.0, 0.0, 0.0, 0.0));
 
-        let curr_isometry = Isometry3::from_parts(curr_translation.clone(), curr_orientation.clone());
+        let curr_isometry =
+            Isometry3::from_parts(curr_translation.clone(), curr_orientation.clone());
 
-        Self {shape, bounding_sphere, base_bounding_sphere, bounding_aabb, base_bounding_aabb, curr_translation,
-            curr_orientation, curr_isometry}
+        Self {
+            shape,
+            bounding_sphere,
+            base_bounding_sphere,
+            bounding_aabb,
+            base_bounding_aabb,
+            curr_translation,
+            curr_orientation,
+            curr_isometry,
+        }
     }
 
     pub fn new_capsule(half_height: f64, radius: f64) -> Self {
@@ -55,7 +65,9 @@ impl CollisionObject {
     }
 
     pub fn set_curr_translation(&mut self, x: f64, y: f64, z: f64) {
-        self.curr_translation.vector[0] = x; self.curr_translation.vector[1] = y; self.curr_translation.vector[2] = z;
+        self.curr_translation.vector[0] = x;
+        self.curr_translation.vector[1] = y;
+        self.curr_translation.vector[2] = z;
         self.update_curr_isometry();
     }
 
@@ -64,7 +76,16 @@ impl CollisionObject {
         self.update_curr_isometry();
     }
 
-    pub fn set_curr_transform(&mut self, tx: f64, ty: f64, tz: f64, rw: f64, rx: f64, ry: f64, rz: f64) {
+    pub fn set_curr_transform(
+        &mut self,
+        tx: f64,
+        ty: f64,
+        tz: f64,
+        rw: f64,
+        rx: f64,
+        ry: f64,
+        rz: f64,
+    ) {
         self.set_curr_translation(tx, ty, tz);
         self.set_curr_orientation(rw, rx, ry, rz);
         self.update_curr_isometry();
@@ -73,19 +94,23 @@ impl CollisionObject {
     pub fn align_object_with_vector_vec3(&mut self, vector: &Vector3<f64>) {
         // Aligns the Y axis of the object with the given vector.  Most useful for the capsule object
         // to align it with robot links
-        let mut unit_quat = UnitQuaternion::face_towards(vector, &Vector3::new(0.0000000001,0.00000000001,1.000000000000000001));
+        let mut unit_quat = UnitQuaternion::face_towards(
+            vector,
+            &Vector3::new(0.0000000001, 0.00000000001, 1.000000000000000001),
+        );
         let q2 = UnitQuaternion::from_euler_angles(std::f64::consts::FRAC_PI_2, 0., 0.);
         unit_quat = unit_quat * q2;
         self.set_curr_orientation(unit_quat.w, unit_quat.i, unit_quat.j, unit_quat.k);
     }
 
     pub fn align_object_with_vector(&mut self, vector: Vec<f64>) {
-        let mut vec3 = Vector3::new(vector[0], vector[1], vector[2]);
+        let vec3 = Vector3::new(vector[0], vector[1], vector[2]);
         self.align_object_with_vector_vec3(&vec3);
     }
 
     pub fn update_curr_isometry(&mut self) {
-        self.curr_isometry = Isometry3::from_parts(self.curr_translation.clone(), self.curr_orientation.clone());
+        self.curr_isometry =
+            Isometry3::from_parts(self.curr_translation.clone(), self.curr_orientation.clone());
     }
 
     pub fn update_bounding_sphere(&mut self) {
@@ -102,7 +127,13 @@ impl CollisionObject {
     }
 
     pub fn proximity_check(&self, other: &CollisionObject) -> Proximity {
-        return query::proximity(&self.curr_isometry, &(*self.shape), &other.curr_isometry, &(*other.shape), 0.1);
+        return query::proximity(
+            &self.curr_isometry,
+            &(*self.shape),
+            &other.curr_isometry,
+            &(*other.shape),
+            0.1,
+        );
     }
 
     pub fn bounding_aabb_intersect_check(&self, other: &CollisionObject) -> bool {
