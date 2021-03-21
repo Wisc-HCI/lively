@@ -1,21 +1,21 @@
-use nalgebra::{UnitQuaternion, Vector3, Point3};
+use nalgebra::{Point3, UnitQuaternion, Vector3};
 // use crate::utils::yaml_utils::{*};
-use crate::spacetime::robot::Robot;
 use crate::groove::collision_nn::CollisionNN;
 use crate::groove::liveliness::Liveliness;
-use crate::utils::sampler::ThreadRobotSampler;
-use crate::utils::config::{*};
-use crate::utils::settings::{*};
+use crate::spacetime::robot::Robot;
+use crate::utils::config::*;
 use crate::utils::history::History;
+use crate::utils::sampler::ThreadRobotSampler;
+use crate::utils::settings::*;
 // use crate::utils::file_utils::{*};
+use crate::groove::env_collision::*;
 use crate::utils::goals::ObjectiveInput;
-use crate::groove::env_collision::{*};
-use ncollide3d::pipeline::{*};
-use ncollide3d::query::{*};
-use ncollide3d::shape::{*};
+use ncollide3d::pipeline::*;
+use ncollide3d::query::*;
+use ncollide3d::shape::*;
 // use time::PreciseTime;
-use std::ops::Deref;
 use pyo3::prelude::*;
+use std::ops::Deref;
 
 #[pyclass]
 pub struct RelaxedIKVars {
@@ -36,20 +36,20 @@ pub struct RelaxedIKVars {
     pub env_collision: RelaxedIKEnvCollision,
     pub control_mode: ControlMode,
     pub environment_mode: EnvironmentMode,
-    pub objective_variants: Vec<ObjectiveVariant>
+    pub objective_variants: Vec<ObjectiveVariant>,
 }
 
 #[pymethods]
 impl RelaxedIKVars {
     #[new]
     pub fn new(config: Config) -> Self {
-        let mut robot = Robot::new(config.clone());
-        let num_chains = config.joint_names.len();
+        let robot = Robot::new(config.clone());
+        let _num_chains = config.joint_names.len();
         let sampler = ThreadRobotSampler::new(robot.clone());
 
         let goals: Vec<ObjectiveInput> = config.default_inputs();
 
-        let mut initial_x: Vec<f64> = vec![0.0,0.0,0.0];
+        let mut initial_x: Vec<f64> = vec![0.0, 0.0, 0.0];
         for starting_joint_value in config.starting_config.clone() {
             initial_x.push(starting_joint_value)
         }
@@ -70,13 +70,28 @@ impl RelaxedIKVars {
             objective_variants.push(objective.variant)
         }
 
-        let liveliness:Liveliness = Liveliness::new(config.objectives.clone());
+        let liveliness: Liveliness = Liveliness::new(config.objectives.clone());
 
-        RelaxedIKVars{robot, sampler, init_state: config.starting_config.clone(), xopt: config.starting_config.clone(),
-            xopt_core: config.starting_config.clone(), frames_core: frames, offset: vec![0.0,0.0,0.0],
-            history: History::new(config.starting_config.clone()), history_core: History::new(config.starting_config.clone()),
-            goals, liveliness, init_ee_positions, init_ee_quats, control_mode, collision_nn,
-            env_collision, environment_mode, objective_variants}
+        RelaxedIKVars {
+            robot,
+            sampler,
+            init_state: config.starting_config.clone(),
+            xopt: config.starting_config.clone(),
+            xopt_core: config.starting_config.clone(),
+            frames_core: frames,
+            offset: vec![0.0, 0.0, 0.0],
+            history: History::new(config.starting_config.clone()),
+            history_core: History::new(config.starting_config.clone()),
+            goals,
+            liveliness,
+            init_ee_positions,
+            init_ee_quats,
+            control_mode,
+            collision_nn,
+            env_collision,
+            environment_mode,
+            objective_variants,
+        }
     }
 }
 
@@ -85,16 +100,36 @@ impl RelaxedIKVars {
         let frames = self.robot.get_frames(&self.xopt);
         self.env_collision.update_links(&frames);
         for event in self.env_collision.world.proximity_events() {
-            let c1 = self.env_collision.world.objects.get(event.collider1).unwrap();
-            let c2 = self.env_collision.world.objects.get(event.collider2).unwrap();
+            let c1 = self
+                .env_collision
+                .world
+                .objects
+                .get(event.collider1)
+                .unwrap();
+            let c2 = self
+                .env_collision
+                .world
+                .objects
+                .get(event.collider2)
+                .unwrap();
             if event.new_status == Proximity::Intersecting {
-                println!("===== {:?} Intersecting of {:?} =====", c1.data().name, c2.data().name);
+                println!(
+                    "===== {:?} Intersecting of {:?} =====",
+                    c1.data().name,
+                    c2.data().name
+                );
             } else if event.new_status == Proximity::WithinMargin {
-                println!("===== {:?} WithinMargin of {:?} =====", c1.data().name, c2.data().name);
+                println!(
+                    "===== {:?} WithinMargin of {:?} =====",
+                    c1.data().name,
+                    c2.data().name
+                );
                 if c1.data().link_data.is_link {
                     let arm_idx = c1.data().link_data.arm_idx as usize;
                     if self.env_collision.active_pairs[arm_idx].contains_key(&event.collider2) {
-                        let links = self.env_collision.active_pairs[arm_idx].get_mut(&event.collider2).unwrap();
+                        let links = self.env_collision.active_pairs[arm_idx]
+                            .get_mut(&event.collider2)
+                            .unwrap();
                         if !links.contains(&event.collider1) {
                             links.push(event.collider1);
                         }
@@ -105,7 +140,9 @@ impl RelaxedIKVars {
                 } else if c2.data().link_data.is_link {
                     let arm_idx = c2.data().link_data.arm_idx as usize;
                     if self.env_collision.active_pairs[arm_idx].contains_key(&event.collider1) {
-                        let links = self.env_collision.active_pairs[arm_idx].get_mut(&event.collider1).unwrap();
+                        let links = self.env_collision.active_pairs[arm_idx]
+                            .get_mut(&event.collider1)
+                            .unwrap();
                         if !links.contains(&event.collider2) {
                             links.push(event.collider2);
                         }
@@ -115,11 +152,17 @@ impl RelaxedIKVars {
                     }
                 }
             } else {
-                println!("===== {:?} Disjoint of {:?} =====", c1.data().name, c2.data().name);
+                println!(
+                    "===== {:?} Disjoint of {:?} =====",
+                    c1.data().name,
+                    c2.data().name
+                );
                 if c1.data().link_data.is_link {
                     let arm_idx = c1.data().link_data.arm_idx as usize;
                     if self.env_collision.active_pairs[arm_idx].contains_key(&event.collider2) {
-                        let links = self.env_collision.active_pairs[arm_idx].get_mut(&event.collider2).unwrap();
+                        let links = self.env_collision.active_pairs[arm_idx]
+                            .get_mut(&event.collider2)
+                            .unwrap();
                         if links.contains(&event.collider1) {
                             let index = links.iter().position(|x| *x == event.collider1).unwrap();
                             links.remove(index);
@@ -131,7 +174,9 @@ impl RelaxedIKVars {
                 } else if c2.data().link_data.is_link {
                     let arm_idx = c2.data().link_data.arm_idx as usize;
                     if self.env_collision.active_pairs[arm_idx].contains_key(&event.collider1) {
-                        let links = self.env_collision.active_pairs[arm_idx].get_mut(&event.collider1).unwrap();
+                        let links = self.env_collision.active_pairs[arm_idx]
+                            .get_mut(&event.collider1)
+                            .unwrap();
                         if links.contains(&event.collider2) {
                             let index = links.iter().position(|x| *x == event.collider2).unwrap();
                             links.remove(index);
@@ -164,7 +209,12 @@ impl RelaxedIKVars {
                     let end_pt = Point3::from(frames[arm_idx].0[j + 1]);
                     let segment = Segment::new(start_pt, end_pt);
                     let segment_pos = nalgebra::one();
-                    let dis = distance(obstacle.position(), obstacle.shape().deref(), &segment_pos, &segment) - link_radius;
+                    let dis = distance(
+                        obstacle.position(),
+                        obstacle.shape().deref(),
+                        &segment_pos,
+                        &segment,
+                    ) - link_radius;
                     // println!("VARS -> {:?}, Link{}, Distance: {:?}", obstacle.data(), j, dis);
                     if dis > 0.0 {
                         sum += a / (dis + link_radius).powi(2);
@@ -181,7 +231,10 @@ impl RelaxedIKVars {
             if self.environment_mode != EnvironmentMode::None {
                 if active_candidates.len() > filter_cutoff {
                     active_candidates.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
-                    let active_obstacles = active_candidates[0..filter_cutoff].iter().cloned().collect();
+                    let active_obstacles = active_candidates[0..filter_cutoff]
+                        .iter()
+                        .cloned()
+                        .collect();
                     self.env_collision.active_obstacles[arm_idx] = active_obstacles;
                 } else {
                     self.env_collision.active_obstacles[arm_idx] = active_candidates;
@@ -199,7 +252,12 @@ impl RelaxedIKVars {
                 let collider = self.env_collision.world.objects.get(*key).unwrap();
                 for v in values {
                     let link = self.env_collision.world.objects.get(*v).unwrap();
-                    println!("Arm {}, Active pair {:?} and {:?}", i, collider.data().name, link.data().name);
+                    println!(
+                        "Arm {}, Active pair {:?} and {:?}",
+                        i,
+                        collider.data().name,
+                        link.data().name
+                    );
                 }
             }
         }

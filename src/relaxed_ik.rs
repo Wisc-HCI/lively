@@ -1,18 +1,18 @@
-use pyo3::prelude::*;
-use crate::groove::vars::RelaxedIKVars;
-use crate::groove::groove::{OptimizationEngineOpen, OptimizationEngineNLopt};
+use crate::groove::groove::{OptimizationEngineNLopt, OptimizationEngineOpen};
 use crate::groove::objective_master::ObjectiveMaster;
+use crate::groove::vars::RelaxedIKVars;
+use pyo3::prelude::*;
 // use crate::utils::file_utils::{*};
 // use crate::utils::subscriber_utils::EEPoseGoalsSubscriber;
 // use crate::utils::transformations::{*};
 // use crate::utils::yaml_utils::{*};
-use crate::utils::config::{Config,EnvironmentSpec};
-use crate::utils::goals::{Goal,ObjectiveInput};
-use crate::utils::settings::{*};
+use crate::utils::config::{Config, EnvironmentSpec};
+use crate::utils::goals::{Goal, ObjectiveInput};
+use crate::utils::settings::*;
 // use crate::utils::sampler::ThreadSampler;
 // use nalgebra::{Vector3, UnitQuaternion, Quaternion};
-use std::os::raw::{c_double, c_int};
 use rand::{thread_rng, Rng};
+use std::os::raw::{c_double, c_int};
 
 #[repr(C)]
 pub struct Opt {
@@ -26,7 +26,7 @@ pub struct LivelyIK {
     pub vars: RelaxedIKVars,
     pub om: ObjectiveMaster,
     pub groove: OptimizationEngineOpen,
-    pub groove_nlopt: OptimizationEngineNLopt
+    pub groove_nlopt: OptimizationEngineNLopt,
 }
 
 #[pymethods]
@@ -38,13 +38,25 @@ impl LivelyIK {
         // println!("Creating ObjectiveMaster");
         let om = ObjectiveMaster::new(config.clone());
         // println!("Creating OptimizationEngine");
-        let groove = OptimizationEngineOpen::new(vars.robot.num_dof.clone()+3);
+        let groove = OptimizationEngineOpen::new(vars.robot.num_dof.clone() + 3);
         let groove_nlopt = OptimizationEngineNLopt::new();
 
-        Self { config, vars, om, groove, groove_nlopt }
+        Self {
+            config,
+            vars,
+            om,
+            groove,
+            groove_nlopt,
+        }
     }
 
-    fn solve(&mut self, goals: Vec<ObjectiveInput>, time: f64, world: Option<EnvironmentSpec>, max_retries: Option<u64>) -> PyResult<(Vec<f64>,Vec<f64>)> {
+    fn solve(
+        &mut self,
+        goals: Vec<ObjectiveInput>,
+        time: f64,
+        world: Option<EnvironmentSpec>,
+        max_retries: Option<u64>,
+    ) -> PyResult<(Vec<f64>, Vec<f64>)> {
         // RNG Gen
         let mut rng = thread_rng();
 
@@ -55,7 +67,7 @@ impl LivelyIK {
         // Will be the output of the optimization. N=num_dof+3
         let mut xopt = self.vars.offset.clone();
         // Will be the output of the core optimization. N=num_dof+3
-        let mut xopt_core = vec![0.0,0.0,0.0];
+        let mut xopt_core = vec![0.0, 0.0, 0.0];
 
         for i in 0..out_x.len() {
             xopt.push(out_x[i])
@@ -66,16 +78,20 @@ impl LivelyIK {
         }
 
         if goals.len() != self.config.objectives.len() {
-            println!("Mismatch between goals (n={:?}) and objectives (n={:?})", goals.len(), self.config.objectives.len());
-            return Ok((self.vars.offset.clone(),out_x));
+            println!(
+                "Mismatch between goals (n={:?}) and objectives (n={:?})",
+                goals.len(),
+                self.config.objectives.len()
+            );
+            return Ok((self.vars.offset.clone(), out_x));
         }
 
         for goal_idx in 0..goals.clone().len() {
             self.om.weight_priors[goal_idx] = goals[goal_idx].weight;
             match goals[goal_idx].value {
                 // Only update if the goal is specified.
-                Goal::None => {},
-                _ => {self.vars.goals[goal_idx].value = goals[goal_idx].value}
+                Goal::None => {}
+                _ => self.vars.goals[goal_idx].value = goals[goal_idx].value,
             }
         }
 
@@ -86,14 +102,12 @@ impl LivelyIK {
 
         match world {
             // Update the collision world
-            Some(env) => {
-
-            },
+            Some(_env) => {}
             // Keep the same one as previous
             None => {}
         }
 
-        let in_collision = false;//self.vars.update_collision_world();
+        let in_collision = false; //self.vars.update_collision_world();
         if !in_collision {
             // if self.config.mode_environment == EnvironmentMode::ECAA {
             //     // Right now, doing this causes errors because vars.env_collision.active_obstacles isn't populated
@@ -106,8 +120,8 @@ impl LivelyIK {
             // If precise, run until error is sufficiently low, or the max_retries is met
             let max_tries: u64;
             match max_retries {
-                Some(value) => {max_tries = value+1},
-                None => {max_tries = 1}
+                Some(value) => max_tries = value + 1,
+                None => max_tries = 1,
             }
 
             let mut try_count = 0;
@@ -115,7 +129,9 @@ impl LivelyIK {
             // Run without liveliness (core objectives)
             // Run until the max_retries is met, or the solution could be improved
             while try_count < max_tries && (try_count == 0 || best_cost > 250.0) {
-                let try_cost = self.groove.optimize(&mut xopt_core, &self.vars, &self.om, 150, true);
+                let try_cost =
+                    self.groove
+                        .optimize(&mut xopt_core, &self.vars, &self.om, 150, true);
                 if try_cost < best_cost {
                     best_xopt_core = xopt_core.clone();
                     best_cost = try_cost;
@@ -124,18 +140,20 @@ impl LivelyIK {
 
                 // Randomly generate a new starting point
                 for i in 0..xopt_core.len() {
-                    if self.vars.robot.upper_bounds[i]-self.vars.robot.lower_bounds[i] <= 0.0 {
+                    if self.vars.robot.upper_bounds[i] - self.vars.robot.lower_bounds[i] <= 0.0 {
                         xopt_core[i] = self.vars.robot.lower_bounds[i]
                     } else {
-                        xopt_core[i] = rng.gen_range(self.vars.robot.lower_bounds[i]..self.vars.robot.upper_bounds[i]);
+                        xopt_core[i] = rng.gen_range(
+                            self.vars.robot.lower_bounds[i]..self.vars.robot.upper_bounds[i],
+                        );
                     }
                 }
             }
             // println!("Best cost (core): {:?}",best_cost);
             for i in 0..out_x_core.len() {
-                out_x_core[i] = best_xopt_core[i+3];
+                out_x_core[i] = best_xopt_core[i + 3];
             }
-            let frames_core = self.vars.robot.get_frames(&best_xopt_core.clone());
+            let _frames_core = self.vars.robot.get_frames(&best_xopt_core.clone());
 
             self.vars.xopt_core = out_x_core.clone();
             self.vars.history_core.update(out_x_core.clone());
@@ -148,7 +166,9 @@ impl LivelyIK {
 
             // Run until the max_retries is met, or the solution could be improved
             while try_count < max_tries && (try_count == 0 || best_cost > 250.0) {
-                let try_cost = self.groove.optimize(&mut xopt, &self.vars, &self.om, 150, false);
+                let try_cost = self
+                    .groove
+                    .optimize(&mut xopt, &self.vars, &self.om, 150, false);
                 if try_cost < best_cost {
                     best_xopt = xopt.clone();
                     best_cost = try_cost;
@@ -156,26 +176,28 @@ impl LivelyIK {
                 try_count += 1;
                 // Randomly generate a new starting point
                 for i in 0..xopt.len() {
-                    if self.vars.robot.upper_bounds[i]-self.vars.robot.lower_bounds[i] <= 0.0 {
+                    if self.vars.robot.upper_bounds[i] - self.vars.robot.lower_bounds[i] <= 0.0 {
                         xopt[i] = self.vars.robot.lower_bounds[i]
                     } else {
-                        xopt[i] = rng.gen_range(self.vars.robot.lower_bounds[i]..self.vars.robot.upper_bounds[i]);
+                        xopt[i] = rng.gen_range(
+                            self.vars.robot.lower_bounds[i]..self.vars.robot.upper_bounds[i],
+                        );
                     }
                 }
             }
             // println!("Best cost: {:?}",best_cost);
             for i in 0..out_x.len() {
-                out_x[i] = best_xopt[i+3];
+                out_x[i] = best_xopt[i + 3];
             }
 
             self.vars.xopt = out_x.clone();
             self.vars.history.update(out_x.clone());
-            self.vars.offset = vec![best_xopt[0],best_xopt[1],best_xopt[2]]
+            self.vars.offset = vec![best_xopt[0], best_xopt[1], best_xopt[2]]
         }
 
         // println!("OUTX-CORE {:?},\nOUTX {:?}",xopt_core,xopt);
 
-        return Ok((self.vars.offset.clone(),out_x))
+        return Ok((self.vars.offset.clone(), out_x));
     }
 }
 
