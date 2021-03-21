@@ -95,10 +95,10 @@ impl LivelyIK {
 
         let in_collision = false;//self.vars.update_collision_world();
         if !in_collision {
-            if self.config.mode_environment == EnvironmentMode::ECAA {
-                // Right now, doing this causes errors because vars.env_collision.active_obstacles isn't populated
-                self.om.tune_weight_priors(&self.vars);
-            }
+            // if self.config.mode_environment == EnvironmentMode::ECAA {
+            //     // Right now, doing this causes errors because vars.env_collision.active_obstacles isn't populated
+            //     self.om.tune_weight_priors(&self.vars);
+            // }
 
             let mut best_xopt_core = xopt_core.clone();
             let mut best_cost = f64::INFINITY.clone();
