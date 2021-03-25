@@ -26,6 +26,7 @@ pub struct RelaxedIKVars {
     pub xopt_core: Vec<f64>,
     pub frames_core: Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
     pub offset: Vec<f64>,
+    pub offset_core: Vec<f64>,
     pub history: History,
     pub history_core: History,
     pub goals: Vec<ObjectiveInput>,
@@ -49,8 +50,9 @@ impl RelaxedIKVars {
 
         let goals: Vec<ObjectiveInput> = config.default_inputs();
 
-        let mut initial_x: Vec<f64> = vec![0.0, 0.0, 0.0];
-        for starting_joint_value in config.starting_config.clone() {
+        let mut initial_x: Vec<f64> = config.starting_config.0.clone();
+
+        for starting_joint_value in config.starting_config.1.clone() {
             initial_x.push(starting_joint_value)
         }
 
@@ -75,13 +77,14 @@ impl RelaxedIKVars {
         RelaxedIKVars {
             robot,
             sampler,
-            init_state: config.starting_config.clone(),
-            xopt: config.starting_config.clone(),
-            xopt_core: config.starting_config.clone(),
+            init_state: config.starting_config.1.clone(),
+            xopt: config.starting_config.1.clone(),
+            xopt_core: config.starting_config.1.clone(),
             frames_core: frames,
-            offset: vec![0.0, 0.0, 0.0],
-            history: History::new(config.starting_config.clone()),
-            history_core: History::new(config.starting_config.clone()),
+            offset: config.starting_config.0.clone(),
+            offset_core: config.starting_config.0.clone(),
+            history: History::new(initial_x.clone()),
+            history_core: History::new(initial_x.clone()),
             goals,
             liveliness,
             init_ee_positions,

@@ -167,13 +167,13 @@ pub struct Config {
     #[pyo3(get, set)]
     pub objectives: Vec<ObjectiveSpec>,
     #[pyo3(get, set)]
-    pub states: Vec<Vec<f64>>,
+    pub states: Vec<(Vec<f64>,Vec<f64>)>,
     #[pyo3(get, set)]
     pub robot_link_radius: f64,
     #[pyo3(get, set)]
     pub rot_offsets: Vec<Vec<Vec<f64>>>,
     #[pyo3(get, set)]
-    pub starting_config: Vec<f64>,
+    pub starting_config: (Vec<f64>, Vec<f64>),
     #[pyo3(get, set)]
     pub urdf: String,
     #[pyo3(get, set)]
@@ -192,8 +192,8 @@ impl Config {
            static_environment: EnvironmentSpec, ee_fixed_joints: Vec<String>, fixed_frame: String, goals: Vec<GoalConfig>,
            joint_limits: Vec<[f64; 2]>, joint_names: Vec<Vec<String>>, joint_ordering: Vec<String>,
            joint_types: Vec<Vec<String>>, modes: Vec<ModeConfig>, mode_control: String, mode_environment: String,
-           nn_jointpoint: NNSpec, nn_main: NNSpec, objectives: Vec<ObjectiveSpec>, states: Vec<Vec<f64>>,
-           robot_link_radius: f64, rot_offsets: Vec<Vec<Vec<f64>>>, starting_config: Vec<f64>, urdf: String,
+           nn_jointpoint: NNSpec, nn_main: NNSpec, objectives: Vec<ObjectiveSpec>, states: Vec<(Vec<f64>,Vec<f64>)>,
+           robot_link_radius: f64, rot_offsets: Vec<Vec<Vec<f64>>>, starting_config: (Vec<f64>, Vec<f64>), urdf: String,
            velocity_limits: Vec<f64>, disp_offsets: Vec<Vec<f64>>, displacements: Vec<Vec<Vec<f64>>>) -> Self {
 
        let displacement_vectors: Vec<Vec<Vector3<f64>>> = vec_to_displacements(displacements);

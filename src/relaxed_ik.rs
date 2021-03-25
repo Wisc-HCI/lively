@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 // use crate::utils::yaml_utils::{*};
 use crate::utils::config::{Config, EnvironmentSpec};
 use crate::utils::goals::{Goal, ObjectiveInput};
-use crate::utils::settings::*;
+// use crate::utils::settings::*;
 // use crate::utils::sampler::ThreadSampler;
 // use nalgebra::{Vector3, UnitQuaternion, Quaternion};
 use rand::{thread_rng, Rng};
@@ -56,6 +56,7 @@ impl LivelyIK {
         time: f64,
         world: Option<EnvironmentSpec>,
         max_retries: Option<u64>,
+        max_iterations: Option<usize>,
     ) -> PyResult<(Vec<f64>, Vec<f64>)> {
         // RNG Gen
         let mut rng = thread_rng();
@@ -67,7 +68,7 @@ impl LivelyIK {
         // Will be the output of the optimization. N=num_dof+3
         let mut xopt = self.vars.offset.clone();
         // Will be the output of the core optimization. N=num_dof+3
-        let mut xopt_core = vec![0.0, 0.0, 0.0];
+        let mut xopt_core = self.vars.offset_core.clone();
 
         for i in 0..out_x.len() {
             xopt.push(out_x[i])
@@ -123,6 +124,11 @@ impl LivelyIK {
                 Some(value) => max_tries = value + 1,
                 None => max_tries = 1,
             }
+            let max_iter: usize;
+            match max_iterations {
+                Some(value) => max_iter = value,
+                None => max_iter = 150,
+            }
 
             let mut try_count = 0;
 
@@ -131,7 +137,7 @@ impl LivelyIK {
             while try_count < max_tries && (try_count == 0 || best_cost > 250.0) {
                 let try_cost =
                     self.groove
-                        .optimize(&mut xopt_core, &self.vars, &self.om, 150, true);
+                        .optimize(&mut xopt_core, &self.vars, &self.om, max_iter, true);
                 if try_cost < best_cost {
                     best_xopt_core = xopt_core.clone();
                     best_cost = try_cost;
@@ -153,10 +159,10 @@ impl LivelyIK {
             for i in 0..out_x_core.len() {
                 out_x_core[i] = best_xopt_core[i + 3];
             }
-            let _frames_core = self.vars.robot.get_frames(&best_xopt_core.clone());
 
             self.vars.xopt_core = out_x_core.clone();
-            self.vars.history_core.update(out_x_core.clone());
+            self.vars.history_core.update(best_xopt_core.clone());
+            self.vars.offset_core = vec![best_xopt_core[0], best_xopt_core[1], best_xopt_core[2]];
             self.vars.frames_core = self.vars.robot.get_frames(&best_xopt_core.clone());
 
             // Run with liveliness (all objectives)
@@ -168,7 +174,7 @@ impl LivelyIK {
             while try_count < max_tries && (try_count == 0 || best_cost > 250.0) {
                 let try_cost = self
                     .groove
-                    .optimize(&mut xopt, &self.vars, &self.om, 150, false);
+                    .optimize(&mut xopt, &self.vars, &self.om, max_iter, false);
                 if try_cost < best_cost {
                     best_xopt = xopt.clone();
                     best_cost = try_cost;
@@ -191,7 +197,7 @@ impl LivelyIK {
             }
 
             self.vars.xopt = out_x.clone();
-            self.vars.history.update(out_x.clone());
+            self.vars.history.update(best_xopt.clone());
             self.vars.offset = vec![best_xopt[0], best_xopt[1], best_xopt[2]]
         }
 

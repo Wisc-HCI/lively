@@ -144,12 +144,8 @@ impl ObjectiveTrait for NNSelfCollision {
         _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
         _is_core: bool,
     ) -> f64 {
-        let mut input_vec: Vec<f64> = Vec::new();
         let xvec = x.to_vec();
-        for i in 3..xvec.len() {
-            input_vec.push(xvec[i])
-        }
-        let x_val = v.collision_nn.predict(&input_vec);
+        let x_val = v.collision_nn.predict(&xvec);
         // println!("NNSelfCollision error: {:?}",x_val);
         groove_loss(x_val, 0., 2, 2.1, 0.0002, 4)
     }
@@ -161,12 +157,8 @@ impl ObjectiveTrait for NNSelfCollision {
         _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
         _is_core: bool,
     ) -> (f64, Vec<f64>) {
-        let mut input_vec: Vec<f64> = Vec::new();
         let xvec = x.to_vec();
-        for i in 3..xvec.len() {
-            input_vec.push(xvec[i])
-        }
-        let (x_val, mut grad) = v.collision_nn.gradient(&input_vec);
+        let (x_val, mut grad) = v.collision_nn.gradient(&xvec);
         let g_prime = groove_loss_derivative(x_val, 0., 2, 2.1, 0.0002, 4);
         for i in 0..grad.len() {
             grad[i] *= g_prime;
@@ -269,13 +261,45 @@ impl ObjectiveTrait for MinimizeVelocity {
         x: &[f64],
         v: &RelaxedIKVars,
         _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
-        _is_core: bool,
+        is_core: bool,
     ) -> f64 {
         let mut x_val = 0.0;
         for i in 3..x.len() {
-            x_val += (x[i] - v.xopt[i - 3]).powi(2);
+            if is_core {
+                x_val += (x[i] - v.history_core.prev1[i]).powi(2);
+            } else {
+                x_val += (x[i] - v.history.prev1[i]).powi(2);
+            }
         }
         x_val = x_val.sqrt();
+        // println!("MinimizeVelocity error: {:?}",x_val);
+        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+}
+
+pub struct MinimizeBaseVelocity;
+impl ObjectiveTrait for MinimizeBaseVelocity {
+    fn call(
+        &self,
+        x: &[f64],
+        v: &RelaxedIKVars,
+        _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        is_core: bool,
+    ) -> f64 {
+        let pos1:Vector3<f64> = Vector3::new(x[0],x[1],x[2]);
+        let pos2:Vector3<f64>;
+        let x_val:f64;
+        if is_core {
+            pos2 = Vector3::new(v.history_core.prev1[0],
+                                v.history_core.prev1[1],
+                                v.history_core.prev1[2])
+
+        } else {
+            pos2 = Vector3::new(v.history.prev1[0],
+                                v.history.prev1[1],
+                                v.history.prev1[2]);
+        }
+        x_val = (pos1-pos2).norm().powi(2);
         // println!("MinimizeVelocity error: {:?}",x_val);
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
@@ -292,16 +316,52 @@ impl ObjectiveTrait for MinimizeAcceleration {
     ) -> f64 {
         let mut x_val = 0.0;
         for i in 3..x.len() {
-            let v1 = x[i] - v.xopt[i - 3];
+            let v1: f64;
             let v2: f64;
             if is_core {
-                v2 = v.xopt[i - 3] - v.history_core.prev1[i - 3];
+                v1 = x[i] - v.history_core.prev1[i];
+                v2 = v.history_core.prev1[i] - v.history_core.prev2[i];
             } else {
-                v2 = v.xopt[i - 3] - v.history.prev1[i - 3];
+                v1 = x[i] - v.history.prev1[i];
+                v2 = v.history.prev1[i] - v.history.prev2[i];
             }
             x_val += (v1 - v2).powi(2);
         }
         x_val = x_val.sqrt();
+        // println!("MinimizeAcceleration error: {:?}",x_val);
+        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+}
+
+pub struct MinimizeBaseAcceleration;
+impl ObjectiveTrait for MinimizeBaseAcceleration {
+    fn call(
+        &self,
+        x: &[f64],
+        v: &RelaxedIKVars,
+        _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        is_core: bool,
+    ) -> f64 {
+        let x_val: f64;
+        let pos1:Vector3<f64> = Vector3::new(x[0],x[1],x[2]);
+        let pos2:Vector3<f64>;
+        let pos3:Vector3<f64>;
+        if is_core {
+            pos2 = Vector3::new(v.history_core.prev1[0],
+                                v.history_core.prev1[1],
+                                v.history_core.prev1[2]);
+            pos3 = Vector3::new(v.history_core.prev2[0],
+                                v.history_core.prev2[1],
+                                v.history_core.prev2[2]);
+        } else {
+            pos2 = Vector3::new(v.history.prev1[0],
+                                v.history.prev1[1],
+                                v.history.prev1[2]);
+            pos3 = Vector3::new(v.history.prev2[0],
+                                v.history.prev2[1],
+                                v.history.prev2[2]);
+        }
+        x_val = ((pos1-pos2)-(pos2-pos3)).norm().powi(2);
         // println!("MinimizeAcceleration error: {:?}",x_val);
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
@@ -318,21 +378,62 @@ impl ObjectiveTrait for MinimizeJerk {
     ) -> f64 {
         let mut x_val = 0.0;
         for i in 3..x.len() {
-            let v1 = x[i] - v.xopt[i - 3];
+            let v1: f64;
             let v2: f64;
             let v3: f64;
             if is_core {
-                v2 = v.xopt[i - 3] - v.history_core.prev1[i - 3];
-                v3 = v.history_core.prev1[i - 3] - v.history_core.prev2[i - 3];
+                v1 = x[i] - v.history_core.prev1[i];
+                v2 = v.history_core.prev1[i] - v.history_core.prev2[i];
+                v3 = v.history_core.prev2[i] - v.history_core.prev3[i];
             } else {
-                v2 = v.xopt[i - 3] - v.history.prev1[i - 3];
-                v3 = v.history.prev1[i - 3] - v.history.prev2[i - 3];
+                v1 = x[i] - v.history.prev1[i];
+                v2 = v.history.prev1[i] - v.history.prev2[i];
+                v3 = v.history.prev2[i] - v.history.prev3[i];
             }
-            let a1 = v1 - v2;
-            let a2 = v2 - v3;
-            x_val += (a1 - a2).powi(2);
+            x_val += ((v1 - v2) - (v2 - v3)).powi(2);
         }
         x_val = x_val.sqrt();
+        // println!("MinimizeJerk error: {:?}",x_val);
+        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+}
+
+pub struct MinimizeBaseJerk;
+impl ObjectiveTrait for MinimizeBaseJerk {
+    fn call(
+        &self,
+        x: &[f64],
+        v: &RelaxedIKVars,
+        _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        is_core: bool,
+    ) -> f64 {
+        let x_val: f64;
+        let pos1:Vector3<f64> = Vector3::new(x[0],x[1],x[2]);
+        let pos2:Vector3<f64>;
+        let pos3:Vector3<f64>;
+        let pos4:Vector3<f64>;
+        if is_core {
+            pos2 = Vector3::new(v.history_core.prev1[0],
+                                v.history_core.prev1[1],
+                                v.history_core.prev1[2]);
+            pos3 = Vector3::new(v.history_core.prev2[0],
+                                v.history_core.prev2[1],
+                                v.history_core.prev2[2]);
+            pos4 = Vector3::new(v.history_core.prev3[0],
+                                v.history_core.prev3[1],
+                                v.history_core.prev3[2]);
+        } else {
+            pos2 = Vector3::new(v.history.prev1[0],
+                                v.history.prev1[1],
+                                v.history.prev1[2]);
+            pos3 = Vector3::new(v.history.prev2[0],
+                                v.history.prev2[1],
+                                v.history.prev2[2]);
+            pos4 = Vector3::new(v.history_core.prev3[0],
+                                v.history_core.prev3[1],
+                                v.history_core.prev3[2]);
+        }
+        x_val = (((pos1-pos2) - (pos2-pos3)) - ((pos2-pos3) - (pos3-pos4))).norm().powi(2);
         // println!("MinimizeJerk error: {:?}",x_val);
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
@@ -342,6 +443,9 @@ pub struct MacroSmoothness {
     velocity_objective: MinimizeVelocity,
     acceleration_objective: MinimizeAcceleration,
     jerk_objective: MinimizeJerk,
+    base_velocity_objective: MinimizeBaseVelocity,
+    base_acceleration_objective: MinimizeBaseAcceleration,
+    base_jerk_objective: MinimizeBaseJerk,
 }
 
 impl MacroSmoothness {
@@ -350,6 +454,9 @@ impl MacroSmoothness {
             velocity_objective: MinimizeVelocity,
             acceleration_objective: MinimizeAcceleration,
             jerk_objective: MinimizeJerk,
+            base_velocity_objective: MinimizeBaseVelocity,
+            base_acceleration_objective: MinimizeBaseAcceleration,
+            base_jerk_objective: MinimizeBaseJerk,
         }
     }
 }
@@ -365,7 +472,11 @@ impl ObjectiveTrait for MacroSmoothness {
         let velocity_cost = self.velocity_objective.call(x, v, frames, is_core);
         let acceleration_cost = self.acceleration_objective.call(x, v, frames, is_core);
         let jerk_cost = self.jerk_objective.call(x, v, frames, is_core);
-        return 7.0 * velocity_cost + 2.0 * acceleration_cost + jerk_cost;
+        let base_velocity_cost = self.base_velocity_objective.call(x, v, frames, is_core);
+        let base_acceleration_cost = self.base_acceleration_objective.call(x, v, frames, is_core);
+        let base_jerk_cost = self.base_jerk_objective.call(x, v, frames, is_core);
+        return 7.0 * velocity_cost + 2.0 * acceleration_cost + jerk_cost +
+               14.0 * base_velocity_cost + 4.0 * base_acceleration_cost + 2.0 * base_jerk_cost;
     }
 }
 

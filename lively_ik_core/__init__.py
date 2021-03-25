@@ -26,6 +26,21 @@ GOAL_SPEC_FIELDS = {'scalar','vector','quaternion','pose'}
 
 OBJECTIVE_INPUT_FIELDS = {'weight', 'scalar','vector','quaternion'}
 
+CONVERSIONS_TO_CONFIG = {
+ 'states':lambda states: [tuple(state) for state in states],
+ 'starting_config':lambda starting_config: tuple(starting_config)
+}
+
+def handle_keys(data,field_set):
+    cleaned = {}
+    for key,value in data.items():
+        if key in field_set:
+            try:
+                cleaned[key] = CONVERSIONS_TO_CONFIG[key](value)
+            except:
+                cleaned[key] = value
+    return cleaned
+
 def parse_config_data(data:dict) -> Config:
     def parse_data(item):
         obj = None
@@ -36,7 +51,7 @@ def parse_config_data(data:dict) -> Config:
         elif isinstance(item,dict):
             content = {key:parse_data(value) for key,value in item.items()}
             if set(content.keys()).issuperset(CONFIG_FIELDS):
-                obj = Config(**{key:value for key,value in content.items() if key in CONFIG_FIELDS })
+                obj = Config(**handle_keys(content,CONFIG_FIELDS))
             elif set(content.keys()).issuperset(ENVIRONMENT_SPEC_FIELDS):
                 obj = EnvironmentSpec(**{key:value for key,value in content.items() if key in ENVIRONMENT_SPEC_FIELDS })
             elif set(content.keys()).issuperset(NN_SPEC_FIELDS):
