@@ -127,6 +127,9 @@ impl ObjectiveMaster {
                 ObjectiveVariant::RootPositionLiveliness => {
                     objectives.push(Box::new(RootPositionLiveliness::new(i)));
                 }
+                ObjectiveVariant::RootPositionMatch => {
+                    objectives.push(Box::new(RootPositionMatch::new(i)));
+                }
                 // Relative Motion Liveliness
                 ObjectiveVariant::RelativeMotionLiveliness => {
                     objectives.push(Box::new(RelativeMotionLiveliness::new(

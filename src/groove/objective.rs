@@ -144,9 +144,7 @@ impl ObjectiveTrait for NNSelfCollision {
         _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
         _is_core: bool,
     ) -> f64 {
-        let xvec = x.to_vec();
-        let x_val = v.collision_nn.predict(&xvec);
-        // println!("NNSelfCollision error: {:?}",x_val);
+        let x_val = v.collision_nn.predict(&x.to_vec());
         groove_loss(x_val, 0., 2, 2.1, 0.0002, 4)
     }
 
@@ -157,8 +155,7 @@ impl ObjectiveTrait for NNSelfCollision {
         _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
         _is_core: bool,
     ) -> (f64, Vec<f64>) {
-        let xvec = x.to_vec();
-        let (x_val, mut grad) = v.collision_nn.gradient(&xvec);
+        let (x_val, mut grad) = v.collision_nn.gradient(&x.to_vec());
         let g_prime = groove_loss_derivative(x_val, 0., 2, 2.1, 0.0002, 4);
         for i in 0..grad.len() {
             grad[i] *= g_prime;
@@ -504,7 +501,7 @@ impl ObjectiveTrait for Gravity {
     ) -> f64 {
         let mut x_val: f64 = 0.0;
         if is_core == false {
-            let gravity_goal = v.frames_core[self.arm_idx].0[self.joint_idx][2] - 0.1;
+            let gravity_goal = v.frames_core[self.arm_idx].0[self.joint_idx][2] - 0.4;
             x_val = (gravity_goal - frames[self.arm_idx].0[self.joint_idx][2]).abs();
         }
         // println!("PositionLiveliness loss: {:?}",groove_loss(x_val, 0., 2, 3.5, 0.00005, 4));
@@ -1039,6 +1036,40 @@ impl ObjectiveTrait for RootPositionLiveliness {
                     self.goal_idx
                 ),
             }
+        }
+        // println!("RootPositionLiveliness error: {:?}",x_val);
+        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+}
+
+pub struct RootPositionMatch {
+    // Adds position liveliness to the root node (first three entries in x are these values)
+    pub goal_idx: usize,
+}
+impl RootPositionMatch {
+    pub fn new(goal_idx: usize) -> Self {
+        Self { goal_idx }
+    }
+}
+impl ObjectiveTrait for RootPositionMatch {
+    fn call(
+        &self,
+        x: &[f64],
+        v: &RelaxedIKVars,
+        _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        _is_core: bool,
+    ) -> f64 {
+        let mut x_val: f64 = 0.0;
+        match v.goals[self.goal_idx].value {
+            // goal must be a vector
+            Goal::Vector(goal_vec) => {
+                // The error is the difference between the current value and the goal value.
+                x_val = (goal_vec - Vector3::new(x[0], x[1], x[2])).norm();
+            }
+            _ => println!(
+                "Mismatched objective goals for objective with goal idx {:?}",
+                self.goal_idx
+            ), // Some odd condition where incorrect input was provided
         }
         // println!("RootPositionLiveliness error: {:?}",x_val);
         groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
