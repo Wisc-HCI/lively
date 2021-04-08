@@ -11,7 +11,7 @@ Cargo.lock
 **/*.rs.bk
 
 build/**
-lively_ik_core.egg-info
+lively_tk.egg-info
 dist**
-lively_ik_core/__pycache__/__init__.*
-lively_ik_core/lively_ik_core.cpython-*
+lively_tk/__pycache__/__init__.*
+lively_tk/lively_tk.cpython-*

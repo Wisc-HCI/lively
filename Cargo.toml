@@ -1,5 +1,5 @@
 [package]
-name = "lively_ik_core"
+name = "lively_tk"
 version = "0.1.3"
 authors = ["djrakita <djrakita@gmail.com>","andrewjschoen <schoen.andrewj@gmail.com>"]
 edition = "2018"
@@ -31,7 +31,7 @@ opt-level = 3
 opt-level = 3
 
 [lib]
-name = "relaxed_ik_lib"
+name = "lively_tk_lib"
 path = "src/lib.rs"
 crate-type = ["rlib", "dylib", "cdylib"]
 

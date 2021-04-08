@@ -1,10 +1,10 @@
-[![PyPI version](https://img.shields.io/pypi/v/lively_ik_core)](https://badge.fury.io/py/lively_ik_core)
-![Upload Python Package](https://github.com/Wisc-HCI/lively_ik_core/workflows/Upload%20Python%20Package/badge.svg)
-# LivelyIK Core 
+[![PyPI version](https://img.shields.io/pypi/v/lively_tk)](https://badge.fury.io/py/lively_tk)
+![Upload Python Package](https://github.com/Wisc-HCI/lively_tk/workflows/Upload%20Python%20Package/badge.svg)
+# LivelyTK
 
 ## About
 
-This is the core part of LivelyIK solver. For information about LivelyIK, see the Github page for that package.
+This is the LivelyTK Framework. For information about LivelyStudio, see the Github page for that package.
 
 To build, download and `cd` to this directory. Then run:
 

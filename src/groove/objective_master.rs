@@ -2,6 +2,12 @@ use crate::groove::objective::*;
 use crate::groove::vars::RelaxedIKVars;
 use crate::utils::config::*;
 use crate::utils::settings::*;
+use crate::objectives::core::base::*;
+use crate::objectives::core::bounding::*;
+use crate::objectives::core::matching::*;
+use crate::objectives::core::mirroring::*;
+use crate::objectives::liveliness::perlin::*;
+use crate::objectives::liveliness::forces::*;
 use nalgebra::Vector3;
 
 pub struct ObjectiveMaster {
@@ -144,6 +150,13 @@ impl ObjectiveMaster {
                 // Macro for Smoothness
                 ObjectiveVariant::MacroSmoothness => {
                     objectives.push(Box::new(MacroSmoothness::new()));
+                }
+                // Relative Motion Liveliness
+                ObjectiveVariant::DistanceMatch => {
+                    objectives.push(Box::new(DistanceMatch::new(
+                        i,
+                        objective_spec.indices.clone(),
+                    )));
                 }
                 ObjectiveVariant::None => {}
             }

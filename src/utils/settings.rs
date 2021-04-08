@@ -40,6 +40,7 @@ pub enum ObjectiveVariant {
     RootPositionMatch,
     Gravity,
     MacroSmoothness,
+    DistanceMatch,
     None
 }
 
@@ -110,6 +111,7 @@ impl From<ObjectiveVariant> for String {
             ObjectiveVariant::RootPositionMatch => String::from("base_link_position_match"),
             ObjectiveVariant::Gravity => String::from("gravity"),
             ObjectiveVariant::MacroSmoothness => String::from("macro_smoothness"),
+            ObjectiveVariant::DistanceMatch => String::from("distance_match"),
             ObjectiveVariant::None => String::from("None")
         }
     }
@@ -140,6 +142,7 @@ impl From<String> for ObjectiveVariant {
             "base_link_position_match" => ObjectiveVariant::RootPositionMatch,
             "gravity" => ObjectiveVariant::Gravity,
             "macro_smoothness" => ObjectiveVariant::MacroSmoothness,
+            "distance_match" => ObjectiveVariant::DistanceMatch,
             "None" => ObjectiveVariant::None,
             _ => ObjectiveVariant::None // Default to None
         }

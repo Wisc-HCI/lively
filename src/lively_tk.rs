@@ -2,15 +2,8 @@ use crate::groove::groove::{OptimizationEngineNLopt, OptimizationEngineOpen};
 use crate::groove::objective_master::ObjectiveMaster;
 use crate::groove::vars::RelaxedIKVars;
 use pyo3::prelude::*;
-// use crate::utils::file_utils::{*};
-// use crate::utils::subscriber_utils::EEPoseGoalsSubscriber;
-// use crate::utils::transformations::{*};
-// use crate::utils::yaml_utils::{*};
 use crate::utils::config::{Config, EnvironmentSpec};
 use crate::utils::goals::{Goal, ObjectiveInput};
-// use crate::utils::settings::*;
-// use crate::utils::sampler::ThreadSampler;
-// use nalgebra::{Vector3, UnitQuaternion, Quaternion};
 use rand::{thread_rng, Rng};
 use std::os::raw::{c_double, c_int};
 
@@ -21,7 +14,7 @@ pub struct Opt {
 }
 
 #[pyclass]
-pub struct LivelyIK {
+pub struct Solver {
     pub config: Config,
     pub vars: RelaxedIKVars,
     pub om: ObjectiveMaster,
@@ -30,7 +23,7 @@ pub struct LivelyIK {
 }
 
 #[pymethods]
-impl LivelyIK {
+impl Solver {
     #[new]
     fn new(config: Config) -> Self {
         // println!("Creating RelaxedIKVars");
