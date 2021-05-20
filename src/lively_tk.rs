@@ -43,6 +43,30 @@ impl Solver {
         }
     }
 
+    fn reset(
+        &mut self, 
+        base_offset:Vec<f64>,
+        joint_state:Vec<f64>
+    ) -> PyResult<()> {
+        let mut full_state = base_offset.clone();
+        for i in 0..joint_state.len() {
+            full_state.push(joint_state[i])
+        }
+        let frames = self.vars.robot.get_frames(&full_state);
+        for _i in 0..3 {
+            self.vars.history_core.update(full_state.clone());
+            self.vars.history.update(full_state.clone());
+            self.vars.xopt_core = joint_state.clone();
+            self.vars.xopt = joint_state.clone();
+            self.vars.frames_core = frames.clone();
+            self.vars.offset_core = base_offset.clone();
+            self.vars.offset = base_offset.clone();
+        }
+        self.om.weight_priors = self.config.default_weights();
+
+        Ok(())
+    }
+
     fn solve(
         &mut self,
         goals: Vec<ObjectiveInput>,
@@ -50,6 +74,7 @@ impl Solver {
         world: Option<EnvironmentSpec>,
         max_retries: Option<u64>,
         max_iterations: Option<usize>,
+        only_core: Option<bool>
     ) -> PyResult<(Vec<f64>, Vec<f64>)> {
         // RNG Gen
         let mut rng = thread_rng();
@@ -62,6 +87,12 @@ impl Solver {
         let mut xopt = self.vars.offset.clone();
         // Will be the output of the core optimization. N=num_dof+3
         let mut xopt_core = self.vars.offset_core.clone();
+
+        let mut run_only_core = false;
+        match only_core {
+            Some(v) => run_only_core = v,
+            None => {}
+        }
 
         for i in 0..out_x.len() {
             xopt.push(out_x[i])
@@ -158,165 +189,51 @@ impl Solver {
             self.vars.offset_core = vec![best_xopt_core[0], best_xopt_core[1], best_xopt_core[2]];
             self.vars.frames_core = self.vars.robot.get_frames(&best_xopt_core.clone());
 
-            // Run with liveliness (all objectives)
-            let mut best_xopt = xopt.clone();
-            best_cost = f64::INFINITY.clone();
-            try_count = 0;
+            if run_only_core {
+                self.vars.xopt = out_x_core.clone();
+                self.vars.history.update(best_xopt_core.clone());
+                self.vars.offset = vec![best_xopt_core[0], best_xopt_core[1], best_xopt_core[2]];
+            } else {
+                // Run with liveliness (all objectives)
+                let mut best_xopt = xopt.clone();
+                best_cost = f64::INFINITY.clone();
+                try_count = 0;
 
-            // Run until the max_retries is met, or the solution could be improved
-            while try_count < max_tries && (try_count == 0 || best_cost > 250.0) {
-                let try_cost = self
-                    .groove
-                    .optimize(&mut xopt, &self.vars, &self.om, max_iter, false);
-                if try_cost < best_cost {
-                    best_xopt = xopt.clone();
-                    best_cost = try_cost;
-                }
-                try_count += 1;
-                // Randomly generate a new starting point
-                for i in 0..xopt.len() {
-                    if self.vars.robot.upper_bounds[i] - self.vars.robot.lower_bounds[i] <= 0.0 {
-                        xopt[i] = self.vars.robot.lower_bounds[i]
-                    } else {
-                        xopt[i] = rng.gen_range(
-                            self.vars.robot.lower_bounds[i]..self.vars.robot.upper_bounds[i],
-                        );
+                // Run until the max_retries is met, or the solution could be improved
+                while try_count < max_tries && (try_count == 0 || best_cost > 250.0) {
+                    let try_cost = self
+                        .groove
+                        .optimize(&mut xopt, &self.vars, &self.om, max_iter, false);
+                    if try_cost < best_cost {
+                        best_xopt = xopt.clone();
+                        best_cost = try_cost;
+                    }
+                    try_count += 1;
+                    // Randomly generate a new starting point
+                    for i in 0..xopt.len() {
+                        if self.vars.robot.upper_bounds[i] - self.vars.robot.lower_bounds[i] <= 0.0 {
+                            xopt[i] = self.vars.robot.lower_bounds[i]
+                        } else {
+                            xopt[i] = rng.gen_range(
+                                self.vars.robot.lower_bounds[i]..self.vars.robot.upper_bounds[i],
+                            );
+                        }
                     }
                 }
-            }
-            // println!("Best cost: {:?}",best_cost);
-            for i in 0..out_x.len() {
-                out_x[i] = best_xopt[i + 3];
+                // println!("Best cost: {:?}",best_cost);
+                for i in 0..out_x.len() {
+                    out_x[i] = best_xopt[i + 3];
+                }
+
+                self.vars.xopt = out_x.clone();
+                self.vars.history.update(best_xopt.clone());
+                self.vars.offset = vec![best_xopt[0], best_xopt[1], best_xopt[2]]
             }
 
-            self.vars.xopt = out_x.clone();
-            self.vars.history.update(best_xopt.clone());
-            self.vars.offset = vec![best_xopt[0], best_xopt[1], best_xopt[2]]
         }
 
         // println!("OUTX-CORE {:?},\nOUTX {:?}",xopt_core,xopt);
 
-        return Ok((self.vars.offset.clone(), out_x));
+        return Ok((self.vars.offset.clone(), self.vars.xopt.clone()));
     }
 }
-
-// impl LivelyIK {
-//
-//     pub fn solve(&mut self, ee_sub: &EEPoseGoalsSubscriber) -> Vec<f64> {
-//         let mut out_x = self.vars.xopt.clone();
-//
-//         if self.vars.rotation_mode_relative {
-//             for i in 0..self.vars.robot.num_chains {
-//                 self.vars.goal_positions[i] = self.vars.init_ee_positions[i] + ee_sub.pos_goals[i];
-//                 self.vars.goal_quats[i] = ee_sub.quat_goals[i] * self.vars.init_ee_quats[i];
-//             }
-//         } else {
-//             for i in 0..self.vars.robot.num_chains  {
-//                 self.vars.goal_positions[i] = ee_sub.pos_goals[i].clone();
-//                 self.vars.goal_quats[i] = ee_sub.quat_goals[i].clone();
-//             }
-//         }
-//
-//         let in_collision = self.vars.update_collision_world();
-//         if !in_collision {
-//             if self.vars.objective_mode == "ECAA" {
-//                 self.om.tune_weight_priors(&self.vars);
-//             }
-//             self.groove.optimize(&mut out_x, &self.vars, &self.om, 100);
-//             self.vars.update(out_x.clone());
-//         }
-//         out_x
-//     }
-//
-//     pub fn solve_with_user_provided_goals(&mut self, pos_goals: Vec<Vec<f64>>, quat_goals: Vec<Vec<f64>>) -> Vec<f64> {
-//         let mut ee_sub = EEPoseGoalsSubscriber::new();
-//         for i in 0..pos_goals.len() {
-//             ee_sub.pos_goals.push( Vector3::new( pos_goals[i][0], pos_goals[i][1], pos_goals[i][2] ) );
-//             let tmp_quat = Quaternion::new(quat_goals[i][0], quat_goals[i][1], quat_goals[i][2], quat_goals[i][3]);
-//             ee_sub.quat_goals.push( UnitQuaternion::from_quaternion(tmp_quat) );
-//         }
-//
-//         self.solve(&ee_sub)
-//     }
-//
-//     pub fn solve_precise(&mut self, ee_sub: &EEPoseGoalsSubscriber) -> (Vec<f64>) {
-//         let mut out_x = self.vars.xopt.clone();
-//
-//         if self.vars.rotation_mode_relative {
-//             for i in 0..self.vars.robot.num_chains {
-//                 self.vars.goal_positions[i] = self.vars.init_ee_positions[i] + ee_sub.pos_goals[i];
-//                 self.vars.goal_quats[i] = ee_sub.quat_goals[i] * self.vars.init_ee_quats[i];
-//             }
-//         } else {
-//             for i in 0..self.vars.robot.num_chains  {
-//                 self.vars.goal_positions[i] = ee_sub.pos_goals[i].clone();
-//                 self.vars.goal_quats[i] = ee_sub.quat_goals[i].clone();
-//             }
-//         }
-//
-//         self.groove_nlopt.optimize(&mut out_x, &self.vars, &self.om, 200);
-//
-//         let mut max_pos_error = 0.0;
-//         let mut max_rot_error = 0.0;
-//         let ee_poses = self.vars.robot.get_ee_pos_and_quat_immutable(&out_x);
-//         for i in 0..self.vars.robot.num_chains {
-//             let pos_error = (self.vars.goal_positions[i] - ee_poses[i].0).norm();
-//             let rot_error = angle_between(self.vars.goal_quats[i].clone(), ee_poses[i].1.clone());
-//             if pos_error > max_pos_error { max_pos_error = pos_error; }
-//             if rot_error > max_rot_error { max_rot_error = rot_error; }
-//         }
-//
-//         while max_pos_error > 0.005 || max_rot_error > 0.005 {
-//             let res = self.solve_randstart(ee_sub);
-//             out_x = res.1.clone();
-//             max_pos_error = 0.0; max_rot_error = 0.0;
-//             let ee_poses = self.vars.robot.get_ee_pos_and_quat_immutable(&out_x);
-//             for i in 0..self.vars.robot.num_chains {
-//                 let pos_error = (self.vars.goal_positions[i] - ee_poses[i].0).norm();
-//                 let rot_error = angle_between(self.vars.goal_quats[i].clone(), ee_poses[i].1.clone());
-//                 if pos_error > max_pos_error { max_pos_error = pos_error; }
-//                 if rot_error > max_rot_error { max_rot_error = rot_error; }
-//             }
-//         }
-//
-//         self.vars.update(out_x.clone());
-//         self.vars.update_collision_world();
-//
-//         out_x
-//     }
-//
-//     pub fn solve_randstart(&mut self, ee_sub: &EEPoseGoalsSubscriber) -> (bool, Vec<f64>) {
-//         let mut out_x = self.vars.sampler.sample().data.as_vec().clone();
-//
-//         if self.vars.rotation_mode_relative {
-//             for i in 0..self.vars.robot.num_chains {
-//                 self.vars.goal_positions[i] = self.vars.init_ee_positions[i] + ee_sub.pos_goals[i];
-//                 self.vars.goal_quats[i] = ee_sub.quat_goals[i] * self.vars.init_ee_quats[i];
-//             }
-//         } else {
-//             for i in 0..self.vars.robot.num_chains  {
-//                 self.vars.goal_positions[i] = ee_sub.pos_goals[i].clone();
-//                 self.vars.goal_quats[i] = ee_sub.quat_goals[i].clone();
-//             }
-//         }
-//
-//         self.groove_nlopt.optimize(&mut out_x, &self.vars, &self.om, 200);
-//
-//         let mut max_pos_error = 0.0;
-//         let mut max_rot_error = 0.0;
-//         let ee_poses = self.vars.robot.get_ee_pos_and_quat_immutable(&out_x);
-//         for i in 0..self.vars.robot.num_chains {
-//             let pos_error = (self.vars.goal_positions[i] - ee_poses[i].0).norm();
-//             let rot_error = angle_between(self.vars.goal_quats[i].clone(), ee_poses[i].1.clone());
-//             if pos_error > max_pos_error {max_pos_error = pos_error;}
-//             if rot_error > max_rot_error {max_rot_error = rot_error;}
-//         }
-//
-//         if max_pos_error > 0.005 || max_rot_error > 0.005 {
-//             return (false, out_x)
-//         } else {
-//             // self.vars.update(out_x.clone());
-//             return (true, out_x)
-//         }
-//     }
-// }
