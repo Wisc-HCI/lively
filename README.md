@@ -1,3 +1,32 @@
+[![PyPI version](https://img.shields.io/pypi/v/lively_tk)](https://badge.fury.io/py/lively_tk)
+![Upload Python Package](https://github.com/Wisc-HCI/lively_tk/workflows/Upload%20Python%20Package/badge.svg)
+# LivelyTK
+
+## About
+
+The LivelyTK framework provides a highly configurable toolkit for commanding robots in mixed modalities while incorporating liveliness motions. It is adapted from [RelaxedIK](https://github.com/uwgraphics/relaxed_ik_core) framework.
+
+To configure a robot, the easiest method is to use the LivelyStudio interface in the [lively_tk_ros](https://github.com/Wisc-HCI/lively_tk_ros) repository, which is a wizard for configuring the robot.
+
+Once you have a config json file, you can create a `Config` object from the loaded data using `parse_config_data`:
+
+```
+import yaml
+from datetime import datetime
+from lively_tk import parse_config_data, LivelyIK
+
+with open('path/to/config_file.json') as handle:
+    config_data = yaml.safe_load(handle)
+
+config = parse_config_data(config_data)
+```
+
+This config can be used to initialize the LivelyTK solver:
+
+```
+solver = LivelyIK(config)
+```
+
 This solver can then be used when providing goals to the solver's `solve` method:
 
 ```
