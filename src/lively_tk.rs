@@ -74,8 +74,9 @@ impl Solver {
         world: Option<EnvironmentSpec>,
         max_retries: Option<u64>,
         max_iterations: Option<usize>,
-        only_core: Option<bool>
-    ) -> PyResult<(Vec<f64>, Vec<f64>)> {
+        only_core: Option<bool>,
+        return_frames: Option<bool>
+    ) -> PyResult<(Vec<f64>, Vec<f64>, Option<Vec<Vec<(Vec<f64>, Vec<f64>)>>>)> {
         // RNG Gen
         let mut rng = thread_rng();
 
@@ -93,6 +94,11 @@ impl Solver {
             Some(v) => run_only_core = v,
             None => {}
         }
+        let mut provide_frames = false;
+        match return_frames {
+            Some(v) => provide_frames = v,
+            None => {}
+         }
 
         for i in 0..out_x.len() {
             xopt.push(out_x[i])
@@ -108,7 +114,7 @@ impl Solver {
                 goals.len(),
                 self.config.objectives.len()
             );
-            return Ok((self.vars.offset.clone(), out_x));
+            return Ok((self.vars.offset.clone(), out_x, None));
         }
 
         for goal_idx in 0..goals.clone().len() {
@@ -233,7 +239,33 @@ impl Solver {
         }
 
         // println!("OUTX-CORE {:?},\nOUTX {:?}",xopt_core,xopt);
+        if provide_frames {
+            let raw_frames = self.vars.robot.get_frames(&self.vars.history.prev1.clone());
+            let mut return_frame_values: Vec<Vec<(Vec<f64>, Vec<f64>)>> = Vec::new();
+            for arm_idx in 0..raw_frames.len() {
+                let mut arm_values: Vec<(Vec<f64>, Vec<f64>)> = Vec::new();
+                for joint_idx in 0..raw_frames[arm_idx].0.len() {
+                    arm_values.push((
+                        vec![
+                            raw_frames[arm_idx].0[joint_idx].x,
+                            raw_frames[arm_idx].0[joint_idx].y,
+                            raw_frames[arm_idx].0[joint_idx].z
+                        ],
+                        vec![
+                            raw_frames[arm_idx].1[joint_idx].as_vector()[3],
+                            raw_frames[arm_idx].1[joint_idx].as_vector()[0],
+                            raw_frames[arm_idx].1[joint_idx].as_vector()[1],
+                            raw_frames[arm_idx].1[joint_idx].as_vector()[2]
+                        ]
+                    ))
+                }
+                return_frame_values.push(arm_values);
+            }
+            return Ok((self.vars.offset.clone(), self.vars.xopt.clone(), Some(return_frame_values)));
+        } else {
+            return Ok((self.vars.offset.clone(), self.vars.xopt.clone(), None));
+        }
 
-        return Ok((self.vars.offset.clone(), self.vars.xopt.clone()));
+        
     }
 }
