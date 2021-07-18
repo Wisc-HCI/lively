@@ -15,7 +15,7 @@ Once you have a config json file, you can create a `Config` object from the load
 ```
 import yaml
 from datetime import datetime
-from lively_tk import parse_config_data, LivelyIK
+from lively_tk import parse_config_data, Solver
 
 with open('path/to/config_file.json') as handle:
     config_data = yaml.safe_load(handle)
