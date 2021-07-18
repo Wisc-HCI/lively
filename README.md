@@ -26,7 +26,7 @@ config = parse_config_data(config_data)
 This config can be used to initialize the LivelyTK solver:
 
 ```
-solver = LivelyIK(config)
+solver = Solver(config)
 ```
 
 This solver can then be used when providing goals to the solver's `solve` method:
