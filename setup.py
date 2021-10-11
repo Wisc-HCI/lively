@@ -60,7 +60,7 @@ solver.reset([0,0,0],[1,0,1.2,0.4,0.1])
 
 setup(
     name=package_name,
-    version='0.8.0',
+    version='0.9.0',
     packages=[package_name],
     rust_extensions=[RustExtension("lively_tk.lively_tk", binding=Binding.PyO3, quiet=True)],
     install_requires=['setuptools','wheel','setuptools_rust'],

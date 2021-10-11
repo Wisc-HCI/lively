@@ -1,97 +1,110 @@
+use pyo3::prelude::*;
 use crate::utils::goals::*;
-use crate::groove::vars::RelaxedIKVars;
-use crate::groove::objective::{ObjectiveTrait, groove_loss};
+use crate::utils::vars::Vars;
+use crate::objectives::objective::{groove_loss};
 use nalgebra::geometry::{Isometry3, Point3, Translation3, UnitQuaternion};
 use nalgebra::{Vector3};
 
-pub struct PositionBounding {
+pub struct PositionBoundingObjective {
     // Bounds the position within a region according to the input provided in goals.
-    pub goal_idx: usize,
-    pub arm_idx: usize,
-    pub joint_idx: usize,
-    pub shape: Vector3<f64>,
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64,
+    #[pyo3(get)]
+    pub link: String
+    // Goal Value
+    pub goal: (Translation3,UnitQuaternion,Vector3)
 }
-impl PositionBounding {
-    pub fn new(goal_idx: usize, shape: Vector3<f64>, indices: Vec<usize>) -> Self {
-        Self {
-            goal_idx,
-            arm_idx: indices[0],
-            joint_idx: indices[1],
-            shape,
-        }
+#[pymethods]
+impl PositionBoundingObjective {
+    #[new]
+    pub fn new(name: String, weight: f64, link: String) -> Self {
+        Self {name, weight, link, goal: (Translation3::new(0.0,0.0,0.0),UnitQuaternion::identity(),vector![0.0,0.0,0.0])}
     }
 }
-impl ObjectiveTrait for PositionBounding {
+impl PositionBoundingObjective {
     fn call(
         &self,
-        _x: &[f64],
-        v: &RelaxedIKVars,
-        frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        _v: &Vars,
+        state: &State,
         _is_core: bool,
     ) -> f64 {
-        let mut x_val: f64 = 0.0;
-        let position = Point3::from(frames[self.arm_idx].0[self.joint_idx]);
-
-        match v.goals[self.goal_idx].value {
-            // Goal must be a position/orientation pair
-            Goal::Pose(pose_pair) => {
-                // Translate position into coordinate frame of ellipse based on pose_pair
-                let transform = Isometry3::from_parts(Translation3::from(pose_pair.0), pose_pair.1);
-                let pos = transform.inverse_transform_point(&position);
-                x_val = (pos[0].powi(1) / self.shape[0].powi(2)
-                    + pos[1].powi(2) / self.shape[1].powi(2)
-                    + pos[2].powi(2) / self.shape[2].powi(2))
+        const position = state.get_frame_transform(&self.link)).translation.vector;
+        const transform = Isometry3::from_parts(self.goal.0, self.goal.1);
+        const pos = transform.inverse_transform_vector(&position);
+        const x_val = (pos[0].powi(1) / self.goal.2[0].powi(2)
+                    + pos[1].powi(2) / self.goal.2[1].powi(2)
+                    + pos[2].powi(2) / self.goal.2[2].powi(2))
                 .powi(2)
-            }
-            // If there is no goal, assume it is the position/orientation from core
-            Goal::None => {
-                let pose_pair = (
-                    v.frames_core[self.arm_idx].0[self.joint_idx],
-                    v.frames_core[self.arm_idx].1[self.joint_idx],
-                );
-                // Translate position into coordinate frame of ellipse based on pose_pair
-                let transform = Isometry3::from_parts(Translation3::from(pose_pair.0), pose_pair.1);
-                let pos = transform.inverse_transform_point(&position);
-
-                x_val = (pos[0].powi(1) / self.shape[0].powi(2)
-                    + pos[1].powi(2) / self.shape[1].powi(2)
-                    + pos[2].powi(2) / self.shape[2].powi(2))
-                .powi(2)
-            }
-            _ => println!(
-                "Mismatched objective goals for objective with goal idx {:?}",
-                self.goal_idx
-            ), // Some odd condition where incorrect input was provided
-        }
-
-        groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
+        return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
 
-pub struct OrientationBounding {
+pub struct OrientationBoundingObjective {
     // Bounds the orientation within a region on the unit sphere according to the input provided in goals.
-    pub goal_idx: usize,
-    pub arm_idx: usize,
-    pub joint_idx: usize,
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64,
+    #[pyo3(get)]
+    pub link: String
+    // Goal Value
+    pub goal: (UnitQuaternion,f64)
 }
-impl OrientationBounding {
-    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {
-        Self {
-            goal_idx,
-            arm_idx: indices[0],
-            joint_idx: indices[1],
-        }
+#[pymethods]
+impl OrientationBoundingObjective {
+    #[new]
+    pub fn new(name: String, weight: f64, link: String) -> Self {
+        Self {name, weight, link, goal: (UnitQuaternion::identity(),0.0)}
     }
 }
-impl ObjectiveTrait for OrientationBounding {
+impl OrientationBoundingObjective {
     fn call(
         &self,
-        _x: &[f64],
-        _v: &RelaxedIKVars,
-        _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        _v: &Vars,
+        state: &State,
         _is_core: bool,
     ) -> f64 {
-        let x_val: f64 = 0.0;
-        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+        const orientation = state.get_frame_transform(&self.link)).rotation;
+        const angle_dist = orientation.angle_to(goal.0);
+        const x_val = (angle_dist-self.goal.1).max(0.0);
+        return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+}
+
+pub struct JointBoundingObjective {
+    // Bounds the position within a region according to the input provided in goals.
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64,
+    #[pyo3(get)]
+    pub link: String
+    // Goal Value
+    pub goal: (f64,f64)
+}
+#[pymethods]
+impl JointBoundingObjective {
+    #[new]
+    pub fn new(name: String, weight: f64, link: String) -> Self {
+        Self {name, weight, link, goal: (0.0,0.0)}
+    }
+}
+impl JointBoundingObjective {
+    fn call(
+        &self,
+        _v: &Vars,
+        state: &State,
+        _is_core: bool,
+    ) -> f64 {
+        const position = state.get_frame_transform(&self.link)).translation.vector;
+        const transform = Isometry3::from_parts(self.goal.0, self.goal.1);
+        const pos = transform.inverse_transform_vector(&position);
+        const x_val = (pos[0].powi(1) / self.goal.2[0].powi(2)
+                    + pos[1].powi(2) / self.goal.2[1].powi(2)
+                    + pos[2].powi(2) / self.goal.2[2].powi(2))
+                .powi(2)
+        return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }

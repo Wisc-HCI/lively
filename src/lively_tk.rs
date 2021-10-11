@@ -1,271 +1,318 @@
-use crate::groove::groove::{OptimizationEngineNLopt, OptimizationEngineOpen};
-use crate::groove::objective_master::ObjectiveMaster;
-use crate::groove::vars::RelaxedIKVars;
+use optimization_engine::{constraints::*, panoc::*, *};
 use pyo3::prelude::*;
-use crate::utils::config::{Config, EnvironmentSpec};
-use crate::utils::goals::{Goal, ObjectiveInput};
-use rand::{thread_rng, Rng};
-use std::os::raw::{c_double, c_int};
-
-#[repr(C)]
-pub struct Opt {
-    pub data: *const c_double,
-    pub length: c_int,
-}
+use crate::utils::info::{*};
+use crate::utils::vars::{*};
+use crate::utils::shapes::{*};
+use rand::{thread_rng, Rng, ThreadRng};
 
 #[pyclass]
 pub struct Solver {
-    pub config: Config,
-    pub vars: RelaxedIKVars,
-    pub om: ObjectiveMaster,
-    pub groove: OptimizationEngineOpen,
-    pub groove_nlopt: OptimizationEngineNLopt,
+    #[pyo3(get)]
+    pub objectives: Vec<Objective>,
+    #[pyo3(get)]
+    pub collision_manager: Vec<CollisionObject>
+    #[pyo3(get)]
+    pub robot_model: RobotModel,
+    #[pyo3(get)]
+    pub joints: Vec<JointInfo>,
+    #[pyo3(get)]
+    pub links: Vec<LinkInfo>,
+
+    // Optimization utility
+    pub vars: Vars,
+    pub panoc_cache: PANOCCache,
+    pub bounds: Rectangle,
+    pub lower_bounds: Vec<f64>,
+    pub upper_bounds: Vec<f64>,
+
+    // Optimization values
+    pub xopt: Vec<f64>,
+    pub xopt_core: Vec<f64>,
+    pub rng: ThreadRng
 }
 
 #[pymethods]
 impl Solver {
     #[new]
-    fn new(config: Config) -> Self {
-        // println!("Creating RelaxedIKVars");
-        let vars = RelaxedIKVars::new(config.clone());
-        // println!("Creating ObjectiveMaster");
-        let om = ObjectiveMaster::new(config.clone());
-        // println!("Creating OptimizationEngine");
-        let groove = OptimizationEngineOpen::new(vars.robot.num_dof.clone() + 3);
-        let groove_nlopt = OptimizationEngineNLopt::new();
+    fn new(
+        urdf: String, 
+        objectives: Vec<Objective>, 
+        root_bounds: Option<Vec<[f64; 2]>>,
+        collision_objects: Option<Vec<CollisionObject>>,
+        noncollision_objects: Option<Vec<NonCollisionObject>>,
+        initial_state: Option<State>
+    ) -> Self {
+        
+        // Define the robot model, which is used for kinematics and defining the collision_manager
+        let robot_model = RobotModel(urdf);
 
+        // Define the collision_manager with the robot and the permanent collision objects. This goes into vars.
+        let collision_manager = CollisionManager(robot_model,collision_objects)
+
+        // Vars contains the variables that are passed along to each objective each solve
+        let vars = Vars::new(initial_state, robot_model.joints, robot_model.links, collision_manager);
+
+        // Panoc_Cache is a PANOCCache
+        let panoc_cache = PANOCCache::new(robot_model.dof.clone(), 1e-14, 10);
+        // Bounds is defined by the robot root bounds and the joint limits
+        let lower_bounds: Vec<f64>;
+        let upper_bounds: Vec<f64>;
+        match root_bounds {
+            Some(bounds) => {
+                lower_bounds = Vec::new();
+                upper_bounds = Vec::new();
+                for bound in root_bounds {
+                    lower_bounds.push(bound[0]);
+                    upper_bounds.push(bound[1])
+                }
+            },
+            None => {
+                lower_bounds = vec![
+                    f64::NEG_INFINITY,
+                    f64::NEG_INFINITY,
+                    f64::NEG_INFINITY,
+                    f64::PI/-2.0,
+                    f64::PI/-2.0,
+                    f64::PI/-2.0];
+                upper_bounds = vec![
+                    f64::INFINITY,
+                    f64::INFINITY,
+                    f64::INFINITY,
+                    f64::PI/2.0,
+                    f64::PI/2.0,
+                    f64::PI/2.0];
+            }
+        }
+        for joint in robot_model.joints {
+            // Only include non-mimic joints
+            match joint.mimic {
+                Some(_) => {},
+                None => {
+                    lower_bounds.push(joint.lower_bound);
+                    upper_bounds.push(joint.upper_bound);
+                }
+            }
+            
+        }
+        let panoc_bounds = Rectangle::new(
+            Option::from(lower_bounds.as_slice()),
+            Option::from(upper_bounds.as_slice()),
+        );
+        
         Self {
-            config,
+            objectives, 
+            collision_manager,
+            robot_model,
+            joints:robot_model.joints.clone(),
+            links:robot_model.links.clone(),
+            // Non-visible values
             vars,
-            om,
-            groove,
-            groove_nlopt,
+            panoc_cache,
+            panoc_bounds,
+            upper_bounds,
+            lower_bounds,
+            rng: thread_rng()
         }
     }
 
     fn reset(
         &mut self, 
-        base_offset:Vec<f64>,
-        joint_state:Vec<f64>
+        state: State,
+        weights: <Option<Vec<Option<f64>>>
     ) -> PyResult<()> {
-        let mut full_state = base_offset.clone();
-        for i in 0..joint_state.len() {
-            full_state.push(joint_state[i])
+        // Hande the state updates
+        // First update the robot model, and then use that for updating rest
+        self.robot_model.set_state(state);
+
+        // Handle updating the values in vars
+        self.vars.history.reset(self.robot_model.current_state);
+        self.vars.history_core.reset(self.robot_model.current_state);
+        self.vars.collision_manager.set_robot_frames(self.robot_model.current_state.frames);
+        self.vars.collision_manager.set_transient_shapes(vec![]);
+
+        // Handle updating weights
+        match weights {
+            Some(new_weight_set) => {
+                for i in 0...new_weight_set.len() {
+                    match new_weight_set[i] {
+                        Some(new_weight) => {
+                            self.objectives[i].set_weight(new_weight)
+                        },
+                        None => {}
+                    }
+                }
+            },
+            None => {}
         }
-        let frames = self.vars.robot.get_frames(&full_state);
-        for _i in 0..3 {
-            self.vars.history_core.update(full_state.clone());
-            self.vars.history.update(full_state.clone());
-            self.vars.xopt_core = joint_state.clone();
-            self.vars.xopt = joint_state.clone();
-            self.vars.frames_core = frames.clone();
-            self.vars.offset_core = base_offset.clone();
-            self.vars.offset = base_offset.clone();
-        }
-        self.om.weight_priors = self.config.default_weights();
 
         Ok(())
     }
 
     fn solve(
         &mut self,
-        goals: Vec<ObjectiveInput>,
+        goals: Option<Vec<Goal>>,
+        weights: Option<Vec<Option<f64>>>,
         time: f64,
-        world: Option<EnvironmentSpec>,
+        world: Option<Vec<CollisionObject>>,
         max_retries: Option<u64>,
         max_iterations: Option<usize>,
-        only_core: Option<bool>,
-        return_frames: Option<bool>
-    ) -> PyResult<(Vec<f64>, Vec<f64>, Option<Vec<Vec<(Vec<f64>, Vec<f64>)>>>)> {
-        // RNG Gen
-        let mut rng = thread_rng();
-
-        // Will be the output of solve. N=num_dof
-        let mut out_x = self.vars.xopt.clone();
-        // Will be the output of solving for core. N=num_dof
-        let mut out_x_core = self.vars.xopt_core.clone();
-        // Will be the output of the optimization. N=num_dof+3
-        let mut xopt = self.vars.offset.clone();
-        // Will be the output of the core optimization. N=num_dof+3
-        let mut xopt_core = self.vars.offset_core.clone();
-
-        let mut run_only_core = false;
-        match only_core {
-            Some(v) => run_only_core = v,
-            None => {}
-        }
-        let mut provide_frames = false;
-        match return_frames {
-            Some(v) => provide_frames = v,
-            None => {}
-         }
-
-        for i in 0..out_x.len() {
-            xopt.push(out_x[i])
-        }
-
-        for i in 0..out_x_core.len() {
-            xopt_core.push(out_x_core[i])
-        }
-
-        if goals.len() != self.config.objectives.len() {
-            println!(
-                "Mismatch between goals (n={:?}) and objectives (n={:?})",
-                goals.len(),
-                self.config.objectives.len()
-            );
-            return Ok((self.vars.offset.clone(), out_x, None));
-        }
-
-        for goal_idx in 0..goals.clone().len() {
-            self.om.weight_priors[goal_idx] = goals[goal_idx].weight;
-            match goals[goal_idx].value {
-                // Only update if the goal is specified.
-                Goal::None => {}
-                _ => self.vars.goals[goal_idx].value = goals[goal_idx].value,
-            }
-        }
-
-        // println!("Updated Goals {:?}",self.vars.goals);
-
-        self.vars.liveliness.update(time);
-        // println!("Lively Goals: {:?}",self.vars.liveliness.goals);
-
-        match world {
-            // Update the collision world
-            Some(_env) => {}
-            // Keep the same one as previous
-            None => {}
-        }
-
-        let in_collision = false; //self.vars.update_collision_world();
-        if !in_collision {
-            // if self.config.mode_environment == EnvironmentMode::ECAA {
-            //     // Right now, doing this causes errors because vars.env_collision.active_obstacles isn't populated
-            //     self.om.tune_weight_priors(&self.vars);
-            // }
-
-            let mut best_xopt_core = xopt_core.clone();
-            let mut best_cost = f64::INFINITY.clone();
-
-            // If precise, run until error is sufficiently low, or the max_retries is met
-            let max_tries: u64;
-            match max_retries {
-                Some(value) => max_tries = value + 1,
-                None => max_tries = 1,
-            }
-            let max_iter: usize;
-            match max_iterations {
-                Some(value) => max_iter = value,
-                None => max_iter = 150,
-            }
-
-            let mut try_count = 0;
-
-            // Run without liveliness (core objectives)
-            // Run until the max_retries is met, or the solution could be improved
-            while try_count < max_tries && (try_count == 0 || best_cost > 250.0) {
-                let try_cost =
-                    self.groove
-                        .optimize(&mut xopt_core, &self.vars, &self.om, max_iter, true);
-                if try_cost < best_cost {
-                    best_xopt_core = xopt_core.clone();
-                    best_cost = try_cost;
-                }
-                try_count += 1;
-
-                // Randomly generate a new starting point
-                for i in 0..xopt_core.len() {
-                    if self.vars.robot.upper_bounds[i] - self.vars.robot.lower_bounds[i] <= 0.0 {
-                        xopt_core[i] = self.vars.robot.lower_bounds[i]
-                    } else {
-                        xopt_core[i] = rng.gen_range(
-                            self.vars.robot.lower_bounds[i]..self.vars.robot.upper_bounds[i],
-                        );
-                    }
-                }
-            }
-            // println!("Best cost (core): {:?}",best_cost);
-            for i in 0..out_x_core.len() {
-                out_x_core[i] = best_xopt_core[i + 3];
-            }
-
-            self.vars.xopt_core = out_x_core.clone();
-            self.vars.history_core.update(best_xopt_core.clone());
-            self.vars.offset_core = vec![best_xopt_core[0], best_xopt_core[1], best_xopt_core[2]];
-            self.vars.frames_core = self.vars.robot.get_frames(&best_xopt_core.clone());
-
-            if run_only_core {
-                self.vars.xopt = out_x_core.clone();
-                self.vars.history.update(best_xopt_core.clone());
-                self.vars.offset = vec![best_xopt_core[0], best_xopt_core[1], best_xopt_core[2]];
-            } else {
-                // Run with liveliness (all objectives)
-                let mut best_xopt = xopt.clone();
-                best_cost = f64::INFINITY.clone();
-                try_count = 0;
-
-                // Run until the max_retries is met, or the solution could be improved
-                while try_count < max_tries && (try_count == 0 || best_cost > 250.0) {
-                    let try_cost = self
-                        .groove
-                        .optimize(&mut xopt, &self.vars, &self.om, max_iter, false);
-                    if try_cost < best_cost {
-                        best_xopt = xopt.clone();
-                        best_cost = try_cost;
-                    }
-                    try_count += 1;
-                    // Randomly generate a new starting point
-                    for i in 0..xopt.len() {
-                        if self.vars.robot.upper_bounds[i] - self.vars.robot.lower_bounds[i] <= 0.0 {
-                            xopt[i] = self.vars.robot.lower_bounds[i]
-                        } else {
-                            xopt[i] = rng.gen_range(
-                                self.vars.robot.lower_bounds[i]..self.vars.robot.upper_bounds[i],
-                            );
-                        }
-                    }
-                }
-                // println!("Best cost: {:?}",best_cost);
-                for i in 0..out_x.len() {
-                    out_x[i] = best_xopt[i + 3];
-                }
-
-                self.vars.xopt = out_x.clone();
-                self.vars.history.update(best_xopt.clone());
-                self.vars.offset = vec![best_xopt[0], best_xopt[1], best_xopt[2]]
-            }
-
-        }
-
-        // println!("OUTX-CORE {:?},\nOUTX {:?}",xopt_core,xopt);
-        if provide_frames {
-            let raw_frames = self.vars.robot.get_frames(&self.vars.history.prev1.clone());
-            let mut return_frame_values: Vec<Vec<(Vec<f64>, Vec<f64>)>> = Vec::new();
-            for arm_idx in 0..raw_frames.len() {
-                let mut arm_values: Vec<(Vec<f64>, Vec<f64>)> = Vec::new();
-                for joint_idx in 0..raw_frames[arm_idx].0.len() {
-                    arm_values.push((
-                        vec![
-                            raw_frames[arm_idx].0[joint_idx].x,
-                            raw_frames[arm_idx].0[joint_idx].y,
-                            raw_frames[arm_idx].0[joint_idx].z
-                        ],
-                        vec![
-                            raw_frames[arm_idx].1[joint_idx].as_vector()[3],
-                            raw_frames[arm_idx].1[joint_idx].as_vector()[0],
-                            raw_frames[arm_idx].1[joint_idx].as_vector()[1],
-                            raw_frames[arm_idx].1[joint_idx].as_vector()[2]
-                        ]
-                    ))
-                }
-                return_frame_values.push(arm_values);
-            }
-            return Ok((self.vars.offset.clone(), self.vars.xopt.clone(), Some(return_frame_values)));
-        } else {
-            return Ok((self.vars.offset.clone(), self.vars.xopt.clone(), None));
-        }
-
+        only_core: Option<bool>
+    ) -> PyResult<State> {
         
+        let mut xopt = self.xopt.clone();
+        let mut xopt_core = self.xopt_core.clone();
+
+        // Update Goals for objectives if provided
+        match goals {
+            Some(new_goal_set) => {
+                for i in 0...new_goal_set.len() {
+                    self.objectives[i].set_goal(new_goal)
+                }
+            },
+            None => {}
+        }
+
+        // Update Weights for objectives if provided
+        match weights {
+            Some(new_weight_set) => {
+                for i in 0...new_weight_set.len() {
+                    match new_weight_set[i] {
+                        Some(new_weight) => {
+                            self.objectives[i].set_weight(new_weight)
+                        },
+                        None => {}
+                    }
+                }
+            },
+            None => {}
+        }
+
+        // TODO: Refactor this to be within objective
+        for objective in 0..self.objectives {
+            objective.update(time)
+        }
+
+        // Update the collision objects if provided
+        match world {
+            Some(shapes) => self.vars.collision_manager.set_transient_shapes(shapes)
+            None => {}
+        }
+
+        // First, do xopt_core to develop a non-lively baseline
+        self.solve_with_retries(xopt_core,max_retries.unwrap_or(1),max_iterations.unwrap_or(150),true)
+        let state_core = self.robot_model.get_state(xopt_core);
+        self.vars.state_core = state_core;
+        self.vars.history_core.update(state_core);
+
+
+        if only_core {
+            self.vars.state = state_core;
+            self.vars.history.update(state_core)
+            return Ok(state_core)
+        } else {
+            self.solve_with_retries(xopt,max_retries.unwrap_or(1),max_iterations.unwrap_or(150),false)
+            let state = self.robot_model.get_state(xopt);
+            self.vars.state = state;
+            self.vars.history.update(state);
+            return Ok(state)
+        }
     }
+}
+
+impl Solver {
+    fn solve_with_retries(
+        &self,
+        &mut xopt: Vec<f64>,
+        max_retries: u64,
+        max_iterations: usize,
+        is_core: bool
+    ) -> Vec<f64> {
+        
+        // Run until the max_retries is met, or the solution could be improved
+        let mut best_cost = f64::INFINITY;
+        let mut best_xopt = xopt.clone();
+        let mut try_count = 0;
+
+        while try_count < max_retries {
+
+            if (try_count > 0) {
+                for i in 0..xopt.len() {
+                    if self.upper_bounds[i] - self.lower_bounds[i] > 0.0 {
+                        xopt[i] = 0.9*xopt[i]+0.1*rng.gen_range(self.lower_bounds[i]..self.upper_bounds[i]);
+                    }
+                }
+            }
+
+            let try_cost = self.optimize(&mut xopt, max_iterations, is_core);
+            if try_cost < best_cost {
+                best_xopt = xopt.clone();
+                best_cost = try_cost;
+            }
+            try_count += 1;
+        }
+        return xopt;
+    }
+
+    pub fn optimize(
+        &mut self,
+        x: &mut [f64],
+        max_iter: usize,
+        is_core: bool,
+    ) -> f64 {
+        let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
+            let (_my_obj, my_grad) = self.gradient(u, is_core);
+            for i in 0..my_grad.len() {
+                grad[i] = my_grad[i];
+            }
+            Ok(())
+        };
+
+        let f = |u: &[f64], c: &mut f64| -> Result<(), SolverError> {
+            *c = self.call(u, is_core);
+            Ok(())
+        };
+
+        /* PROBLEM STATEMENT */
+        let problem = Problem::new(&self.bounds, df, f);
+        let mut panoc = PANOCOptimizer::new(problem, &mut self.panoc_cache)
+            .with_max_iter(max_iter)
+            .with_tolerance(0.0005);
+
+        // Invoke the solver
+        let result = panoc.solve(x);
+
+        match result {
+            Err(_err) => return f64::INFINITY.clone(),
+            _ => return result.unwrap().cost_value(),
+        }
+        // println!("Status: {:?}",status);
+    }
+
+    fn call(&self, x: &[f64], is_core: bool) -> f64 {
+        let mut out = 0.0;
+        let state = self.robot_model.get_state(x);
+        for i in 0..self.objectives.len() {
+            out += self.objectives[i].call(vars, &state, is_core);
+        }
+        out
+    }
+
+    fn gradient(
+        &self,
+        x: &[f64],
+        is_core: bool,
+    ) -> (f64, Vec<f64>) {
+        let mut grad: Vec<f64> = vec![0.; x.len()];
+        let f_0 = self.call(x, is_core);
+
+        for i in 0..x.len() {
+            let mut x_h = x.to_vec();
+            x_h[i] += 0.000001;
+            let f_h = self.call(x_h.as_slice(), is_core);
+            grad[i] = (-f_0 + f_h) / 0.000001;
+        }
+
+        (f_0, grad)
+    }
+
 }

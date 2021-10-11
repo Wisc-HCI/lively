@@ -1,243 +1,345 @@
-use crate::utils::goals::*;
-use crate::utils::transformations::*;
-use crate::groove::vars::RelaxedIKVars;
-use crate::groove::objective::{ObjectiveTrait, groove_loss};
+use crate::utils::vars::Vars;
+use crate::objectives::objective::{groove_loss};
 use nalgebra::geometry::{Quaternion, UnitQuaternion};
 use nalgebra::{Vector3};
+use noise::{NoiseFn, Perlin};
+use rand::{thread_rng, Rng, ThreadRng};
 
-pub struct PositionLiveliness {
-    // Adds position liveliness to the specified end effector
-    pub goal_idx: usize,
-    pub arm_idx: usize,
-    pub joint_idx: usize,
+pub struct PositionLivelinessObjective {
+    // Adds position liveliness to the specified link
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64,
+    #[pyo3(get)]
+    pub link: String,
+    #[pyo3(get)]
+    pub frequency: f64,
+    
+    // Goal Value (shape of noise)
+    pub goal: Vector3,
+
+    // Inaccessible
+    pub noise: Vector3,
+    pub perlin: Perlin,
+    pub offsets: [f64;3]
+
 }
-impl PositionLiveliness {
-    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {
-        Self {
-            goal_idx,
-            arm_idx: indices[0],
-            joint_idx: indices[1],
-        }
+#[pymethods]
+impl PositionLivelinessObjective {
+    #[new]
+    pub fn new(name: String, weight: f64, link: String, frequency: f64) -> Self {
+        const rng = thread_rng();
+        const perlin = Perlin::new().set_seed(u32::from(rng.gen_range(0..1000)));
+        const offsets: [f64;3] = [
+            f64::from(rng.gen_range(0..1000)),
+            f64::from(rng.gen_range(0..1000)),
+            f64::from(rng.gen_range(0..1000))
+        ]
+        Self { name, weight, link, frequency, goal:vector![0.0,0.0,0.0], noise: vector![0.0,0.0,0.0], perlin, offsets}
     }
 }
-impl ObjectiveTrait for PositionLiveliness {
-    fn call(
+impl PositionLivelinessObjective {
+    pub fn call(
         &self,
-        _x: &[f64],
-        v: &RelaxedIKVars,
-        frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        v: &Vars,
+        state: &State,
         is_core: bool,
     ) -> f64 {
-        let mut x_val: f64 = 0.0;
-        if is_core == false {
-            match v.liveliness.goals[self.goal_idx] {
-                // The goal must be a 3-vector.
-                Goal::Vector(noise_vec) => {
-                    // The error is the difference between the current value and the noise-augmented position solved previously w/o noise.
-                    x_val = (frames[self.arm_idx].0[self.joint_idx]
-                        - (v.frames_core[self.arm_idx].0[self.joint_idx] + noise_vec))
-                        .norm();
-                    // println!("PositionLiveliness Objective enabled")
-                }
-                // Ignore if it isn't
-                _ => println!(
-                    "Mismatched objective goals for objective with goal idx {:?}",
-                    self.goal_idx
-                ),
-            }
+        if is_core {
+            return 0.0
+        } else {
+            const link_translation = state.get_frame_transform(&self.link).translation.vector;
+            const goal = v.state_core.get_frame_transform(&self.link).translation.vector + self.noise;
+
+            const x_val = (link_translation - goal).norm();
+
+            return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
         }
-        // println!("PositionLiveliness loss: {:?}",groove_loss(x_val, 0., 2, 3.5, 0.00005, 4));
-        groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
+    }
+
+    pub fn update(&mut self, time:f64) {
+        for i in 0..3 {
+            self.noise[i] = self.goal[i] * self.perlin.get([time / self.frequency, self.offsets[i]])
+        }
     }
 }
 
-pub struct OrientationLiveliness {
-    // Adds orientation liveliness to the specified end effector
-    pub goal_idx: usize,
-    pub arm_idx: usize,
-    pub joint_idx: usize,
+pub struct OrientationLivelinessObjective {
+    // Adds orientation liveliness to the link
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64,
+    #[pyo3(get)]
+    pub link: String,
+    #[pyo3(get)]
+    pub frequency: f64,
+    
+    // Goal Value (shape of noise)
+    pub goal: Vector3,
+
+    // Inaccessible
+    pub noise: Vector3,
+    pub perlin: Perlin,
+    pub offsets: [f64;3]
 }
-impl OrientationLiveliness {
-    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {
-        Self {
-            goal_idx,
-            arm_idx: indices[0],
-            joint_idx: indices[1],
-        }
+#[pymethods]
+impl OrientationLivelinessObjective {
+    #[new]
+    pub fn new(name: String, weight: f64, link: String, frequency: f64) -> Self {
+        const rng = thread_rng();
+        const perlin = Perlin::new().set_seed(u32::from(rng.gen_range(0..1000)));
+        const offsets: [f64;3] = [
+            f64::from(rng.gen_range(0..1000)),
+            f64::from(rng.gen_range(0..1000)),
+            f64::from(rng.gen_range(0..1000))
+        ]
+        Self { name, weight, link, frequency, goal:vector![0.0,0.0,0.0], noise: vector![0.0,0.0,0.0], perlin, offsets}
     }
 }
-impl ObjectiveTrait for OrientationLiveliness {
-    fn call(
+impl OrientationLivelinessObjective {
+    pub fn call(
         &self,
-        _x: &[f64],
-        v: &RelaxedIKVars,
-        frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        v: &Vars,
+        state: &State,
         is_core: bool,
     ) -> f64 {
-        // Since there are 2 ways to measure the distance around the unit sphere of orientations,
-        // calculate actual orientation of the end effector both ways.
-        let tmp = Quaternion::new(
-            -frames[self.arm_idx].1[self.joint_idx].w,
-            -frames[self.arm_idx].1[self.joint_idx].i,
-            -frames[self.arm_idx].1[self.joint_idx].j,
-            -frames[self.arm_idx].1[self.joint_idx].k,
-        );
-        let ee_quat2 = UnitQuaternion::from_quaternion(tmp);
-        let mut x_val: f64 = 0.0;
-        if is_core == false {
-            match v.liveliness.goals[self.goal_idx] {
-                // goal must be a vector
-                Goal::Vector(noise_vec) => {
-                    // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
-                    // (v.frames_core[self.arm_idx].1[self.joint_idx] is the orientation from the previous "core solving" round)
-                    let lively_goal = quaternion_exp(
-                        quaternion_log(v.frames_core[self.arm_idx].1[self.joint_idx]) + noise_vec,
-                    );
-                    let disp = angle_between(lively_goal, frames[self.arm_idx].1[self.joint_idx]);
-                    let disp2 = angle_between(lively_goal, ee_quat2);
-                    x_val = disp.min(disp2);
-                }
-                _ => println!(
-                    "Mismatched objective goals for objective with goal idx {:?}",
-                    self.goal_idx
-                ), // Some odd condition where incorrect input was provided
-            }
+        if is_core {
+            return 0.0
+        } else {
+            const link_rotation = state.get_link_transform(&self.link).rotation;
+            const core_rotation = v.state_core.get_link_transform(&self.link).rotation;
+            const x_val = link_rotation.rotation_to(core_rotation).angle_to(UnitQuaternion::new(self.noise))
+            return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
         }
-        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+
+    pub fn update(&mut self, time:f64) {
+        for i in 0..3 {
+            self.noise[i] = self.goal[i] * self.perlin.get([time / self.frequency, self.offsets[i]])
+        }
     }
 }
 
-pub struct JointLiveliness {
-    // Adds joint liveliness
-    pub goal_idx: usize,
-    pub joint_idx: usize,
+pub struct JointLivelinessObjective {
+    // Adds joint liveliness to the specified joint
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64,
+    #[pyo3(get)]
+    pub joint: String,
+    #[pyo3(get)]
+    pub frequency: f64,
+    
+    // Goal Value (shape of noise)
+    pub goal: f64,
+
+    // Inaccessible
+    pub noise: f64,
+    pub perlin: Perlin,
 }
-impl JointLiveliness {
-    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {
-        Self {
-            goal_idx,
-            joint_idx: indices[0],
-        }
+#[pymethods]
+impl JointLivelinessObjective {
+    #[new]
+    pub fn new(name: String, weight: f64, joint: String, frequency: f64) -> Self {
+        const rng = thread_rng();
+        const perlin = Perlin::new().set_seed(u32::from(rng.gen_range(0..1000)));
+        Self { name, weight, joint, frequency, goal:0.0, noise: 0.0, perlin}
     }
 }
-impl ObjectiveTrait for JointLiveliness {
-    fn call(
+impl JointLivelinessObjective {
+    pub fn call(
         &self,
-        x: &[f64],
-        v: &RelaxedIKVars,
-        _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        v: &Vars,
+        state: &State,
         is_core: bool,
     ) -> f64 {
-        let mut x_val: f64 = 0.0;
-        if is_core == false {
-            match v.liveliness.goals[self.goal_idx] {
-                // goal must be a vector
-                Goal::Scalar(noise_val) => {
-                    // The error is the difference between the current value and the noise-augmented rotation solved previously w/o noise.
-                    // NOTE: xopt_core.len() == joints.len(), whereas x.len() == joints.len()+3
-                    let lively_goal = v.xopt_core[self.joint_idx] + noise_val;
-                    x_val = (lively_goal - x[self.joint_idx + 3]).abs();
-                }
-                _ => println!(
-                    "Mismatched objective goals for objective with goal idx {:?}",
-                    self.goal_idx
-                ), // Some odd condition where incorrect input was provided
-            }
+        if is_core {
+            return 0.0
+        } else {
+            const joint_value = state.get_joint_position(&self.joint);
+            const goal = v.state_core.get_joint_position(&self.joint) + self.noise;
+
+            const x_val = (joint_value - goal).abs();
+
+            return self.weight * groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2)
         }
-        // println!("JointLiveliness error: {:?}",x_val);
-        groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2)
+    }
+
+    pub fn update(&mut self, time:f64) {
+        self.noise = self.goal * self.perlin.get([time / self.frequency])
     }
 }
 
+pub struct RelativeMotionLivelinessObjective {
+    // Defining a vector line between two joints, this objective promotes lively motion of the second link along that vector
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64,
+    #[pyo3(get)]
+    pub link1: String,
+    #[pyo3(get)]
+    pub link2: String,
+    #[pyo3(get)]
+    pub frequency: f64,
+    
+    // Goal Value (shape of noise)
+    pub goal: f64,
 
-pub struct RelativeMotionLiveliness {
-    // Defining a vector line between two joints, this objective promotes lively motion of the second joint along that vector
-    pub goal_idx: usize,
-    pub arm_1_idx: usize,
-    pub arm_2_idx: usize,
-    pub joint_1_idx: usize,
-    pub joint_2_idx: usize,
+    // Inaccessible
+    pub noise: f64,
+    pub perlin: Perlin
 }
-impl RelativeMotionLiveliness {
-    pub fn new(goal_idx: usize, indices: Vec<usize>) -> Self {
-        Self {
-            goal_idx,
-            arm_1_idx: indices[0],
-            joint_1_idx: indices[1],
-            arm_2_idx: indices[2],
-            joint_2_idx: indices[3],
-        }
+#[pymethods]
+impl RelativeMotionLivelinessObjective {
+    #[new]
+    pub fn new(name: String, weight: f64, link1: String, link2: String, frequency: f64) -> Self {
+        const rng = thread_rng();
+        const perlin = Perlin::new().set_seed(u32::from(rng.gen_range(0..1000)));
+        Self { name, weight, link1, link2, frequency, goal:0.0, noise: 0.0, perlin}
     }
 }
-impl ObjectiveTrait for RelativeMotionLiveliness {
-    fn call(
+impl RelativeMotionLivelinessObjective {
+    pub fn call(
         &self,
-        _x: &[f64],
-        v: &RelaxedIKVars,
-        _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        v: &Vars,
+        state: &State,
         is_core: bool,
     ) -> f64 {
-        let mut x_val: f64 = 0.0;
-        if is_core == false {
-            match v.liveliness.goals[self.goal_idx] {
-                // goal must be a vector
-                Goal::Scalar(offset) => {
-                    // The error is the difference between the current value and the position along the source-target vector.
-                    let src_pos = v.frames_core[self.arm_2_idx].0[self.joint_2_idx];
-                    // pos_1 is the source position
-                    let target_pos_orig = v.frames_core[self.arm_1_idx].0[self.joint_1_idx];
-                    // target_pos_orig is the position for target from the core round
-                    let unit_vector = (target_pos_orig - src_pos).normalize();
-                    // diff is the difference between the above. Used for generating the "vector"
-                    let target_pos = unit_vector * offset + target_pos_orig;
-                    // target position is the scaled offset applied to the original target position
-                    x_val = (target_pos_orig - target_pos).norm();
-                    // println!("{:?}, {:?} {:?}", target_pos_orig, target_pos, offset)
-                }
-                _ => println!(
-                    "Mismatched objective goals for objective with goal idx {:?}",
-                    self.goal_idx
-                ), // Some odd condition where incorrect input was provided
-            }
+        if is_core {
+            return 0.0
+        } else {
+            // The error is the difference between the current value and the position along the source-target vector.
+            const link_translation = state.get_frame_transform(&self.link).translation.vector;
+            const core_translation = v.state_core.get_frame_transform(&self.link).translation.vector;
+            // Calculate the unit vector. We scale this by the current noise value 
+            // and add it to the core_translation to create the goal
+            const unit_vector = (link_translation - core_translation).normalize();
+            const goal = unit_vector * self.noise + core_translation;
+            // cost is the distance between the offset position (goal) and the link's translation
+            const x_val = (link_translation - goal).norm();
+
+            return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
         }
-        // println!("RelativeMotionLiveliness error: {:?}",x_val);
-        // groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2)
-        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+
+    pub fn update(&mut self, time:f64) {
+        self.noise = self.goal * self.perlin.get([time / self.frequency])
     }
 }
 
-pub struct RootPositionLiveliness {
-    // Adds position liveliness to the root node (first three entries in x are these values)
-    pub goal_idx: usize,
+pub struct OriginPositionLivelinessObjective {
+    // Adds position liveliness to the specified link
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64,
+    #[pyo3(get)]
+    pub frequency: f64,
+    
+    // Goal Value (shape of noise)
+    pub goal: Vector3,
+
+    // Inaccessible
+    pub noise: Vector3,
+    pub perlin: Perlin,
+    pub offsets: [f64;3]
+
 }
-impl RootPositionLiveliness {
-    pub fn new(goal_idx: usize) -> Self {
-        Self { goal_idx }
+#[pymethods]
+impl OriginPositionLivelinessObjective {
+    #[new]
+    pub fn new(name: String, weight: f64, frequency: f64) -> Self {
+        const rng = thread_rng();
+        const perlin = Perlin::new().set_seed(u32::from(rng.gen_range(0..1000)));
+        const offsets: [f64;3] = [
+            f64::from(rng.gen_range(0..1000)),
+            f64::from(rng.gen_range(0..1000)),
+            f64::from(rng.gen_range(0..1000))
+        ]
+        Self { name, weight, frequency, goal:vector![0.0,0.0,0.0], noise: vector![0.0,0.0,0.0], perlin, offsets}
     }
 }
-impl ObjectiveTrait for RootPositionLiveliness {
-    fn call(
+impl OriginPositionLivelinessObjective {
+    pub fn call(
         &self,
-        x: &[f64],
-        v: &RelaxedIKVars,
-        _frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
+        v: &Vars,
+        state: &State,
         is_core: bool,
     ) -> f64 {
-        let mut x_val: f64 = 0.0;
-        if is_core == false {
-            match v.liveliness.goals[self.goal_idx] {
-                // The goal must be a 3-vector.
-                Goal::Vector(noise_vec) => {
-                    // The error is the difference between the current value and the noise-augmented position solved previously w/o noise.
-                    x_val = (noise_vec - Vector3::new(x[0], x[1], x[2])).norm();
-                }
-                // Ignore if it isn't
-                _ => println!(
-                    "Mismatched objective goals for objective with goal idx {:?}",
-                    self.goal_idx
-                ),
-            }
+        if is_core {
+            return 0.0
+        } else {
+            const origin_translation = state.origin.translation.vector;
+            const goal = v.state_core.origin.translation.vector + self.noise;
+
+            const x_val = (origin_translation - goal).norm();
+
+            return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
         }
-        groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+
+    pub fn update(&mut self, time:f64) {
+        for i in 0..3 {
+            self.noise[i] = self.goal[i] * self.perlin.get([time / self.frequency, self.offsets[i]])
+        }
+    }
+}
+
+pub struct OriginOrientationLivelinessObjective {
+    // Adds orientation liveliness to the link
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64,
+    #[pyo3(get)]
+    pub frequency: f64,
+    
+    // Goal Value (shape of noise)
+    pub goal: Vector3,
+
+    // Inaccessible
+    pub noise: Vector3,
+    pub perlin: Perlin,
+    pub offsets: [f64;3]
+}
+#[pymethods]
+impl OriginOrientationLivelinessObjective {
+    #[new]
+    pub fn new(name: String, weight: f64, frequency: f64) -> Self {
+        const rng = thread_rng();
+        const perlin = Perlin::new().set_seed(u32::from(rng.gen_range(0..1000)));
+        const offsets: [f64;3] = [
+            f64::from(rng.gen_range(0..1000)),
+            f64::from(rng.gen_range(0..1000)),
+            f64::from(rng.gen_range(0..1000))
+        ]
+        Self { name, weight, frequency, goal:vector![0.0,0.0,0.0], noise: vector![0.0,0.0,0.0], perlin, offsets}
+    }
+}
+impl OriginOrientationLivelinessObjective {
+    pub fn call(
+        &self,
+        v: &Vars,
+        state: &State,
+        is_core: bool,
+    ) -> f64 {
+        if is_core {
+            return 0.0
+        } else {
+            const origin_rotation = state.origin.rotation;
+            const core_rotation = v.state_core.origin.rotation;
+            const x_val = origin_rotation.rotation_to(core_rotation).angle_to(UnitQuaternion::new(self.noise))
+            return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+        }
+    }
+
+    pub fn update(&mut self, time:f64) {
+        for i in 0..3 {
+            self.noise[i] = self.goal[i] * self.perlin.get([time / self.frequency, self.offsets[i]])
+        }
     }
 }

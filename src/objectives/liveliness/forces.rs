@@ -1,36 +1,41 @@
-use crate::groove::vars::RelaxedIKVars;
-use crate::groove::objective::{ObjectiveTrait, groove_loss};
-use nalgebra::geometry::UnitQuaternion;
-use nalgebra::Vector3;
+use crate::utils::vars::Vars;
+use crate::objectives::objective::{groove_loss};
 
-pub struct Gravity {
-    pub arm_idx: usize,
-    pub joint_idx: usize,
+#[pyclass]
+#[derive(Clone,Debug)]
+pub struct GravityObjective {
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64,
+    #[pyo3(get)]
+    pub link: String
 }
 
-impl Gravity {
-    pub fn new(indices: Vec<usize>) -> Self {
-        Self {
-            arm_idx: indices[0],
-            joint_idx: indices[1],
-        }
+#[pymethods]
+impl GravityObjective {
+    #[new]
+    pub fn new(name: String, weight: f64, link: String) -> Self {
+        Self { name, weight, link}
     }
 }
 
-impl ObjectiveTrait for Gravity {
+impl GravityObjective {
     fn call(
         &self,
-        _x: &[f64],
-        v: &RelaxedIKVars,
-        frames: &Vec<(Vec<Vector3<f64>>, Vec<UnitQuaternion<f64>>)>,
-        is_core: bool,
+        _v: &Vars,
+        state: &State,
+        _is_core: bool,
     ) -> f64 {
-        let mut x_val: f64 = 0.0;
-        if is_core == false {
-            let gravity_goal = v.frames_core[self.arm_idx].0[self.joint_idx][2] - 0.4;
-            x_val = (gravity_goal - frames[self.arm_idx].0[self.joint_idx][2]).abs();
+        let mut prev_position;
+        if is_core {
+            prev_position = v.history_core.prev1.get_frame_transform(&self.link).translation.vector;
+        } else {
+            prev_position = v.history.prev1.get_frame_transform(&self.link).translation.vector;
         }
-        // println!("PositionLiveliness loss: {:?}",groove_loss(x_val, 0., 2, 3.5, 0.00005, 4));
-        groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
+        const current_position = state.get_frame_transform(&self.link).translation.vector;
+        const x = (current_position[2]-prev_position[2])
+        const x_val = 1.0/(1.0+f64::E.powf(4.0*x-2.0))
+        return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
