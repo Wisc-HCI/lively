@@ -1,11 +1,49 @@
 use pyo3::prelude::*;
-use nalgebra::geometry::{Isometry3};
-use nalgebra::{one, Vector3};
+use nalgebra::{Vector3};
 use crate::objectives::objective::groove_loss;
-use crate::vars::state::State;
+use crate::utils::vars::Vars;
+use crate::utils::state::State;
+use std::f64::consts::{E};
 
+#[pyclass]
+#[derive(Clone,Debug)]
+pub struct CollisionAvoidanceObjective {
+    #[pyo3(get)]
+    pub name: String,
+    #[pyo3(get)]
+    pub weight: f64
+}
 
-// ======= JointLimitsObjective ======= 
+impl CollisionAvoidanceObjective {
+    pub fn call(
+        &self,
+        _v: &Vars,
+        state: &State,
+        _is_core: bool,
+    ) -> f64 {
+        let mut score: f64 = 0.0;
+        for proximity_info in state.proximity {
+            if proximity_info.scored {
+                match proximity_info.distance {
+                    Some(dist) => {
+                        score += 1.0/E.powf(20.0*dist)
+                    },
+                    _ => {}
+                }
+            }
+        }
+        return self.weight * groove_loss(score, 0.0, 2, 0.32950, 0.1, 2)
+    }
+}
+
+#[pymethods]
+impl CollisionAvoidanceObjective {
+    #[new]
+    pub fn new(name: String, weight: f64) -> Self {
+        Self {name, weight}
+    }
+}
+
 #[pyclass]
 #[derive(Clone,Debug)]
 pub struct JointLimitsObjective {
@@ -16,7 +54,7 @@ pub struct JointLimitsObjective {
 }
 
 impl JointLimitsObjective {
-    fn call(
+    pub fn call(
         &self,
         v: &Vars,
         state: &State,
@@ -24,10 +62,10 @@ impl JointLimitsObjective {
     ) -> f64 {
         let mut sum = 0.0;
         let penalty_cutoff: f64 = 0.9;
-        let a = 0.05 / (penalty_cutoff.powi(50));
+        let a: f64 = 0.05 / (penalty_cutoff.powi(50));
         for joint in v.joints.iter() {
-            let l = joint.lower_bound;
-            let u = joint.upper_bound;
+            let l: f64 = joint.lower_bound;
+            let u: f64 = joint.upper_bound;
             let joint_value = state.get_joint_position(&joint.name);
             if u - l <= 0.0 {
                 // In cases where the upper and lower limits are the same,
@@ -35,8 +73,8 @@ impl JointLimitsObjective {
                 sum += a * (joint_value - l).abs().powi(50);
             } else {
                 // Otherwise, compare as normal
-                let r = (joint_value - l) / (u - l);
-                let n = 2.0 * (r - 0.5);
+                let r: f64 = (joint_value - l) / (u - l);
+                let n: f64 = 2.0 * (r - 0.5);
                 sum += a * n.powi(50);
             }
         }
@@ -64,14 +102,14 @@ pub struct VelocityMinimizationObjective {
 }
 
 impl VelocityMinimizationObjective {
-    fn call(
+    pub fn call(
         &self,
         v: &Vars,
-        state: &State,,
+        state: &State,
         is_core: bool,
     ) -> f64 {
         let mut x_val = 0.0;
-        for (i,joint) in v.joints.iter().enumerate() {
+        for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
             if is_core {
                 x_val += (joint_value - v.history_core.prev1.get_joint_position(&joint.name)).powi(2);
@@ -95,15 +133,15 @@ impl VelocityMinimizationObjective {
 
 #[pyclass]
 #[derive(Clone,Debug)]
-pub struct BaseVelocityMinimizationObjective {
+pub struct OriginVelocityMinimizationObjective {
     #[pyo3(get)]
     pub name: String,
     #[pyo3(get)]
     pub weight: f64
 }
 
-impl BaseVelocityMinimizationObjective {
-    fn call(
+impl OriginVelocityMinimizationObjective {
+    pub fn call(
         &self,
         v: &Vars,
         state: &State,
@@ -112,17 +150,17 @@ impl BaseVelocityMinimizationObjective {
         let past:Vector3<f64>;
         let x_val:f64;
         if is_core {
-            past = v.history_core.prev1.origin.translation 
+            past = v.history_core.prev1.origin.translation.vector
         } else {
-            past = v.history.prev1.origin.translation
+            past = v.history.prev1.origin.translation.vector
         }
-        x_val = (state.origin.translation.vector-past.vector).norm().powi(2);
+        x_val = (state.origin.translation.vector-past).norm().powi(2);
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
 #[pymethods]
-impl BaseVelocityMinimizationObjective {
+impl OriginVelocityMinimizationObjective {
     #[new]
     pub fn new(name: String, weight: f64) -> Self {
         Self {name, weight}
@@ -139,14 +177,14 @@ pub struct AccelerationMinimizationObjective {
 }
 
 impl AccelerationMinimizationObjective {
-    fn call(
+    pub fn call(
         &self,
         v: &Vars,
         state: &State,
         is_core: bool,
     ) -> f64 {
         let mut x_val = 0.0;
-        for (i,joint) in v.joints.iter().enumerate() {
+        for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
             let v1: f64;
             let v2: f64;
@@ -175,39 +213,37 @@ impl AccelerationMinimizationObjective {
 
 #[pyclass]
 #[derive(Clone,Debug)]
-pub struct BaseAccelerationMinimizationObjective {
+pub struct OriginAccelerationMinimizationObjective {
     #[pyo3(get)]
     pub name: String,
     #[pyo3(get)]
     pub weight: f64
 }
 
-impl BaseAccelerationMinimizationObjective {
-    fn call(
+impl OriginAccelerationMinimizationObjective {
+    pub fn call(
         &self,
         v: &Vars,
         state: &State,
         is_core: bool,
     ) -> f64 {
-        let x_val: f64;
-        let pos1 = origin.translation.vector;
-        let pos2:Vector3<f64>;
-        let pos3:Vector3<f64>;
+        let pos1 = state.origin.translation.vector;
         if is_core {
-            pos2 = v.history_core.prev1.origin.translation.vector;
-            pos3 = v.history_core.prev2.origin.translation.vector;
+            let pos2: Vector3<f64> = v.history_core.prev1.origin.translation.vector;
+            let pos3: Vector3<f64> = v.history_core.prev2.origin.translation.vector;
+            let x_val: f64 = ((pos1-pos2)-(pos2-pos3)).norm().powi(2);
+            return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
         } else {
-            pos2 = v.history.prev1.origin.translation.vector;
-            pos3 = v.history.prev2.origin.translation.vector;
+            let pos2: Vector3<f64> = v.history.prev1.origin.translation.vector;
+            let pos3: Vector3<f64> = v.history.prev2.origin.translation.vector;
+            let x_val: f64 = ((pos1-pos2)-(pos2-pos3)).norm().powi(2);
+            return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
         }
-        x_val = ((pos1-pos2)-(pos2-pos3)).norm().powi(2);
-        // println!("AccelerationMinimizationObjective error: {:?}",x_val);
-        return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
 #[pymethods]
-impl AccelerationMinimizationObjective {
+impl OriginAccelerationMinimizationObjective {
     #[new]
     pub fn new(name: String, weight: f64) -> Self {
         Self {name, weight}
@@ -224,14 +260,14 @@ pub struct JerkMinimizationObjective {
 }
 
 impl JerkMinimizationObjective {
-    fn call(
+    pub fn call(
         &self,
         v: &Vars,
         state: &State,
         is_core: bool,
     ) -> f64 {
         let mut x_val = 0.0;
-        for (i,joint) in v.joints.iter().enumerate() {
+        for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
             let v1: f64;
             let v2: f64;
@@ -263,22 +299,22 @@ impl JerkMinimizationObjective {
 
 #[pyclass]
 #[derive(Clone,Debug)]
-pub struct BaseJerkMinimizationObjective {
+pub struct OriginJerkMinimizationObjective {
     #[pyo3(get)]
     pub name: String,
     #[pyo3(get)]
     pub weight: f64
 }
 
-impl BaseJerkMinimizationObjective {
-    fn call(
+impl OriginJerkMinimizationObjective {
+    pub fn call(
         &self,
         v: &Vars,
         state: &State,
         is_core: bool,
     ) -> f64 {
         let x_val: f64;
-        let pos1 = origin.translation.vector;
+        let pos1 = state.origin.translation.vector;
         let pos2:Vector3<f64>;
         let pos3:Vector3<f64>;
         let pos4:Vector3<f64>;
@@ -297,7 +333,7 @@ impl BaseJerkMinimizationObjective {
 }
 
 #[pymethods]
-impl BaseJerkMinimizationObjective {
+impl OriginJerkMinimizationObjective {
     #[new]
     pub fn new(name: String, weight: f64) -> Self {
         Self {name, weight}
@@ -314,9 +350,9 @@ pub struct SmoothnessMacroObjective {
     velocity_objective: VelocityMinimizationObjective,
     acceleration_objective: AccelerationMinimizationObjective,
     jerk_objective: JerkMinimizationObjective,
-    base_velocity_objective: BaseVelocityMinimizationObjective,
-    base_acceleration_objective: BaseAccelerationMinimizationObjective,
-    base_jerk_objective: BaseJerkMinimizationObjective
+    base_velocity_objective: OriginVelocityMinimizationObjective,
+    base_acceleration_objective: OriginAccelerationMinimizationObjective,
+    base_jerk_objective: OriginJerkMinimizationObjective
 }
 
 #[pymethods]
@@ -329,26 +365,26 @@ impl SmoothnessMacroObjective {
             velocity_objective: VelocityMinimizationObjective::new(name,0.21),
             acceleration_objective: AccelerationMinimizationObjective::new(name,0.08),
             jerk_objective: JerkMinimizationObjective::new(name,0.04),
-            base_velocity_objective: BaseVelocityMinimizationObjective::new(name,0.47),
-            base_acceleration_objective: BaseAccelerationMinimizationObjective::new(name,0.15),
-            base_jerk_objective: BaseJerkMinimizationObjective::new(name,0.05)
+            base_velocity_objective: OriginVelocityMinimizationObjective::new(name,0.47),
+            base_acceleration_objective: OriginAccelerationMinimizationObjective::new(name,0.15),
+            base_jerk_objective: OriginJerkMinimizationObjective::new(name,0.05)
         }
     }
 }
 
 impl SmoothnessMacroObjective {
-    fn call(
+    pub fn call(
         &self,
         v: &Vars,
         state: &State,
         is_core: bool,
     ) -> f64 {
-        const velocity_cost = self.velocity_objective.call(v, state, is_core);
-        const acceleration_cost = self.acceleration_objective.call(v, state, is_core);
-        const jerk_cost = self.jerk_objective.call(v, state, is_core);
-        const base_velocity_cost = self.base_velocity_objective.call(v, state, is_core);
-        const base_acceleration_cost = self.base_acceleration_objective.call(v, state, is_core);
-        const base_jerk_cost = self.base_jerk_objective.call(v, state, is_core);
+        let velocity_cost = self.velocity_objective.call(v, state, is_core);
+        let acceleration_cost = self.acceleration_objective.call(v, state, is_core);
+        let jerk_cost = self.jerk_objective.call(v, state, is_core);
+        let base_velocity_cost = self.base_velocity_objective.call(v, state, is_core);
+        let base_acceleration_cost = self.base_acceleration_objective.call(v, state, is_core);
+        let base_jerk_cost = self.base_jerk_objective.call(v, state, is_core);
         return self.weight * (velocity_cost + acceleration_cost + jerk_cost +
                base_velocity_cost + base_acceleration_cost + base_jerk_cost);
     }

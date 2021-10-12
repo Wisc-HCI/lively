@@ -1,5 +1,8 @@
+use pyo3::prelude::*;
 use crate::utils::vars::Vars;
-use crate::objectives::objective::{groove_loss};
+use crate::utils::state::State;
+use crate::objectives::objective::groove_loss;
+use std::f64::consts::{E};
 
 #[pyclass]
 #[derive(Clone,Debug)]
@@ -21,21 +24,21 @@ impl GravityObjective {
 }
 
 impl GravityObjective {
-    fn call(
+    pub fn call(
         &self,
-        _v: &Vars,
+        v: &Vars,
         state: &State,
-        _is_core: bool,
+        is_core: bool,
     ) -> f64 {
         let mut prev_position;
         if is_core {
-            prev_position = v.history_core.prev1.get_frame_transform(&self.link).translation.vector;
+            prev_position = v.history_core.prev1.get_link_transform(&self.link).translation.vector;
         } else {
-            prev_position = v.history.prev1.get_frame_transform(&self.link).translation.vector;
+            prev_position = v.history.prev1.get_link_transform(&self.link).translation.vector;
         }
-        const current_position = state.get_frame_transform(&self.link).translation.vector;
-        const x = (current_position[2]-prev_position[2])
-        const x_val = 1.0/(1.0+f64::E.powf(4.0*x-2.0))
+        let current_position = state.get_link_transform(&self.link).translation.vector;
+        let x = current_position[2]-prev_position[2];
+        let x_val = 1.0/(1.0+E.powf(4.0*x-2.0));
         return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }

@@ -7,22 +7,17 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nalgebra = "0.26"
+nalgebra = "0.29"
+rapier3d = "0.11.0"
+parry3d = "0.7.0"
 yaml-rust = "0.4"
 optimization_engine = "0.6.0"
 ndarray = "0.13.0"
 num = "0.2.0"
 nlopt = "0.5.1"
-time = "0.1"
-kdtree = "0.6.0"
-vpsearch = "1.3.5"
-ndarray-rand = "0.11.0"
 rand = "0.8.1"
-ncollide2d = "0.29.0"
-ncollide3d = "0.29.0"
-# path-slash = "0.1.2"
 noise = "0.7.0"
-k = "0.25.0"
+k = { git = "https://github.com/AndrewJSchoen/k" }
 urdf-rs = "0.6.1"
 
 [profile.dev]

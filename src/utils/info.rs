@@ -1,4 +1,7 @@
 use pyo3::prelude::*;
+use pyo3::PyObjectProtocol;
+use urdf_rs::{Mimic};
+// use std::fmt::Display;
 
 #[pyclass]
 #[derive(Clone,Debug)]
@@ -14,7 +17,7 @@ pub struct MimicInfo {
 #[pymethods]
 impl MimicInfo {
     #[new]
-    fn new(joint: String, multiplier: f64, offset: f64) -> Self {
+    pub fn new(joint: String, multiplier: f64, offset: f64) -> Self {
         Self { joint, multiplier, offset }
     }
 }
@@ -58,7 +61,7 @@ pub struct JointInfo {
 #[pymethods]
 impl JointInfo {
     #[new]
-    fn new(name: String, joint_type: String, lower_bound: f64, upper_bound: f64, max_velocity: f64, axis: [f64; 3], mimic: Option<MimicInfo>) -> Self {
+    pub fn new(name: String, joint_type: String, lower_bound: f64, upper_bound: f64, max_velocity: f64, axis: [f64; 3], mimic: Option<MimicInfo>) -> Self {
         Self { name, joint_type, lower_bound, upper_bound, max_velocity, axis, mimic }
     }
 }
@@ -73,7 +76,62 @@ pub struct LinkInfo {
 #[pymethods]
 impl LinkInfo {
     #[new]
-    fn new(name: String) -> Self {
+    pub fn new(name: String) -> Self {
         Self { name }
+    }
+}
+
+#[pyclass]
+#[derive(Clone,Debug)]
+pub struct ProximityInfo {
+    #[pyo3(get)]
+    pub frame1: String,
+    #[pyo3(get)]
+    pub frame2: String,
+    #[pyo3(get)]
+    pub distance: Option<f64>,
+    #[pyo3(get)]
+    pub scored: bool
+}
+
+#[pymethods]
+impl ProximityInfo {
+    #[new]
+    pub fn new(frame1: String, frame2: String, distance: Option<f64>, scored: Option<bool>) -> Self {
+        Self { frame1, frame2, distance, scored: scored.unwrap_or(true) }
+    }
+}
+
+#[pyproto]
+impl PyObjectProtocol for JointInfo {
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("<Joint (name: {}, type: {}, bounds: [{},{}], max_vel: {}, axis: [{},{},{}], mimic: {})>", 
+                    self.name, self.joint_type, self.lower_bound, self.upper_bound, 
+                    self.max_velocity, self.axis[0], self.axis[1], self.axis[2], self.mimic.is_some()))
+    }
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("<Joint (name: {}, type: {}, bounds: [{},{}], max_vel: {}, axis: [{},{},{}], mimic: {})>", 
+                    self.name, self.joint_type, self.lower_bound, self.upper_bound, 
+                    self.max_velocity, self.axis[0], self.axis[1], self.axis[2], self.mimic.is_some()))
+    }
+}
+
+#[pyproto]
+impl PyObjectProtocol for LinkInfo {
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("<Link (name: {})>", self.name))
+    }
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("<Link (name: {})>", self.name))
+    }
+}
+
+#[pyproto]
+impl PyObjectProtocol for ProximityInfo {
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("<Proximity (frame1: {}, frame2: {}, distance: {}, scored: {})>", self.frame1, self.frame2, self.distance.unwrap_or(100.0), self.scored))
+    }
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("<Proximity (frame1: {}, frame2: {}, distance: {}, scored: {})>", self.frame1, self.frame2, self.distance.unwrap_or(100.0), self.scored))
     }
 }

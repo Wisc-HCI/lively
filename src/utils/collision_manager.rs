@@ -1,8 +1,7 @@
+use std::collections::HashMap;
 use crate::utils::shapes::*;
-use crate::utils::robot_model::{RobotModel};
-// use crate::utils::config::{EnvironmentSpec};
-use ncollide3d::pipeline::{*};
-use ncollide3d::shape::{*};
+use crate::utils::info::ProximityInfo;
+use nalgebra::geometry::{Isometry3};
 
 #[derive(Clone,Debug)]
 pub struct CollisionManager {
@@ -12,7 +11,7 @@ pub struct CollisionManager {
 }
 
 impl CollisionManager {
-    pub fn new(_robot: RobotModel, persistent_shapes: Vec<CollisionObject>) -> Self {
+    pub fn new(persistent_shapes: Vec<CollisionObject>) -> Self {
         // Remove the _ in front of robot to use this parameter.
 
         let mut robot_shapes: Vec<CollisionObject> = vec![];
@@ -21,17 +20,19 @@ impl CollisionManager {
         Self { persistent_shapes, robot_shapes }
     }
 
-    fn set_robot_frames(&mut self, frames: HashMap<String, Isometry3>) {
+    pub fn set_robot_frames(&mut self, _frames: HashMap<String, Isometry3<f64>>) {
 
     }
 
-    fn set_transient_shapes(&mut self, transient_shapes: Vec<CollisionObject>) {
+    pub fn set_transient_shapes(&mut self, _transient_shapes: Vec<CollisionObject>) {
 
     }
 
-    fn get_score(&self) -> f64 {
-        
-        return 0.0
+    pub fn get_proximity(&self) -> Vec<ProximityInfo>{
+        /*
+        Generate the vector of proximityInfo structs and return
+        */
+        return vec![]
     }
 }
 

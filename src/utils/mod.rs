@@ -1,9 +1,9 @@
-pub mod transformations;
 pub mod robot_model;
+pub mod collision_manager;
 pub mod geometry;
-pub mod collision_object;
 pub mod shapes;
-pub mod conversions;
 pub mod history;
 pub mod info;
-pub mod goal;
+pub mod goals;
+pub mod vars;
+pub mod state;

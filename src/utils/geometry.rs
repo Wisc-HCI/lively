@@ -1,9 +1,32 @@
-extern crate pyo3;
 use pyo3::prelude::*;
 use pyo3::PyObjectProtocol;
 use std::collections::HashMap;
-use nalgebra::geometry::{Vector3, Translation3, Isometry3, Quaternion, UnitQuaternion};
+use nalgebra::geometry::{Translation3, Isometry3, Quaternion, UnitQuaternion};
+use nalgebra::{Vector3, Vector4};
 
+pub fn quaternion_log(q: UnitQuaternion<f64>) -> Vector3<f64> {
+    let mut out_vec: Vector3<f64> = Vector3::new(q.i, q.j, q.k);
+    if q.w.abs() < 1.0 {
+        let a = q.w.acos();
+        let sina = a.sin();
+        if sina.abs() >= 0.005 {
+            let c = a / sina;
+            out_vec *= c;
+        }
+    }
+    out_vec
+}
+
+pub fn quaternion_exp(v: Vector3<f64>) -> UnitQuaternion<f64> {
+    let mut qv: Vector4<f64> = Vector4::new(1.0, v[0], v[1], v[2]);
+    let a = qv.norm();
+    let sina = a.sin();
+    if sina.abs() >= 0.005 {
+        let c = sina / a;
+        qv *= c;
+    }
+    UnitQuaternion::from_quaternion(Quaternion::new(a.cos(), qv[1], qv[2], qv[3]))
+}
 
 #[pyclass]
 #[derive(Clone,Debug)]
@@ -32,6 +55,35 @@ pub struct Transform {
     pub rotation: Py<Rotation>
 }
 
+#[pyclass]
+#[derive(Clone,Debug)]
+pub struct Ellipse {
+    #[pyo3(get)]
+    pub translation: Translation,
+    #[pyo3(get)]
+    pub rotation: Rotation,
+    #[pyo3(get)]
+    pub size: Size
+}
+
+#[pyclass]
+#[derive(Clone,Debug)]
+pub struct RotationRange {
+    #[pyo3(get)]
+    pub rotation: Rotation,
+    #[pyo3(get)]
+    pub delta: f64
+}
+
+#[pyclass]
+#[derive(Clone,Debug)]
+pub struct ScalarRange {
+    #[pyo3(get)]
+    pub value: f64,
+    #[pyo3(get)]
+    pub delta: f64
+}
+
 
 impl Size {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
@@ -56,6 +108,24 @@ impl Transform {
         let t: Translation = self.translation.extract(py).unwrap();
         let r: Rotation = self.rotation.extract(py).unwrap();
         return Isometry3::from_parts(t.value, r.value)
+    }
+}
+
+impl Ellipse {
+    pub fn new(translation: Translation, rotation: Rotation, size: Size) -> Self {
+        Self { translation, rotation, size }
+    }
+}
+
+impl RotationRange {
+    pub fn new(rotation: Rotation, delta: f64) -> Self {
+        Self { rotation, delta }
+    }
+}
+
+impl ScalarRange {
+    pub fn new(value: f64, delta: f64) -> Self {
+        Self { value, delta }
     }
 }
 
@@ -234,6 +304,30 @@ impl Transform {
 
 }
 
+#[pymethods]
+impl Ellipse {
+    #[new]
+    pub fn from_python(translation: Translation, rotation: Rotation, size: Size) -> Self {
+        Self { translation, rotation, size }
+    }
+}
+
+#[pymethods]
+impl RotationRange {
+    #[new]
+    pub fn from_python(rotation: Rotation, delta: f64) -> Self {
+        Self { rotation, delta }
+    }
+}
+
+#[pymethods]
+impl ScalarRange {
+    #[new]
+    pub fn from_python(value: f64, delta: f64) -> Self {
+        Self { value, delta }
+    }
+}
+
 #[pyproto]
 impl PyObjectProtocol for Size {
     fn __str__(&self) -> PyResult<String> {
@@ -251,15 +345,5 @@ impl PyObjectProtocol for Translation {
     }
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!("[{}, {}, {}]", self.value.vector.x, self.value.vector.y, self.value.vector.z))
-    }
-}
-
-#[pyproto]
-impl PyObjectProtocol for Rotation {
-    fn __str__(&self) -> PyResult<String> {
-        Ok(format!("[{}, {}, {}, {}]", self.value.coords[3], self.value.coords[0], self.value.coords[1], self.value.coords[2]))
-    }
-    fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("[{}, {}, {}, {}]", self.value.coords[3], self.value.coords[0], self.value.coords[1], self.value.coords[2]))
     }
 }
