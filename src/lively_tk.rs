@@ -6,6 +6,7 @@ use crate::utils::shapes::{*};
 use crate::utils::robot_model::RobotModel;
 use crate::utils::state::State;
 use crate::utils::goals::Goal;
+use crate::utils::objective_set::ObjectiveSet;
 use crate::objectives::objective::Objective;
 use rand::{thread_rng, Rng};
 use rand::rngs::ThreadRng;
@@ -13,8 +14,6 @@ use std::f64::consts::{PI};
 
 #[pyclass]
 pub struct Solver {
-    #[pyo3(get)]
-    pub objectives: Vec<Objective>,
     #[pyo3(get)]
     pub robot_model: RobotModel,
     #[pyo3(get)]
@@ -27,6 +26,7 @@ pub struct Solver {
     pub panoc_cache: PANOCCache,
     pub lower_bounds: Vec<f64>,
     pub upper_bounds: Vec<f64>,
+    pub objective_set: ObjectiveSet,
 
     // Optimization values
     pub xopt: Vec<f64>,
@@ -47,12 +47,13 @@ impl Solver {
         
         // Define the robot model, which is used for kinematics and handling collisions
         let robot_model = RobotModel::new(urdf, collision_objects.unwrap_or(vec![]));
+        let current_state: State;
         match initial_state {
-            Some(state) => robot_model.set_state(state),
-            None => {}
+            Some(state) => current_state = robot_model.get_filled_state(state),
+            None => current_state = robot_model.get_default_state()
         }
         // Vars contains the variables that are passed along to each objective each solve
-        let vars = Vars::new(robot_model.current_state, robot_model.joints, robot_model.links);
+        let vars = Vars::new(current_state.clone(), robot_model.joints.clone(), robot_model.links.clone());
 
         // Panoc_Cache is a PANOCCache
         let panoc_cache = PANOCCache::new(robot_model.dims.clone(), 1e-14, 10);
@@ -86,33 +87,38 @@ impl Solver {
                     PI/2.0];
             }
         }
-        for joint in robot_model.joints {
+        for joint in &robot_model.joints {
             // Only include non-mimic joints
             match joint.mimic {
                 Some(_) => {},
                 None => {
-                    lower_bounds.push(joint.lower_bound);
-                    upper_bounds.push(joint.upper_bound);
+                    lower_bounds.push(joint.lower_bound.clone());
+                    upper_bounds.push(joint.upper_bound.clone());
                 }
             }
             
         }
 
-        let initial_x = robot_model.get_x();
+        let initial_x = robot_model.get_x(current_state);
         
         Self {
-            objectives, 
-            robot_model,
+            robot_model:robot_model.clone(),
             joints:robot_model.joints.clone(),
             links:robot_model.links.clone(),
             // Non-visible values
             vars,
             panoc_cache,
+            objective_set: ObjectiveSet::new(&objectives),
             upper_bounds,
             lower_bounds,
             xopt: initial_x.clone(),
             xopt_core: initial_x.clone()
         }
+    }
+
+    #[getter]
+    pub fn get_objectives(&self) -> PyResult<Vec<Objective>>{
+        Ok(self.objective_set.objectives.clone())
     }
 
     fn reset(
@@ -122,13 +128,12 @@ impl Solver {
     ) -> PyResult<()> {
         // Hande the state updates
         // First update the robot model, and then use that for updating rest
-        self.robot_model.set_state(state);
-
+        let current_state = self.robot_model.get_filled_state(state);
+        
         // Handle updating the values in vars
-        self.vars.history.reset(self.robot_model.current_state);
-        self.vars.history_core.reset(self.robot_model.current_state);
-        self.robot_model.collision_manager.set_robot_frames(self.robot_model.current_state.frames);
-        self.robot_model.collision_manager.set_transient_shapes(vec![]);
+        self.vars.history.reset(&current_state);
+        self.vars.history_core.reset(&current_state);
+        self.robot_model.collision_manager.set_transient_shapes(&vec![]);
 
         // Handle updating weights
         match weights {
@@ -136,7 +141,7 @@ impl Solver {
                 for i in 0..new_weight_set.len() {
                     match new_weight_set[i] {
                         Some(new_weight) => {
-                            self.objectives[i].set_weight(new_weight)
+                            self.objective_set.objectives[i].set_weight(new_weight)
                         },
                         None => {}
                     }
@@ -160,16 +165,16 @@ impl Solver {
         only_core: Option<bool>
     ) -> PyResult<State> {
         
-        let mut xopt = self.xopt.clone();
-        let mut xopt_core = self.xopt_core.clone();
-        let rng: ThreadRng = thread_rng();
+        let xopt = self.xopt.clone();
+        let xopt_core = self.xopt_core.clone();
+        let mut rng: ThreadRng = thread_rng();
 
         // Update Goals for objectives if provided
         match goals {
             Some(new_goal_set) => {
                 for i in 0..new_goal_set.len() {
-                    match new_goal_set[i] {
-                        Some(goal) => self.objectives[i].set_goal(goal),
+                    match &new_goal_set[i] {
+                        Some(goal) => self.objective_set.objectives[i].set_goal(goal),
                         _ => {}
                     }
                 }
@@ -183,7 +188,7 @@ impl Solver {
                 for i in 0..new_weight_set.len() {
                     match new_weight_set[i] {
                         Some(new_weight) => {
-                            self.objectives[i].set_weight(new_weight)
+                            self.objective_set.objectives[i].set_weight(new_weight)
                         },
                         None => {}
                     }
@@ -193,30 +198,29 @@ impl Solver {
         }
 
         // TODO: Refactor this to be within objective
-        for objective in self.objectives {
+        for objective in self.objective_set.objectives.iter_mut() {
             objective.update(time)
         }
 
         // Update the collision objects if provided
         match shapes {
-            Some(objects) => self.robot_model.collision_manager.set_transient_shapes(objects),
+            Some(objects) => self.robot_model.collision_manager.set_transient_shapes(&objects),
             None => {}
         }
 
         // First, do xopt_core to develop a non-lively baseline
-        self.xopt_core = self.solve_with_retries(xopt_core,max_retries.unwrap_or(1),max_iterations.unwrap_or(150),true,&rng);
-        let state_core = self.robot_model.get_state(self.xopt_core);
-        self.vars.state_core = state_core;
-        self.vars.history_core.update(state_core);
+        self.xopt_core = self.solve_with_retries(xopt_core,max_retries.unwrap_or(1),max_iterations.unwrap_or(150),true,&mut rng);
+        self.vars.state_core = self.robot_model.get_state(&self.xopt_core);
+        self.vars.history_core.update(&self.vars.state_core);
 
 
         if only_core.unwrap_or(false) {
-            self.vars.history.update(state_core);
-            return Ok(state_core)
+            self.vars.history.update(&self.vars.state_core);
+            return Ok(self.vars.state_core.clone())
         } else {
-            self.xopt = self.solve_with_retries(xopt,max_retries.unwrap_or(1),max_iterations.unwrap_or(150),false,&rng);
-            let state = self.robot_model.get_state(self.xopt);
-            self.vars.history.update(state);
+            self.xopt = self.solve_with_retries(xopt,max_retries.unwrap_or(1),max_iterations.unwrap_or(150),false,&mut rng);
+            let state = self.robot_model.get_state(&self.xopt);
+            self.vars.history.update(&state);
             return Ok(state)
         }
     }
@@ -224,31 +228,43 @@ impl Solver {
 
 impl Solver {
     fn solve_with_retries(
-        &self,
+        &mut self,
         x: Vec<f64>,
         max_retries: u64,
         max_iterations: usize,
         is_core: bool,
-        rng: &ThreadRng
+        rng: &mut ThreadRng
     ) -> Vec<f64> {
         
         // Run until the max_retries is met, or the solution could be improved
         let mut best_cost = f64::INFINITY;
-        let mut best_x = x.clone().as_slice();
-        let mut xopt = x.clone().as_slice();
+        let mut best_x = x.clone();
+        let mut xopt = x.clone();
         let mut try_count = 0;
 
         while try_count < max_retries {
 
             if try_count > 0 {
-                for i in 0..xopt.len() {
+                let mut i:usize = 0;
+                for xval in xopt.iter_mut() {
                     if self.upper_bounds[i] - self.lower_bounds[i] > 0.0 {
-                        xopt[i] = 0.9*xopt[i]+0.1*rng.gen_range(self.lower_bounds[i]..self.upper_bounds[i]);
+                        *xval = 0.9*best_x[i]+0.1*rng.gen_range(self.lower_bounds[i]..self.upper_bounds[i]);
+                        i+=1;
                     }
                 }
             }
 
-            let try_cost = self.optimize(&mut xopt, max_iterations, is_core);
+            let try_cost = optimize(
+                &mut xopt, 
+                &self.objective_set, 
+                &self.robot_model, 
+                &self.vars, 
+                &mut self.panoc_cache, 
+                &self.lower_bounds, 
+                &self.upper_bounds, 
+                max_iterations, 
+                is_core
+            );
             if try_cost < best_cost {
                 best_x = xopt.clone();
                 best_cost = try_cost;
@@ -258,71 +274,78 @@ impl Solver {
         return best_x.to_vec();
     }
 
-    pub fn optimize(
-        &mut self,
-        x: &mut [f64],
-        max_iter: usize,
-        is_core: bool,
-    ) -> f64 {
-        let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
-            let (_my_obj, my_grad) = self.gradient(u, is_core);
-            for i in 0..my_grad.len() {
-                grad[i] = my_grad[i];
-            }
-            Ok(())
-        };
+    
 
-        let f = |u: &[f64], c: &mut f64| -> Result<(), SolverError> {
-            *c = self.call(u, is_core);
-            Ok(())
-        };
+    // fn call(&self, x: &[f64], is_core: bool) -> f64 {
+    //     let mut out = 0.0;
+    //     let state = self.robot_model.get_state(&x.to_vec());
+    //     for i in 0..self.objective_set.objectives.len() {
+    //         out += self.objective_set.objectives[i].call(&self.vars, &state, is_core);
+    //     }
+    //     out
+    // }
 
-        let panoc_bounds = Rectangle::new(
-            Option::from(self.lower_bounds.as_slice()),
-            Option::from(self.upper_bounds.as_slice()),
-        );
+    // fn gradient(
+    //     &self,
+    //     x: &[f64],
+    //     is_core: bool,
+    // ) -> (f64, Vec<f64>) {
+    //     let mut grad: Vec<f64> = vec![0.; x.len()];
+    //     let f_0 = self.call(x, is_core);
 
-        /* PROBLEM STATEMENT */
-        let problem = Problem::new(&panoc_bounds, df, f);
-        let mut panoc = PANOCOptimizer::new(problem, &mut self.panoc_cache)
-            .with_max_iter(max_iter)
-            .with_tolerance(0.0005);
+    //     for i in 0..x.len() {
+    //         let mut x_h = x.to_vec();
+    //         x_h[i] += 0.000001;
+    //         let f_h = self.call(x_h.as_slice(), is_core);
+    //         grad[i] = (-f_0 + f_h) / 0.000001;
+    //     }
 
-        // Invoke the solver
-        let result = panoc.solve(x);
+    //     (f_0, grad)
+    // }
 
-        match result {
-            Err(_err) => return f64::INFINITY.clone(),
-            _ => return result.unwrap().cost_value(),
+}
+
+pub fn optimize(
+    x: &mut [f64],
+    objective_set: &ObjectiveSet,
+    robot_model: &RobotModel,
+    vars: &Vars,
+    cache: &mut PANOCCache,
+    lower_bounds: &Vec<f64>,
+    upper_bounds: &Vec<f64>,
+    max_iter: usize,
+    is_core: bool,
+) -> f64 {
+    let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
+        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u, is_core);
+        for i in 0..my_grad.len() {
+            grad[i] = my_grad[i];
         }
-        // println!("Status: {:?}",status);
+        Ok(())
+    };
+
+    let f = |u: &[f64], c: &mut f64| -> Result<(), SolverError> {
+        *c = objective_set.call(&robot_model, &vars, u, is_core);
+        Ok(())
+    };
+
+    let panoc_bounds = Rectangle::new(
+        Option::from(lower_bounds.as_slice()),
+        Option::from(upper_bounds.as_slice()),
+    );
+
+    /* PROBLEM STATEMENT */
+    let problem = Problem::new(&panoc_bounds, df, f);
+    let mut panoc = PANOCOptimizer::new(problem, cache)
+        .with_max_iter(max_iter)
+        .with_tolerance(0.0005);
+
+    // Invoke the solver
+    let result = panoc.solve(x);
+
+    match result {
+        Err(_err) => return f64::INFINITY.clone(),
+        _ => return result.unwrap().cost_value(),
     }
-
-    fn call(&self, x: &[f64], is_core: bool) -> f64 {
-        let mut out = 0.0;
-        let state = self.robot_model.get_state(x.to_vec());
-        for i in 0..self.objectives.len() {
-            out += self.objectives[i].call(&self.vars, &state, is_core);
-        }
-        out
-    }
-
-    fn gradient(
-        &self,
-        x: &[f64],
-        is_core: bool,
-    ) -> (f64, Vec<f64>) {
-        let mut grad: Vec<f64> = vec![0.; x.len()];
-        let f_0 = self.call(x, is_core);
-
-        for i in 0..x.len() {
-            let mut x_h = x.to_vec();
-            x_h[i] += 0.000001;
-            let f_h = self.call(x_h.as_slice(), is_core);
-            grad[i] = (-f_0 + f_h) / 0.000001;
-        }
-
-        (f_0, grad)
-    }
-
+    // println!("Status: {:?}",status);
 }

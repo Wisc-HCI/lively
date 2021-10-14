@@ -4,9 +4,6 @@ use nalgebra::geometry::{Isometry3};
 use crate::utils::geometry::*;
 use crate::utils::info::*;
 
-const DEFAULT_JOINT_POSITION: f64 = 0.0;
-const DEFAULT_FRAME_TRANSFORM: Isometry3<f64> = Isometry3::identity();
-
 /*
 A read-only struct that provides information about the origin, jointstate, and frames of a robot.
 */
@@ -17,7 +14,9 @@ pub struct State {
     pub origin: Isometry3<f64>,
     pub joints: HashMap<String,f64>,
     pub frames: HashMap<String,Isometry3<f64>>,
-    pub proximity: Vec<ProximityInfo>
+    pub proximity: Vec<ProximityInfo>,
+    default_joint_position: f64,
+    default_frame_transform: Isometry3<f64>
 }
 
 #[pymethods]
@@ -40,7 +39,13 @@ impl State {
             },
             None => {}
         }
-        Self { origin: origin.get_isometry(py), joints, frames: iso_frames, proximity: proximity_vec }
+        Self { 
+            origin: origin.get_isometry(py), 
+            joints, frames: iso_frames, 
+            proximity: proximity_vec,
+            default_joint_position: 0.0,
+            default_frame_transform: Isometry3::identity()
+        }
     }
 
     #[getter]
@@ -77,14 +82,17 @@ impl State {
 
 impl State {
     pub fn new(origin: Isometry3<f64>, joints: HashMap<String,f64>, frames: HashMap<String,Isometry3<f64>>, proximity: Vec<ProximityInfo>) -> Self {
-        Self { origin, joints, frames, proximity }
+        Self { origin, joints, 
+            frames, proximity,
+            default_joint_position: 0.0,
+            default_frame_transform: Isometry3::identity() }
     }
 
     pub fn get_link_transform(&self, link: &String) -> Isometry3<f64> {
-        return *self.frames.get(link).unwrap_or(&DEFAULT_FRAME_TRANSFORM)
+        return *self.frames.get(link).unwrap_or(&self.default_frame_transform)
     }
 
     pub fn get_joint_position(&self, joint: &String) -> f64 {
-        return *self.joints.get(joint).unwrap_or(&DEFAULT_JOINT_POSITION)
+        return *self.joints.get(joint).unwrap_or(&self.default_joint_position)
     }
 }

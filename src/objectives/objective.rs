@@ -193,7 +193,7 @@ impl Objective {
         }
     }
 
-    pub fn set_goal(&mut self, goal: Goal) {
+    pub fn set_goal(&mut self, goal: &Goal) {
         match goal {
             Goal::Translation(translation_goal) => {
                 match self {
@@ -213,11 +213,11 @@ impl Objective {
             },
             Goal::Scalar(scalar_goal) => {
                 match self {
-                    Self::JointMatch(obj) => obj.goal = scalar_goal,
-                    Self::JointMirroring(obj) => obj.goal = scalar_goal,
-                    Self::DistanceMatch(obj) => obj.goal = scalar_goal,
-                    Self::JointLiveliness(obj) => obj.goal = scalar_goal,
-                    Self::RelativeMotionLiveliness(obj) => obj.goal = scalar_goal,
+                    Self::JointMatch(obj) => obj.goal = *scalar_goal,
+                    Self::JointMirroring(obj) => obj.goal = *scalar_goal,
+                    Self::DistanceMatch(obj) => obj.goal = *scalar_goal,
+                    Self::JointLiveliness(obj) => obj.goal = *scalar_goal,
+                    Self::RelativeMotionLiveliness(obj) => obj.goal = *scalar_goal,
                     _ => println!("Unexpected Scalar Goal type provided for Objective {}",self.get_type())
                 }
             },

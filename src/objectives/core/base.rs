@@ -22,7 +22,7 @@ impl CollisionAvoidanceObjective {
         _is_core: bool,
     ) -> f64 {
         let mut score: f64 = 0.0;
-        for proximity_info in state.proximity {
+        for proximity_info in &state.proximity {
             if proximity_info.scored {
                 match proximity_info.distance {
                     Some(dist) => {
@@ -360,14 +360,14 @@ impl SmoothnessMacroObjective {
     #[new]
     pub fn new(name: String, weight: f64) -> Self {
         Self {
-            name,
+            name: name.clone(),
             weight,
-            velocity_objective: VelocityMinimizationObjective::new(name,0.21),
-            acceleration_objective: AccelerationMinimizationObjective::new(name,0.08),
-            jerk_objective: JerkMinimizationObjective::new(name,0.04),
-            base_velocity_objective: OriginVelocityMinimizationObjective::new(name,0.47),
-            base_acceleration_objective: OriginAccelerationMinimizationObjective::new(name,0.15),
-            base_jerk_objective: OriginJerkMinimizationObjective::new(name,0.05)
+            velocity_objective: VelocityMinimizationObjective::new(format!("Macro {} Velocity",name),0.21),
+            acceleration_objective: AccelerationMinimizationObjective::new(format!("Macro {} Accel",name),0.08),
+            jerk_objective: JerkMinimizationObjective::new(format!("Macro {} Jerk",name),0.04),
+            base_velocity_objective: OriginVelocityMinimizationObjective::new(format!("Macro {} Origin Velocity",name),0.47),
+            base_acceleration_objective: OriginAccelerationMinimizationObjective::new(format!("Macro {} Origin Accel",name),0.15),
+            base_jerk_objective: OriginJerkMinimizationObjective::new(format!("Macro {} Origin Jerk",name),0.05)
         }
     }
 }

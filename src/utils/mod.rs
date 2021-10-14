@@ -7,3 +7,4 @@ pub mod info;
 pub mod goals;
 pub mod vars;
 pub mod state;
+pub mod objective_set;

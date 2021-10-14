@@ -14,8 +14,8 @@ impl Vars {
     pub fn new(initial_state:State, joints: Vec<JointInfo>, links: Vec<LinkInfo>) -> Self {
         Self {
             state_core: initial_state.clone(),
-            history: History::new(initial_state),
-            history_core: History::new(initial_state),
+            history: History::new(&initial_state),
+            history_core: History::new(&initial_state),
             joints, links
         }
     }

@@ -30,7 +30,7 @@ impl GravityObjective {
         state: &State,
         is_core: bool,
     ) -> f64 {
-        let mut prev_position;
+        let prev_position;
         if is_core {
             prev_position = v.history_core.prev1.get_link_transform(&self.link).translation.vector;
         } else {

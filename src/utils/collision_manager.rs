@@ -14,21 +14,21 @@ impl CollisionManager {
     pub fn new(persistent_shapes: Vec<CollisionObject>) -> Self {
         // Remove the _ in front of robot to use this parameter.
 
-        let mut robot_shapes: Vec<CollisionObject> = vec![];
+        let robot_shapes: Vec<CollisionObject> = vec![];
         // enumerate through the robot links and convert the collision objects into rapier stuff.
 
         Self { persistent_shapes, robot_shapes }
     }
 
-    pub fn set_robot_frames(&mut self, _frames: HashMap<String, Isometry3<f64>>) {
+    // pub fn set_robot_frames(&mut self, _frames: &HashMap<String, Isometry3<f64>>) {
+
+    // }
+
+    pub fn set_transient_shapes(&mut self, _transient_shapes: &Vec<CollisionObject>) {
 
     }
 
-    pub fn set_transient_shapes(&mut self, _transient_shapes: Vec<CollisionObject>) {
-
-    }
-
-    pub fn get_proximity(&self) -> Vec<ProximityInfo>{
+    pub fn get_proximity(&self, _frames: &HashMap<String, Isometry3<f64>>) -> Vec<ProximityInfo> {
         /*
         Generate the vector of proximityInfo structs and return
         */
