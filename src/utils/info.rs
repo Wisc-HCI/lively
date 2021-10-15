@@ -55,14 +55,17 @@ pub struct JointInfo {
     #[pyo3(get)]
     pub axis: [f64; 3],
     #[pyo3(get)]
-    pub mimic: Option<MimicInfo>
+    pub mimic: Option<MimicInfo>,
+
+    // Pure utility value
+    pub idx: usize
 }
 
 #[pymethods]
 impl JointInfo {
     #[new]
     pub fn new(name: String, joint_type: String, lower_bound: f64, upper_bound: f64, max_velocity: f64, axis: [f64; 3], mimic: Option<MimicInfo>) -> Self {
-        Self { name, joint_type, lower_bound, upper_bound, max_velocity, axis, mimic }
+        Self { name, joint_type, lower_bound, upper_bound, max_velocity, axis, mimic, idx: 0 }
     }
 }
 
@@ -70,14 +73,16 @@ impl JointInfo {
 #[derive(Clone,Debug)]
 pub struct LinkInfo {
     #[pyo3(get)]
-    pub name: String
+    pub name: String,
+    #[pyo3(get)]
+    pub parent_joint: String,
 }
 
 #[pymethods]
 impl LinkInfo {
     #[new]
-    pub fn new(name: String) -> Self {
-        Self { name }
+    pub fn new(name: String, parent_joint: String) -> Self {
+        Self { name, parent_joint }
     }
 }
 

@@ -304,6 +304,12 @@ impl Transform {
 
 }
 
+impl From<Vector3<f64>> for Translation {
+    fn from(vector: Vector3<f64>) -> Self {
+        Self { value: Translation3::new(vector.x, vector.y, vector.z) }
+    }
+}
+
 #[pymethods]
 impl Ellipse {
     #[new]
@@ -345,5 +351,15 @@ impl PyObjectProtocol for Translation {
     }
     fn __repr__(&self) -> PyResult<String> {
         Ok(format!("[{}, {}, {}]", self.value.vector.x, self.value.vector.y, self.value.vector.z))
+    }
+}
+
+#[pyproto]
+impl PyObjectProtocol for Rotation {
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("[{}, {}, {}, {}]", self.value.coords[3], self.value.coords[0], self.value.coords[1], self.value.coords[2]))
+    }
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("[{}, {}, {}, {}]", self.value.coords[3], self.value.coords[0], self.value.coords[1], self.value.coords[2]))
     }
 }

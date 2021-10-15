@@ -156,7 +156,7 @@ impl Objective {
             Self::RelativeMotionLiveliness(obj) => obj.update(time),
             Self::OriginPositionLiveliness(obj) => obj.update(time),
             Self::OriginOrientationLiveliness(obj) => obj.update(time),
-            _ => println!("Tried updating an objective that doesn't support it {}",self.get_type())
+            _ => {}
         }
     }
 
@@ -261,3 +261,4 @@ pub fn groove_loss_derivative(x_val: f64, t: f64, d: i32, c: f64, f: f64, g: i32
         * ((-d as f64 * (x_val - t)) / (2.0 * c.powi(2)))
         + g as f64 * f * (x_val - t)
 }
+

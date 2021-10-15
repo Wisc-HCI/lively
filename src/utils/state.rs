@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 use std::collections::HashMap;
 use nalgebra::geometry::{Isometry3};
+use nalgebra::{vector, Vector3};
 use crate::utils::geometry::*;
 use crate::utils::info::*;
 
@@ -15,6 +16,7 @@ pub struct State {
     pub joints: HashMap<String,f64>,
     pub frames: HashMap<String,Isometry3<f64>>,
     pub proximity: Vec<ProximityInfo>,
+    pub center_of_mass: Vector3<f64>,
     default_joint_position: f64,
     default_frame_transform: Isometry3<f64>
 }
@@ -22,9 +24,15 @@ pub struct State {
 #[pymethods]
 impl State {
     #[new]
-    pub fn from_python(py: Python, origin: Transform, joints: HashMap<String,f64>, frames: Option<HashMap<String,Transform>>, proximity: Option<Vec<ProximityInfo>>) -> Self {
+    pub fn from_python(py: Python, origin: Transform, 
+        joints: HashMap<String,f64>, 
+        frames: Option<HashMap<String,Transform>>, 
+        proximity: Option<Vec<ProximityInfo>>, 
+        center_of_mass: Option<Translation>
+    ) -> Self {
         let mut iso_frames: HashMap<String,Isometry3<f64>> = HashMap::new();
         let mut proximity_vec: Vec<ProximityInfo> = vec![]; 
+        let center_of_mass_vec: Vector3<f64>;
         match frames {
             Some(frame_data) => {
                 for (key, value) in frame_data.iter() {
@@ -39,10 +47,19 @@ impl State {
             },
             None => {}
         }
+        match center_of_mass {
+            Some(com) => {
+                center_of_mass_vec = com.value.vector;
+            },
+            None => {
+                center_of_mass_vec = vector![0.0,0.0,0.0];
+            }
+        }
         Self { 
             origin: origin.get_isometry(py), 
             joints, frames: iso_frames, 
             proximity: proximity_vec,
+            center_of_mass: center_of_mass_vec,
             default_joint_position: 0.0,
             default_frame_transform: Isometry3::identity()
         }
@@ -77,13 +94,25 @@ impl State {
     pub fn get_proximity(&self) -> PyResult<Vec<ProximityInfo>> {
         Ok(self.proximity.clone())
     }
+
+    #[getter]
+    pub fn get_center_of_mass(&self) -> PyResult<Translation> {
+        Ok(Translation::from(self.center_of_mass))
+    }
 }
 
 
 impl State {
-    pub fn new(origin: Isometry3<f64>, joints: HashMap<String,f64>, frames: HashMap<String,Isometry3<f64>>, proximity: Vec<ProximityInfo>) -> Self {
+    pub fn new(
+        origin: Isometry3<f64>, 
+        joints: HashMap<String,f64>, 
+        frames: HashMap<String,Isometry3<f64>>, 
+        proximity: Vec<ProximityInfo>,
+        center_of_mass: Vector3<f64>
+    ) -> Self {
         Self { origin, joints, 
             frames, proximity,
+            center_of_mass,
             default_joint_position: 0.0,
             default_frame_transform: Isometry3::identity() }
     }

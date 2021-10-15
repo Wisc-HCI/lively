@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 use nalgebra::{vector, Vector3};
 use nalgebra::geometry::{Isometry3, Translation3, UnitQuaternion};
 use urdf_rs::{Robot, read_from_string};
-use k::{Chain, JointType};
+use k::{Chain, JointType, center_of_mass};
 use std::collections::HashMap;
 // use std::ops::Deref;
 use crate::utils::state::*;
@@ -43,6 +43,7 @@ impl RobotModel {
         let mut joints: Vec<JointInfo> = Vec::new();
         let mut links: Vec<LinkInfo> = Vec::new();
 
+        let mut non_mimic_count: usize = 0;
         for joint in chain.iter_joints() {
             let type_string: String;
             let axis_vec: [f64;3];
@@ -87,6 +88,7 @@ impl RobotModel {
                         }
                     }
             };
+
             let joint_info = JointInfo{
                 name:joint.name.clone(), 
                 joint_type: type_string, 
@@ -94,21 +96,32 @@ impl RobotModel {
                 upper_bound: upper_bound,
                 max_velocity: max_velocity,
                 axis: axis_vec,
-                mimic: mimic.clone()
+                mimic: mimic.clone(),
+                idx: 6 + non_mimic_count
                 };
-            joints.push(joint_info)
+            joints.push(joint_info);
+
+            if mimic.is_none() {
+                non_mimic_count += 1;
+            }
         }
 
-        for link in chain.iter_links() {
-            links.push(LinkInfo::new(link.name.clone()))
+        for link in &description.links {
+            let mut parent_joint: String = String::from("world");
+            for joint in &description.joints {
+                if joint.child.link == link.name {
+                    parent_joint = joint.name.clone();
+                }
+            }
+            links.push(LinkInfo::new(link.name.clone(), parent_joint.clone()));
         }
 
         let mut child_map: HashMap<String, String> = HashMap::new();
         let mut joint_names: Vec<String> = Vec::new();
         let mut joint_converters: Vec<(f64, f64, usize, String)> = Vec::new();
 
-        for joint in description.joints.clone() {
-            child_map.insert(joint.name.clone(),joint.child.link.clone());
+        for link in &links {
+            child_map.insert(link.parent_joint.clone(),link.name.clone());
         }
 
         for joint in chain.iter_joints() {
@@ -116,23 +129,24 @@ impl RobotModel {
             joint_names.push(joint.name.clone());
         }
 
-        let mut i: usize = 0;
         let mut dims: usize = 6;
         // Now that the joint_names are defined, re-iterate on stuff to set up the converters
-        for joint in chain.iter_joints() {
-            let joint_data = joints.iter().find(|j| *j.name == joint.name).unwrap();
+        for joint_data in &joints {
             match &joint_data.mimic {
                 Some(mimic_info) => {
-                    let other_joint_index = joint_names.iter().position(|j| *j == mimic_info.joint).unwrap() + 6;
-                    joint_converters.push((mimic_info.multiplier,mimic_info.offset,other_joint_index,joints[i].name.clone()));
+                    let mut other_joint_index: usize = 0;
+                    for joint in &joints {
+                        if joint.name == mimic_info.joint {
+                            other_joint_index = joint.idx;
+                        }
+                    }
+                    joint_converters.push((mimic_info.multiplier,mimic_info.offset,other_joint_index,joint_data.name.clone()));
                 },
                 None => {
-                    let joint_index = i + 6;
-                    joint_converters.push((1.0,0.0,joint_index,joints[i].name.clone()));
+                    joint_converters.push((1.0,0.0,joint_data.idx,joint_data.name.clone()));
                     dims += 1;
                 }
             }
-            i += 1;
         }
 
         Self { description, chain, collision_manager, child_map, joint_names, joints, links, joint_converters, dims }
@@ -169,9 +183,10 @@ impl RobotModel {
         };
 
         let proximity = self.collision_manager.get_proximity(&frames);
+        let center_of_mass_vec = center_of_mass(&self.chain);
 
         // Return the current state.
-        return State::new(origin, joints, frames, proximity)
+        return State::new(origin, joints, frames, proximity, center_of_mass_vec)
     }
 
     pub fn get_default_state(&self) -> State {
