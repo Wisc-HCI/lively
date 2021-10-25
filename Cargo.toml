@@ -8,17 +8,18 @@ edition = "2018"
 
 [dependencies]
 nalgebra = "0.29"
-rapier3d = "0.11.0"
+rapier3d-f64 = "0.11.0"
 parry3d = "0.7.0"
 yaml-rust = "0.4"
 optimization_engine = "0.6.0"
 ndarray = "0.13.0"
 num = "0.2.0"
-nlopt = "0.5.1"
+# nlopt = "0.5.1"
 rand = "0.8.1"
 noise = "0.7.0"
 k = { git = "https://github.com/AndrewJSchoen/k" }
 urdf-rs = "0.6.1"
+getrandom = { version = "0.2", features = ["js"] }
 
 [profile.dev]
 opt-level = 3
@@ -32,5 +33,5 @@ path = "src/lib.rs"
 crate-type = ["rlib", "dylib", "cdylib"]
 
 [dependencies.pyo3]
-version = "0.12.4"
+version = "0.14.5"
 features = ["extension-module"]
