@@ -1,32 +1,7 @@
 use pyo3::prelude::*;
-use pyo3::PyObjectProtocol;
 use std::collections::HashMap;
 use nalgebra::geometry::{Translation3, Isometry3, Quaternion, UnitQuaternion};
-use nalgebra::{Vector3, Vector4};
-
-pub fn quaternion_log(q: UnitQuaternion<f64>) -> Vector3<f64> {
-    let mut out_vec: Vector3<f64> = Vector3::new(q.i, q.j, q.k);
-    if q.w.abs() < 1.0 {
-        let a = q.w.acos();
-        let sina = a.sin();
-        if sina.abs() >= 0.005 {
-            let c = a / sina;
-            out_vec *= c;
-        }
-    }
-    out_vec
-}
-
-pub fn quaternion_exp(v: Vector3<f64>) -> UnitQuaternion<f64> {
-    let mut qv: Vector4<f64> = Vector4::new(1.0, v[0], v[1], v[2]);
-    let a = qv.norm();
-    let sina = a.sin();
-    if sina.abs() >= 0.005 {
-        let c = sina / a;
-        qv *= c;
-    }
-    UnitQuaternion::from_quaternion(Quaternion::new(a.cos(), qv[1], qv[2], qv[3]))
-}
+use nalgebra::{Vector3};
 
 #[pyclass]
 #[derive(Clone,Debug)]
@@ -173,6 +148,13 @@ impl Size {
         map.insert(&"z",self.value.z);
         Ok(map)
     }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("[{}, {}, {}]", self.value.x, self.value.y, self.value.z))
+    }
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("[{}, {}, {}]", self.value.x, self.value.y, self.value.z))
+    }
 }
 
 #[pymethods]
@@ -219,6 +201,13 @@ impl Translation {
         map.insert(&"z",self.value.vector.z);
         Ok(map)
     }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("[{}, {}, {}]", self.value.vector.x, self.value.vector.y, self.value.vector.z))
+    }
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("[{}, {}, {}]", self.value.vector.x, self.value.vector.y, self.value.vector.z))
+    }
 }
 
 #[pymethods]
@@ -259,6 +248,13 @@ impl Rotation {
         map.insert(&"y",self.value.coords[1]);
         map.insert(&"z",self.value.coords[2]);
         Ok(map)
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("[{}, {}, {}, {}]", self.value.coords[3], self.value.coords[0], self.value.coords[1], self.value.coords[2]))
+    }
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!("[{}, {}, {}, {}]", self.value.coords[3], self.value.coords[0], self.value.coords[1], self.value.coords[2]))
     }
 
 }
@@ -331,35 +327,5 @@ impl ScalarRange {
     #[new]
     pub fn from_python(value: f64, delta: f64) -> Self {
         Self { value, delta }
-    }
-}
-
-#[pyproto]
-impl PyObjectProtocol for Size {
-    fn __str__(&self) -> PyResult<String> {
-        Ok(format!("[{}, {}, {}]", self.value.x, self.value.y, self.value.z))
-    }
-    fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("[{}, {}, {}]", self.value.x, self.value.y, self.value.z))
-    }
-}
-
-#[pyproto]
-impl PyObjectProtocol for Translation {
-    fn __str__(&self) -> PyResult<String> {
-        Ok(format!("[{}, {}, {}]", self.value.vector.x, self.value.vector.y, self.value.vector.z))
-    }
-    fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("[{}, {}, {}]", self.value.vector.x, self.value.vector.y, self.value.vector.z))
-    }
-}
-
-#[pyproto]
-impl PyObjectProtocol for Rotation {
-    fn __str__(&self) -> PyResult<String> {
-        Ok(format!("[{}, {}, {}, {}]", self.value.coords[3], self.value.coords[0], self.value.coords[1], self.value.coords[2]))
-    }
-    fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("[{}, {}, {}, {}]", self.value.coords[3], self.value.coords[0], self.value.coords[1], self.value.coords[2]))
     }
 }

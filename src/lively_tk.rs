@@ -1,4 +1,3 @@
-use pyo3::prelude::*;
 use optimization_engine::{constraints::*, panoc::*, *};
 use crate::utils::info::{*};
 use crate::utils::vars::{*};
@@ -12,13 +11,9 @@ use rand::{thread_rng, Rng};
 use rand::rngs::ThreadRng;
 use std::f64::consts::{PI};
 
-#[pyclass]
 pub struct Solver {
-    #[pyo3(get)]
     pub robot_model: RobotModel,
-    #[pyo3(get)]
     pub joints: Vec<JointInfo>,
-    #[pyo3(get)]
     pub links: Vec<LinkInfo>,
 
     // Optimization utility
@@ -33,20 +28,18 @@ pub struct Solver {
     pub xopt_core: Vec<f64>
 }
 
-#[pymethods]
 impl Solver {
-    #[new]
-    fn new(
+    pub fn new(
         urdf: String, 
         objectives: Vec<Objective>, 
         root_bounds: Option<Vec<[f64; 2]>>,
-        collision_objects: Option<Vec<CollisionObject>>,
+        collision_shapes: Option<Vec<Shape>>,
         _zones: Option<Vec<Zone>>,
         initial_state: Option<State>
     ) -> Self {
         
         // Define the robot model, which is used for kinematics and handling collisions
-        let robot_model = RobotModel::new(urdf, collision_objects.unwrap_or(vec![]));
+        let robot_model = RobotModel::new(urdf, collision_shapes.unwrap_or(vec![]));
         let current_state: State;
         match initial_state {
             Some(state) => current_state = robot_model.get_filled_state(state),
@@ -116,16 +109,11 @@ impl Solver {
         }
     }
 
-    #[getter]
-    pub fn get_objectives(&self) -> PyResult<Vec<Objective>>{
-        Ok(self.objective_set.objectives.clone())
-    }
-
-    fn reset(
+    pub fn reset(
         &mut self, 
         state: State,
         weights: Option<Vec<Option<f64>>>
-    ) -> PyResult<()> {
+    ) -> () {
         // Hande the state updates
         // First update the robot model, and then use that for updating rest
         let current_state = self.robot_model.get_filled_state(state);
@@ -150,20 +138,20 @@ impl Solver {
             None => {}
         }
 
-        Ok(())
+        ()
     }
 
-    fn solve(
+    pub fn solve(
         &mut self,
         goals: Option<Vec<Option<Goal>>>,
         weights: Option<Vec<Option<f64>>>,
         time: f64,
-        shapes: Option<Vec<CollisionObject>>,
+        collision_shapes: Option<Vec<Shape>>,
         _zones: Option<Vec<Zone>>,
         max_retries: Option<u64>,
         max_iterations: Option<usize>,
         only_core: Option<bool>
-    ) -> PyResult<State> {
+    ) -> State {
         
         let xopt = self.xopt.clone();
         let xopt_core = self.xopt_core.clone();
@@ -203,7 +191,7 @@ impl Solver {
         }
 
         // Update the collision objects if provided
-        match shapes {
+        match collision_shapes {
             Some(objects) => self.robot_model.collision_manager.set_transient_shapes(&objects),
             None => {}
         }
@@ -216,17 +204,15 @@ impl Solver {
 
         if only_core.unwrap_or(false) {
             self.vars.history.update(&self.vars.state_core);
-            return Ok(self.vars.state_core.clone())
+            return self.vars.state_core.clone()
         } else {
             self.xopt = self.solve_with_retries(xopt,max_retries.unwrap_or(1),max_iterations.unwrap_or(150),false,&mut rng);
             let state = self.robot_model.get_state(&self.xopt);
             self.vars.history.update(&state);
-            return Ok(state)
+            return state
         }
     }
-}
-
-impl Solver {
+    
     fn solve_with_retries(
         &mut self,
         x: Vec<f64>,

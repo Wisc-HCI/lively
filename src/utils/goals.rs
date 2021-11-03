@@ -1,27 +1,22 @@
-use pyo3::prelude::*;
-use crate::utils::geometry::{*};
+use nalgebra::geometry::{Translation3, Isometry3, UnitQuaternion};
+use nalgebra::{Vector3};
 
-#[derive(Clone,Debug,FromPyObject)]
+#[derive(Clone,Debug)]
 pub enum Goal {
-    Translation(Translation),
-    Rotation(Rotation),
+    Translation(Translation3<f64>),
+    Rotation(UnitQuaternion<f64>),
     Scalar(f64),
-    Size(Size),
-    Ellipse(Ellipse),
-    RotationRange(RotationRange),
-    ScalarRange(ScalarRange)
-}
-
-impl IntoPy<PyObject> for Goal {
-    fn into_py(self, py: Python) -> PyObject {
-        match self {
-            Self::Translation(obj) => obj.into_py(py),
-            Self::Rotation(obj) => obj.into_py(py),
-            Self::Scalar(obj) => obj.into_py(py),
-            Self::Size(obj) => obj.into_py(py),
-            Self::Ellipse(obj) => obj.into_py(py),
-            Self::RotationRange(obj) => obj.into_py(py),
-            Self::ScalarRange(obj) => obj.into_py(py),
-        }
+    Size(Vector3<f64>),
+    Ellipse{
+        pose: Isometry3<f64>,
+        size: Vector3<f64>
+    },
+    RotationRange{
+        rotation: UnitQuaternion<f64>,
+        delta: f64
+    },
+    ScalarRange{
+        value: f64,
+        delta: f64
     }
 }

@@ -1,4 +1,3 @@
-use pyo3::prelude::*;
 use nalgebra::{vector, Vector3};
 use nalgebra::geometry::{Isometry3, Translation3, UnitQuaternion};
 use urdf_rs::{Robot, read_from_string};
@@ -8,32 +7,25 @@ use std::collections::HashMap;
 use crate::utils::state::*;
 use crate::utils::shapes::*;
 use crate::utils::info::*;
-use crate::utils::geometry::{quaternion_exp,quaternion_log};
+use crate::utils::general::{quaternion_exp,quaternion_log};
 use crate::utils::collision_manager::CollisionManager;
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct RobotModel {
     pub description: Robot,
     pub chain: Chain<f64>,
     pub collision_manager: CollisionManager,
-    #[pyo3(get)]
     pub child_map: HashMap<String, String>,
-    #[pyo3(get)]
     pub joint_names: Vec<String>,
-    #[pyo3(get)]
     pub joint_converters: Vec<(f64, f64, usize, String)>, // Multipler, Offset, Index, JointName\
-    #[pyo3(get)]
     pub dims: usize,
-    #[pyo3(get)]
     pub links: Vec<LinkInfo>,
-    #[pyo3(get)]
     pub joints: Vec<JointInfo>
 }
 
 impl RobotModel {
     
-    pub fn new(urdf: String, collision_objects: Vec<CollisionObject>) -> Self {
+    pub fn new(urdf: String, collision_objects: Vec<Shape>) -> Self {
 
         let description: Robot = read_from_string(&urdf.as_str()).unwrap();
         let chain: Chain<f64> = Chain::from(description.clone());

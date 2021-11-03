@@ -1,33 +1,26 @@
-use pyo3::prelude::*;
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use crate::objectives::objective::groove_loss;
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct PositionMirroringObjective {
     // Matches the position between two joints, with a difference according to the Vector3 provided in goals.
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64,
-    #[pyo3(get)]
     pub link1: String,
-    #[pyo3(get)]
     pub link2: String,
     // Goal Value
     pub goal: Vector3<f64>
 }
-#[pymethods]
+
 impl PositionMirroringObjective {
-    #[new]
+
     pub fn new(name: String, weight: f64, link1: String, link2: String) -> Self {
         Self { name, weight, link1, link2, goal: vector![0.0,0.0,0.0]}
     }
-}
-impl PositionMirroringObjective {
+
     pub fn call(
         &self,
         _v: &Vars,
@@ -41,29 +34,23 @@ impl PositionMirroringObjective {
     }
 }
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct OrientationMirroringObjective {
     // Matches the orientation between two joints, with a difference according to the Quaternion provided in goals.
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64,
-    #[pyo3(get)]
     pub link1: String,
-    #[pyo3(get)]
     pub link2: String,
     // Goal Value
     pub goal: UnitQuaternion<f64>
 }
-#[pymethods]
+
 impl OrientationMirroringObjective {
-    #[new]
+
     pub fn new(name: String, weight: f64, link1: String, link2: String) -> Self {
         Self { name, weight, link1, link2, goal: UnitQuaternion::identity()}
     }
-}
-impl OrientationMirroringObjective {
+
     pub fn call(
         &self,
         _v: &Vars,
@@ -77,29 +64,23 @@ impl OrientationMirroringObjective {
     }
 }
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct JointMirroringObjective {
     // Match joint values according to the difference specified in goals
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64,
-    #[pyo3(get)]
     pub joint1: String,
-    #[pyo3(get)]
     pub joint2: String,
     // Goal Value
     pub goal: f64
 }
-#[pymethods]
+
 impl JointMirroringObjective {
-    #[new]
+
     pub fn new(name: String, weight: f64, joint1: String, joint2: String) -> Self {
         Self { name, weight, joint1, joint2, goal: 0.0}
     }
-}
-impl JointMirroringObjective {
+
     pub fn call(
         &self,
         _v: &Vars,

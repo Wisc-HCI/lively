@@ -1,15 +1,12 @@
-use pyo3::prelude::*;
 use std::collections::HashMap;
 use nalgebra::geometry::{Isometry3};
-use nalgebra::{vector, Vector3};
-use crate::utils::geometry::*;
+use nalgebra::{Vector3};
 use crate::utils::info::*;
 
 /*
 A read-only struct that provides information about the origin, jointstate, and frames of a robot.
 */
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct State {
     pub origin: Isometry3<f64>,
@@ -20,87 +17,6 @@ pub struct State {
     default_joint_position: f64,
     default_frame_transform: Isometry3<f64>
 }
-
-#[pymethods]
-impl State {
-    #[new]
-    pub fn from_python(py: Python, origin: Transform, 
-        joints: HashMap<String,f64>, 
-        frames: Option<HashMap<String,Transform>>, 
-        proximity: Option<Vec<ProximityInfo>>, 
-        center_of_mass: Option<Translation>
-    ) -> Self {
-        let mut iso_frames: HashMap<String,Isometry3<f64>> = HashMap::new();
-        let mut proximity_vec: Vec<ProximityInfo> = vec![]; 
-        let center_of_mass_vec: Vector3<f64>;
-        match frames {
-            Some(frame_data) => {
-                for (key, value) in frame_data.iter() {
-                    iso_frames.insert(key.to_string(),value.get_isometry(py));
-                }
-            },
-            None => {}
-        }
-        match proximity {
-            Some(proximity_data) => {
-                proximity_vec = proximity_data
-            },
-            None => {}
-        }
-        match center_of_mass {
-            Some(com) => {
-                center_of_mass_vec = com.value.vector;
-            },
-            None => {
-                center_of_mass_vec = vector![0.0,0.0,0.0];
-            }
-        }
-        Self { 
-            origin: origin.get_isometry(py), 
-            joints, frames: iso_frames, 
-            proximity: proximity_vec,
-            center_of_mass: center_of_mass_vec,
-            default_joint_position: 0.0,
-            default_frame_transform: Isometry3::identity()
-        }
-    }
-
-    #[getter]
-    pub fn get_origin(&self, py: Python) -> PyResult<Transform> {
-        Ok(Transform {
-            translation: Py::new(py, Translation { value: self.origin.translation })?,
-            rotation: Py::new(py, Rotation { value: self.origin.rotation })?
-        })
-    }
-
-    #[getter]
-    pub fn get_joints(&self) -> PyResult<HashMap<String,f64>> {
-        Ok(self.joints.clone())
-    }
-
-    #[getter]
-    pub fn get_frames(&self, py: Python) -> PyResult<HashMap<String,Transform>> {
-        let mut transform_frames: HashMap<String,Transform> = HashMap::new();
-        for (key, iso) in self.frames.iter() {
-            transform_frames.insert(key.to_string(), Transform {
-                translation: Py::new(py, Translation { value: iso.translation })?,
-                rotation: Py::new(py, Rotation { value: iso.rotation })?
-            });
-        }
-        Ok(transform_frames)
-    }
-
-    #[getter]
-    pub fn get_proximity(&self) -> PyResult<Vec<ProximityInfo>> {
-        Ok(self.proximity.clone())
-    }
-
-    #[getter]
-    pub fn get_center_of_mass(&self) -> PyResult<Translation> {
-        Ok(Translation::from(self.center_of_mass))
-    }
-}
-
 
 impl State {
     pub fn new(

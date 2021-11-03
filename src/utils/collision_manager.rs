@@ -5,16 +5,16 @@ use nalgebra::geometry::{Isometry3};
 
 #[derive(Clone,Debug)]
 pub struct CollisionManager {
-    persistent_shapes: Vec<CollisionObject>, // Meant to be a recipe for creating rapier objects. Could also serve a way of maintaining references/handles to each of the rapeir shapes themselves.
-    robot_shapes: Vec<CollisionObject> // You don't actually have to store the robot shapes as CollisionObjects, but you may if you want to be consistent
+    persistent_shapes: Vec<Shape>, // Meant to be a recipe for creating rapier objects. Could also serve a way of maintaining references/handles to each of the rapeir shapes themselves.
+    robot_shapes: Vec<Shape> // You don't actually have to store the robot shapes as Shapes, but you may if you want to be consistent
     // Feel free to add your other fields here
 }
 
 impl CollisionManager {
-    pub fn new(persistent_shapes: Vec<CollisionObject>) -> Self {
+    pub fn new(persistent_shapes: Vec<Shape>) -> Self {
         // Remove the _ in front of robot to use this parameter.
 
-        let robot_shapes: Vec<CollisionObject> = vec![];
+        let robot_shapes: Vec<Shape> = vec![];
         // enumerate through the robot links and convert the collision objects into rapier stuff.
 
         Self { persistent_shapes, robot_shapes }
@@ -24,7 +24,7 @@ impl CollisionManager {
 
     // }
 
-    pub fn set_transient_shapes(&mut self, _transient_shapes: &Vec<CollisionObject>) {
+    pub fn set_transient_shapes(&mut self, _transient_shapes: &Vec<Shape>) {
 
     }
 

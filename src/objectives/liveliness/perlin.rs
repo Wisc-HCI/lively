@@ -1,7 +1,6 @@
-use pyo3::prelude::*;
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
-use crate::utils::geometry::{quaternion_exp};
+use crate::utils::general::{quaternion_exp};
 use crate::objectives::objective::groove_loss;
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
@@ -9,17 +8,12 @@ use noise::{NoiseFn, Perlin, Seedable};
 use rand::{thread_rng, Rng};
 use rand::rngs::ThreadRng;
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct PositionLivelinessObjective {
     // Adds position liveliness to the specified link
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64,
-    #[pyo3(get)]
     pub link: String,
-    #[pyo3(get)]
     pub frequency: f64,
     
     // Goal Value (shape of noise)
@@ -31,9 +25,9 @@ pub struct PositionLivelinessObjective {
     pub offsets: [f64;3]
 
 }
-#[pymethods]
+
 impl PositionLivelinessObjective {
-    #[new]
+
     pub fn new(name: String, weight: f64, link: String, frequency: f64) -> Self {
         let mut rng: ThreadRng = thread_rng();
         let seed: u32 = rng.gen();
@@ -45,8 +39,7 @@ impl PositionLivelinessObjective {
         ];
         Self { name, weight, link, frequency, goal:vector![0.0,0.0,0.0], noise: vector![0.0,0.0,0.0], perlin, offsets}
     }
-}
-impl PositionLivelinessObjective {
+
     pub fn call(
         &self,
         v: &Vars,
@@ -72,17 +65,12 @@ impl PositionLivelinessObjective {
     }
 }
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct OrientationLivelinessObjective {
     // Adds orientation liveliness to the link
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64,
-    #[pyo3(get)]
     pub link: String,
-    #[pyo3(get)]
     pub frequency: f64,
     
     // Goal Value (shape of noise)
@@ -93,9 +81,9 @@ pub struct OrientationLivelinessObjective {
     pub perlin: Perlin,
     pub offsets: [f64;3]
 }
-#[pymethods]
+
 impl OrientationLivelinessObjective {
-    #[new]
+
     pub fn new(name: String, weight: f64, link: String, frequency: f64) -> Self {
         let mut rng: ThreadRng = thread_rng();
         let seed: u32 = rng.gen();
@@ -107,8 +95,7 @@ impl OrientationLivelinessObjective {
         ];
         Self { name, weight, link, frequency, goal:vector![0.0,0.0,0.0], noise: UnitQuaternion::identity(), perlin, offsets}
     }
-}
-impl OrientationLivelinessObjective {
+
     pub fn call(
         &self,
         v: &Vars,
@@ -135,17 +122,12 @@ impl OrientationLivelinessObjective {
     }
 }
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct JointLivelinessObjective {
     // Adds joint liveliness to the specified joint
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64,
-    #[pyo3(get)]
     pub joint: String,
-    #[pyo3(get)]
     pub frequency: f64,
     
     // Goal Value (shape of noise)
@@ -155,17 +137,16 @@ pub struct JointLivelinessObjective {
     pub noise: f64,
     pub perlin: Perlin,
 }
-#[pymethods]
+
 impl JointLivelinessObjective {
-    #[new]
+
     pub fn new(name: String, weight: f64, joint: String, frequency: f64) -> Self {
         let mut rng: ThreadRng = thread_rng();
         let seed: u32 = rng.gen();
         let perlin: Perlin = Perlin::new().set_seed(seed);
         Self { name, weight, joint, frequency, goal:0.0, noise: 0.0, perlin}
     }
-}
-impl JointLivelinessObjective {
+
     pub fn call(
         &self,
         v: &Vars,
@@ -189,19 +170,13 @@ impl JointLivelinessObjective {
     }
 }
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct RelativeMotionLivelinessObjective {
     // Defining a vector line between two links (link1 and link2), this objective promotes lively motion of the second link along that vector
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64,
-    #[pyo3(get)]
     pub link1: String,
-    #[pyo3(get)]
     pub link2: String,
-    #[pyo3(get)]
     pub frequency: f64,
     
     // Goal Value (shape of noise)
@@ -211,17 +186,16 @@ pub struct RelativeMotionLivelinessObjective {
     pub noise: f64,
     pub perlin: Perlin
 }
-#[pymethods]
+
 impl RelativeMotionLivelinessObjective {
-    #[new]
+
     pub fn new(name: String, weight: f64, link1: String, link2: String, frequency: f64) -> Self {
         let mut rng: ThreadRng = thread_rng();
         let seed: u32 = rng.gen();
         let perlin: Perlin = Perlin::new().set_seed(seed);
         Self { name, weight, link1, link2, frequency, goal:0.0, noise: 0.0, perlin}
     }
-}
-impl RelativeMotionLivelinessObjective {
+
     pub fn call(
         &self,
         v: &Vars,
@@ -251,15 +225,11 @@ impl RelativeMotionLivelinessObjective {
     }
 }
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct OriginPositionLivelinessObjective {
     // Adds position liveliness to the specified link
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64,
-    #[pyo3(get)]
     pub frequency: f64,
     
     // Goal Value (shape of noise)
@@ -271,9 +241,9 @@ pub struct OriginPositionLivelinessObjective {
     pub offsets: [f64;3]
 
 }
-#[pymethods]
+
 impl OriginPositionLivelinessObjective {
-    #[new]
+
     pub fn new(name: String, weight: f64, frequency: f64) -> Self {
         let mut rng: ThreadRng = thread_rng();
         let seed: u32 = rng.gen();
@@ -285,8 +255,7 @@ impl OriginPositionLivelinessObjective {
         ];
         Self { name, weight, frequency, goal:vector![0.0,0.0,0.0], noise: vector![0.0,0.0,0.0], perlin, offsets}
     }
-}
-impl OriginPositionLivelinessObjective {
+
     pub fn call(
         &self,
         v: &Vars,
@@ -312,15 +281,11 @@ impl OriginPositionLivelinessObjective {
     }
 }
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct OriginOrientationLivelinessObjective {
     // Adds orientation liveliness to the link
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64,
-    #[pyo3(get)]
     pub frequency: f64,
     
     // Goal Value (shape of noise)
@@ -331,9 +296,9 @@ pub struct OriginOrientationLivelinessObjective {
     pub perlin: Perlin,
     pub offsets: [f64;3]
 }
-#[pymethods]
+
 impl OriginOrientationLivelinessObjective {
-    #[new]
+
     pub fn new(name: String, weight: f64, frequency: f64) -> Self {
         let mut rng: ThreadRng = thread_rng();
         let seed: u32 = rng.gen();
@@ -345,8 +310,7 @@ impl OriginOrientationLivelinessObjective {
         ];
         Self { name, weight, frequency, goal:vector![0.0,0.0,0.0], noise: UnitQuaternion::identity(), perlin, offsets}
     }
-}
-impl OriginOrientationLivelinessObjective {
+
     pub fn call(
         &self,
         v: &Vars,

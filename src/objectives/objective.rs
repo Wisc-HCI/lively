@@ -1,4 +1,3 @@
-use pyo3::prelude::*;
 use crate::utils::state::State;
 use crate::utils::vars::Vars;
 use crate::utils::goals::Goal;
@@ -9,7 +8,7 @@ use crate::objectives::core::mirroring::{*};
 use crate::objectives::liveliness::forces::{*};
 use crate::objectives::liveliness::perlin::{*};
 
-#[derive(Clone,Debug,FromPyObject)]
+#[derive(Clone,Debug)]
 pub enum Objective {
     PositionMatch(PositionMatchObjective),
     OrientationMatch(OrientationMatchObjective),
@@ -39,41 +38,6 @@ pub enum Objective {
     Gravity(GravityObjective),
     SmoothnessMacro(SmoothnessMacroObjective),
     DistanceMatch(DistanceMatchObjective)
-}
-
-impl IntoPy<PyObject> for Objective {
-    fn into_py(self, py: Python) -> PyObject {
-        match self {
-            Self::PositionMatch(obj) => obj.into_py(py),
-            Self::OrientationMatch(obj) => obj.into_py(py),
-            Self::PositionLiveliness(obj) => obj.into_py(py),
-            Self::OrientationLiveliness(obj) => obj.into_py(py),
-            Self::PositionMirroring(obj) => obj.into_py(py),
-            Self::OrientationMirroring(obj) => obj.into_py(py),
-            Self::PositionBounding(obj) => obj.into_py(py),
-            Self::OrientationBounding(obj) => obj.into_py(py),
-            Self::JointMatch(obj) => obj.into_py(py),
-            Self::JointLiveliness(obj) => obj.into_py(py),
-            Self::JointMirroring(obj) => obj.into_py(py),
-            Self::JointLimits(obj) => obj.into_py(py),
-            Self::JointBounding(obj) => obj.into_py(py),
-            Self::CollisionAvoidance(obj) => obj.into_py(py),
-            Self::VelocityMinimization(obj) => obj.into_py(py),
-            Self::AccelerationMinimization(obj) => obj.into_py(py),
-            Self::JerkMinimization(obj) => obj.into_py(py),
-            Self::OriginVelocityMinimization(obj) => obj.into_py(py),
-            Self::OriginAccelerationMinimization(obj) => obj.into_py(py),
-            Self::OriginJerkMinimization(obj) => obj.into_py(py),
-            Self::RelativeMotionLiveliness(obj) => obj.into_py(py),
-            Self::OriginPositionLiveliness(obj) => obj.into_py(py),
-            Self::OriginOrientationLiveliness(obj) => obj.into_py(py),
-            Self::OriginPositionMatch(obj) => obj.into_py(py),
-            Self::OriginOrientationMatch(obj) => obj.into_py(py),
-            Self::Gravity(obj) => obj.into_py(py),
-            Self::SmoothnessMacro(obj) => obj.into_py(py),
-            Self::DistanceMatch(obj) => obj.into_py(py),
-        }
-    }
 }
 
 impl Objective {
@@ -197,17 +161,17 @@ impl Objective {
         match goal {
             Goal::Translation(translation_goal) => {
                 match self {
-                    Self::PositionMatch(obj) => obj.goal = translation_goal.value.vector,
-                    Self::PositionMirroring(obj) => obj.goal = translation_goal.value.vector,
-                    Self::OriginPositionMatch(obj) => obj.goal = translation_goal.value.vector,
+                    Self::PositionMatch(obj) => obj.goal = translation_goal.vector,
+                    Self::PositionMirroring(obj) => obj.goal = translation_goal.vector,
+                    Self::OriginPositionMatch(obj) => obj.goal = translation_goal.vector,
                     _ => println!("Unexpected Translation provided for Objective {}",self.get_type())
                 }
             },
             Goal::Rotation(rotation_goal) => {
                 match self {
-                    Self::OrientationMatch(obj) => obj.goal = rotation_goal.value,
-                    Self::OrientationMirroring(obj) => obj.goal = rotation_goal.value,
-                    Self::OriginOrientationMatch(obj) => obj.goal = rotation_goal.value,
+                    Self::OrientationMatch(obj) => obj.goal = *rotation_goal,
+                    Self::OrientationMirroring(obj) => obj.goal = *rotation_goal,
+                    Self::OriginOrientationMatch(obj) => obj.goal = *rotation_goal,
                     _ => println!("Unexpected Rotation Goal type provided for Objective {}",self.get_type())
                 }
             },
@@ -223,28 +187,28 @@ impl Objective {
             },
             Goal::Size(size_goal) => {
                 match self {
-                    Self::PositionLiveliness(obj) => obj.goal = size_goal.value,
-                    Self::OrientationLiveliness(obj) => obj.goal = size_goal.value,
-                    Self::OriginPositionLiveliness(obj) => obj.goal = size_goal.value,
-                    Self::OriginOrientationLiveliness(obj) => obj.goal = size_goal.value,
+                    Self::PositionLiveliness(obj) => obj.goal = *size_goal,
+                    Self::OrientationLiveliness(obj) => obj.goal = *size_goal,
+                    Self::OriginPositionLiveliness(obj) => obj.goal = *size_goal,
+                    Self::OriginOrientationLiveliness(obj) => obj.goal = *size_goal,
                     _ => println!("Unexpected Size Goal type provided for Objective {}",self.get_type())
                 }
             },
-            Goal::Ellipse(ellipse_goal) => {
+            Goal::Ellipse{pose,size} => {
                 match self {
-                    Self::PositionBounding(obj) => obj.goal = (ellipse_goal.translation.value,ellipse_goal.rotation.value,ellipse_goal.size.value),
+                    Self::PositionBounding(obj) => obj.goal = (*pose,*size),
                     _ => println!("Unexpected Ellipse Goal type provided for Objective {}",self.get_type())
                 }
             },
-            Goal::RotationRange(rotation_range_goal) => {
+            Goal::RotationRange{rotation,delta} => {
                 match self {
-                    Self::OrientationBounding(obj) => obj.goal = (rotation_range_goal.rotation.value,rotation_range_goal.delta),
+                    Self::OrientationBounding(obj) => obj.goal = (*rotation,*delta),
                     _ => println!("Unexpected Rotation Goal type provided for Objective {}",self.get_type())
                 }
             },
-            Goal::ScalarRange(scalar_range_goal) => {
+            Goal::ScalarRange{value,delta} => {
                 match self {
-                    Self::JointBounding(obj) => obj.goal = (scalar_range_goal.value,scalar_range_goal.delta),
+                    Self::JointBounding(obj) => obj.goal = (*value,*delta),
                     _ => println!("Unexpected Scalar Goal type provided for Objective {}",self.get_type())
                 }
             }

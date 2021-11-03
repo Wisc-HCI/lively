@@ -1,20 +1,21 @@
-use pyo3::prelude::*;
 use nalgebra::{Vector3};
 use crate::objectives::objective::groove_loss;
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use std::f64::consts::{E};
 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct CollisionAvoidanceObjective {
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64
 }
 
 impl CollisionAvoidanceObjective {
+
+    pub fn new(name: String, weight: f64) -> Self {
+        Self {name, weight}
+    }
+
     pub fn call(
         &self,
         _v: &Vars,
@@ -23,33 +24,20 @@ impl CollisionAvoidanceObjective {
     ) -> f64 {
         let mut score: f64 = 0.0;
         for proximity_info in &state.proximity {
-            if proximity_info.scored {
-                match proximity_info.distance {
-                    Some(dist) => {
-                        score += 1.0/E.powf(20.0*dist)
-                    },
-                    _ => {}
-                }
+            match proximity_info.distance {
+                Some(dist) => {
+                    score += 1.0/E.powf(20.0*dist)
+                },
+                _ => {}
             }
         }
         return self.weight * groove_loss(score, 0.0, 2, 0.32950, 0.1, 2)
     }
 }
 
-#[pymethods]
-impl CollisionAvoidanceObjective {
-    #[new]
-    pub fn new(name: String, weight: f64) -> Self {
-        Self {name, weight}
-    }
-}
-
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct JointLimitsObjective {
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64
 }
 
@@ -83,25 +71,26 @@ impl JointLimitsObjective {
     }
 }
 
-#[pymethods]
 impl JointLimitsObjective {
-    #[new]
+    
     pub fn new(name: String, weight: f64) -> Self {
         Self {name, weight}
     }
 }
 
 // ======= VelocityMinimizationObjective ======= 
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct VelocityMinimizationObjective {
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64
 }
 
 impl VelocityMinimizationObjective {
+
+    pub fn new(name: String, weight: f64) -> Self {
+        Self {name, weight}
+    }
+
     pub fn call(
         &self,
         v: &Vars,
@@ -123,24 +112,18 @@ impl VelocityMinimizationObjective {
     }
 }
 
-#[pymethods]
-impl VelocityMinimizationObjective {
-    #[new]
-    pub fn new(name: String, weight: f64) -> Self {
-        Self {name, weight}
-    }
-}
-
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct OriginVelocityMinimizationObjective {
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64
 }
 
 impl OriginVelocityMinimizationObjective {
+
+    pub fn new(name: String, weight: f64) -> Self {
+        Self {name, weight}
+    }
+
     pub fn call(
         &self,
         v: &Vars,
@@ -159,24 +142,18 @@ impl OriginVelocityMinimizationObjective {
     }
 }
 
-#[pymethods]
-impl OriginVelocityMinimizationObjective {
-    #[new]
-    pub fn new(name: String, weight: f64) -> Self {
-        Self {name, weight}
-    }
-}
-
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct AccelerationMinimizationObjective {
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64
 }
 
 impl AccelerationMinimizationObjective {
+
+    pub fn new(name: String, weight: f64) -> Self {
+        Self {name, weight}
+    }
+
     pub fn call(
         &self,
         v: &Vars,
@@ -203,24 +180,18 @@ impl AccelerationMinimizationObjective {
     }
 }
 
-#[pymethods]
-impl AccelerationMinimizationObjective {
-    #[new]
-    pub fn new(name: String, weight: f64) -> Self {
-        Self {name, weight}
-    }
-}
-
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct OriginAccelerationMinimizationObjective {
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64
 }
 
 impl OriginAccelerationMinimizationObjective {
+
+    pub fn new(name: String, weight: f64) -> Self {
+        Self {name, weight}
+    }
+
     pub fn call(
         &self,
         v: &Vars,
@@ -242,24 +213,18 @@ impl OriginAccelerationMinimizationObjective {
     }
 }
 
-#[pymethods]
-impl OriginAccelerationMinimizationObjective {
-    #[new]
-    pub fn new(name: String, weight: f64) -> Self {
-        Self {name, weight}
-    }
-}
-
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct JerkMinimizationObjective {
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64
 }
 
 impl JerkMinimizationObjective {
+
+    pub fn new(name: String, weight: f64) -> Self {
+        Self {name, weight}
+    }
+
     pub fn call(
         &self,
         v: &Vars,
@@ -289,24 +254,18 @@ impl JerkMinimizationObjective {
     }
 }
 
-#[pymethods]
-impl JerkMinimizationObjective {
-    #[new]
-    pub fn new(name: String, weight: f64) -> Self {
-        Self {name, weight}
-    }
-}
-
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct OriginJerkMinimizationObjective {
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64
 }
 
 impl OriginJerkMinimizationObjective {
+
+    pub fn new(name: String, weight: f64) -> Self {
+        Self {name, weight}
+    }
+
     pub fn call(
         &self,
         v: &Vars,
@@ -332,20 +291,9 @@ impl OriginJerkMinimizationObjective {
     }
 }
 
-#[pymethods]
-impl OriginJerkMinimizationObjective {
-    #[new]
-    pub fn new(name: String, weight: f64) -> Self {
-        Self {name, weight}
-    }
-}
-
-#[pyclass]
 #[derive(Clone,Debug)]
 pub struct SmoothnessMacroObjective {
-    #[pyo3(get)]
     pub name: String,
-    #[pyo3(get)]
     pub weight: f64,
     velocity_objective: VelocityMinimizationObjective,
     acceleration_objective: AccelerationMinimizationObjective,
@@ -355,9 +303,8 @@ pub struct SmoothnessMacroObjective {
     base_jerk_objective: OriginJerkMinimizationObjective
 }
 
-#[pymethods]
 impl SmoothnessMacroObjective {
-    #[new]
+
     pub fn new(name: String, weight: f64) -> Self {
         Self {
             name: name.clone(),
@@ -370,9 +317,7 @@ impl SmoothnessMacroObjective {
             base_jerk_objective: OriginJerkMinimizationObjective::new(format!("Macro {} Origin Jerk",name),0.05)
         }
     }
-}
 
-impl SmoothnessMacroObjective {
     pub fn call(
         &self,
         v: &Vars,
