@@ -1,13 +1,22 @@
 
+#[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
+#[cfg(feature = "pybindings")]
 use crate::objectives::objective::Objective;
+#[cfg(feature = "pybindings")]
 use crate::objectives::core::base::*;
+#[cfg(feature = "pybindings")]
 use crate::objectives::core::bounding::*;
+#[cfg(feature = "pybindings")]
 use crate::objectives::core::matching::*;
+#[cfg(feature = "pybindings")]
 use crate::objectives::core::mirroring::*;
+#[cfg(feature = "pybindings")]
 use crate::objectives::liveliness::forces::*;
+#[cfg(feature = "pybindings")]
 use crate::objectives::liveliness::perlin::*;
 
+#[cfg(feature = "pybindings")]
 #[derive(Clone,Debug,FromPyObject)]
 pub enum PyObjective {
 	PositionMatch(PyPositionMatchObjective),
@@ -40,6 +49,7 @@ pub enum PyObjective {
 	DistanceMatch(PyDistanceMatchObjective),
 }
 
+#[cfg(feature = "pybindings")]
 impl IntoPy<PyObject> for PyObjective {
     fn into_py(self, py: Python) -> PyObject {
         match self {
@@ -75,6 +85,7 @@ impl IntoPy<PyObject> for PyObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
 impl From<Objective> for PyObjective {
     fn from(objective:Objective) -> PyObjective {
         match objective {
@@ -110,6 +121,7 @@ impl From<Objective> for PyObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
 impl From<PyObjective> for Objective {
     fn from(pyobjective:PyObjective) -> Objective {
         match pyobjective {
@@ -146,10 +158,12 @@ impl From<PyObjective> for Objective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="PositionMatchObjective")]
 #[derive(Clone,Debug)]
 pub struct PyPositionMatchObjective(PositionMatchObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyPositionMatchObjective {
     #[new]
@@ -175,10 +189,12 @@ impl PyPositionMatchObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OrientationMatchObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOrientationMatchObjective(OrientationMatchObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOrientationMatchObjective {
     #[new]
@@ -204,10 +220,12 @@ impl PyOrientationMatchObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="PositionLivelinessObjective")]
 #[derive(Clone,Debug)]
 pub struct PyPositionLivelinessObjective(PositionLivelinessObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyPositionLivelinessObjective {
     #[new]
@@ -238,10 +256,12 @@ impl PyPositionLivelinessObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OrientationLivelinessObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOrientationLivelinessObjective(OrientationLivelinessObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOrientationLivelinessObjective {
     #[new]
@@ -272,10 +292,12 @@ impl PyOrientationLivelinessObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="PositionMirroringObjective")]
 #[derive(Clone,Debug)]
 pub struct PyPositionMirroringObjective(PositionMirroringObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyPositionMirroringObjective {
     #[new]
@@ -306,10 +328,12 @@ impl PyPositionMirroringObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OrientationMirroringObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOrientationMirroringObjective(OrientationMirroringObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOrientationMirroringObjective {
     #[new]
@@ -340,10 +364,12 @@ impl PyOrientationMirroringObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="PositionBoundingObjective")]
 #[derive(Clone,Debug)]
 pub struct PyPositionBoundingObjective(PositionBoundingObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyPositionBoundingObjective {
     #[new]
@@ -369,10 +395,12 @@ impl PyPositionBoundingObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OrientationBoundingObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOrientationBoundingObjective(OrientationBoundingObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOrientationBoundingObjective {
     #[new]
@@ -398,10 +426,12 @@ impl PyOrientationBoundingObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="JointMatchObjective")]
 #[derive(Clone,Debug)]
 pub struct PyJointMatchObjective(JointMatchObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyJointMatchObjective {
     #[new]
@@ -427,10 +457,12 @@ impl PyJointMatchObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="JointLivelinessObjective")]
 #[derive(Clone,Debug)]
 pub struct PyJointLivelinessObjective(JointLivelinessObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyJointLivelinessObjective {
     #[new]
@@ -461,10 +493,12 @@ impl PyJointLivelinessObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="JointMirroringObjective")]
 #[derive(Clone,Debug)]
 pub struct PyJointMirroringObjective(JointMirroringObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyJointMirroringObjective {
     #[new]
@@ -495,10 +529,12 @@ impl PyJointMirroringObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="JointBoundingObjective")]
 #[derive(Clone,Debug)]
 pub struct PyJointBoundingObjective(JointBoundingObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyJointBoundingObjective {
     #[new]
@@ -524,10 +560,12 @@ impl PyJointBoundingObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="JointLimitsObjective")]
 #[derive(Clone,Debug)]
 pub struct PyJointLimitsObjective(JointLimitsObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyJointLimitsObjective {
     #[new]
@@ -548,10 +586,12 @@ impl PyJointLimitsObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="CollisionAvoidanceObjective")]
 #[derive(Clone,Debug)]
 pub struct PyCollisionAvoidanceObjective(CollisionAvoidanceObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyCollisionAvoidanceObjective {
     #[new]
@@ -572,10 +612,12 @@ impl PyCollisionAvoidanceObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="VelocityMinimizationObjective")]
 #[derive(Clone,Debug)]
 pub struct PyVelocityMinimizationObjective(VelocityMinimizationObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyVelocityMinimizationObjective {
     #[new]
@@ -596,10 +638,12 @@ impl PyVelocityMinimizationObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="AccelerationMinimizationObjective")]
 #[derive(Clone,Debug)]
 pub struct PyAccelerationMinimizationObjective(AccelerationMinimizationObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyAccelerationMinimizationObjective {
     #[new]
@@ -620,10 +664,12 @@ impl PyAccelerationMinimizationObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="JerkMinimizationObjective")]
 #[derive(Clone,Debug)]
 pub struct PyJerkMinimizationObjective(JerkMinimizationObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyJerkMinimizationObjective {
     #[new]
@@ -644,10 +690,12 @@ impl PyJerkMinimizationObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OriginVelocityMinimizationObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOriginVelocityMinimizationObjective(OriginVelocityMinimizationObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOriginVelocityMinimizationObjective {
     #[new]
@@ -668,10 +716,12 @@ impl PyOriginVelocityMinimizationObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OriginAccelerationMinimizationObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOriginAccelerationMinimizationObjective(OriginAccelerationMinimizationObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOriginAccelerationMinimizationObjective {
     #[new]
@@ -692,10 +742,12 @@ impl PyOriginAccelerationMinimizationObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OriginJerkMinimizationObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOriginJerkMinimizationObjective(OriginJerkMinimizationObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOriginJerkMinimizationObjective {
     #[new]
@@ -716,10 +768,12 @@ impl PyOriginJerkMinimizationObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="RelativeMotionLivelinessObjective")]
 #[derive(Clone,Debug)]
 pub struct PyRelativeMotionLivelinessObjective(RelativeMotionLivelinessObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyRelativeMotionLivelinessObjective {
     #[new]
@@ -755,10 +809,12 @@ impl PyRelativeMotionLivelinessObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OriginPositionLivelinessObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOriginPositionLivelinessObjective(OriginPositionLivelinessObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOriginPositionLivelinessObjective {
     #[new]
@@ -784,10 +840,12 @@ impl PyOriginPositionLivelinessObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OriginOrientationLivelinessObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOriginOrientationLivelinessObjective(OriginOrientationLivelinessObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOriginOrientationLivelinessObjective {
     #[new]
@@ -813,10 +871,12 @@ impl PyOriginOrientationLivelinessObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OriginPositionMatchObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOriginPositionMatchObjective(OriginPositionMatchObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOriginPositionMatchObjective {
     #[new]
@@ -837,10 +897,12 @@ impl PyOriginPositionMatchObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="OriginOrientationMatchObjective")]
 #[derive(Clone,Debug)]
 pub struct PyOriginOrientationMatchObjective(OriginOrientationMatchObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyOriginOrientationMatchObjective {
     #[new]
@@ -861,10 +923,12 @@ impl PyOriginOrientationMatchObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="GravityObjective")]
 #[derive(Clone,Debug)]
 pub struct PyGravityObjective(GravityObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyGravityObjective {
     #[new]
@@ -890,10 +954,12 @@ impl PyGravityObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="SmoothnessMacroObjective")]
 #[derive(Clone,Debug)]
 pub struct PySmoothnessMacroObjective(SmoothnessMacroObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PySmoothnessMacroObjective {
     #[new]
@@ -914,10 +980,12 @@ impl PySmoothnessMacroObjective {
 }
 
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="DistanceMatchObjective")]
 #[derive(Clone,Debug)]
 pub struct PyDistanceMatchObjective(DistanceMatchObjective);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyDistanceMatchObjective {
     #[new]

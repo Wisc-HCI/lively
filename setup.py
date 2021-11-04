@@ -62,7 +62,7 @@ setup(
     name=package_name,
     version='0.9.0',
     packages=[package_name],
-    rust_extensions=[RustExtension("lively_tk.lively_tk", binding=Binding.PyO3, quiet=True)],
+    rust_extensions=[RustExtension("lively_tk.lively_tk", binding=Binding.PyO3, quiet=True, features=['pybindings'])],
     install_requires=['setuptools','wheel','setuptools_rust'],
     zip_safe=False,
     maintainer='AndrewJSchoen',

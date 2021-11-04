@@ -1,16 +1,26 @@
+#[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
+#[cfg(feature = "pybindings")]
 use std::collections::HashMap;
+#[cfg(feature = "pybindings")]
 use nalgebra::geometry::{Isometry3};
+#[cfg(feature = "pybindings")]
 use nalgebra::{vector, Vector3};
+#[cfg(feature = "pybindings")]
 use crate::utils::state::State;
+#[cfg(feature = "pybindings")]
 use crate::utils::info::*;
+#[cfg(feature = "pybindings")]
 use crate::wrappers::python::geometry::{*};
+#[cfg(feature = "pybindings")]
 use crate::wrappers::python::info::{*};
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="State")] 
 #[derive(Clone,Debug)]
 pub struct PyState(State);
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyState {
     #[new]
@@ -62,12 +72,14 @@ impl PyState {
     }
 }
 
+#[cfg(feature = "pybindings")]
 impl From<State> for PyState {
     fn from(state:State) -> PyState {
         PyState(state)
     }
 }
 
+#[cfg(feature = "pybindings")]
 impl From<PyState> for State {
     fn from(pystate:PyState) -> State {
         pystate.0

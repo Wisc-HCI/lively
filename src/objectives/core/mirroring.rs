@@ -1,10 +1,11 @@
+use serde::{Serialize, Deserialize};
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use crate::objectives::objective::groove_loss;
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct PositionMirroringObjective {
     // Matches the position between two joints, with a difference according to the Vector3 provided in goals.
     pub name: String,
@@ -12,6 +13,7 @@ pub struct PositionMirroringObjective {
     pub link1: String,
     pub link2: String,
     // Goal Value
+    #[serde(skip)]
     pub goal: Vector3<f64>
 }
 
@@ -34,7 +36,7 @@ impl PositionMirroringObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OrientationMirroringObjective {
     // Matches the orientation between two joints, with a difference according to the Quaternion provided in goals.
     pub name: String,
@@ -42,6 +44,7 @@ pub struct OrientationMirroringObjective {
     pub link1: String,
     pub link2: String,
     // Goal Value
+    #[serde(skip)]
     pub goal: UnitQuaternion<f64>
 }
 
@@ -64,7 +67,7 @@ impl OrientationMirroringObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointMirroringObjective {
     // Match joint values according to the difference specified in goals
     pub name: String,
@@ -72,6 +75,7 @@ pub struct JointMirroringObjective {
     pub joint1: String,
     pub joint2: String,
     // Goal Value
+    #[serde(skip)]
     pub goal: f64
 }
 

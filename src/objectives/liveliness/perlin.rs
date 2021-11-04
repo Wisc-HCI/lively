@@ -1,3 +1,4 @@
+use serde::{Serialize, Deserialize};
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use crate::utils::general::{quaternion_exp};
@@ -8,7 +9,23 @@ use noise::{NoiseFn, Perlin, Seedable};
 use rand::{thread_rng, Rng};
 use rand::rngs::ThreadRng;
 
-#[derive(Clone,Debug)]
+fn get_default_perlin() -> Perlin {
+    let mut rng: ThreadRng = thread_rng();
+    let seed: u32 = rng.gen();
+    return Perlin::new().set_seed(seed);
+}
+
+fn get_default_offsets() -> [f64;3] {
+    let mut rng: ThreadRng = thread_rng();
+    let offsets: [f64;3] = [
+            f64::from(rng.gen_range(0..1000)),
+            f64::from(rng.gen_range(0..1000)),
+            f64::from(rng.gen_range(0..1000))
+        ];
+    return offsets
+}
+
+#[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct PositionLivelinessObjective {
     // Adds position liveliness to the specified link
     pub name: String,
@@ -17,11 +34,15 @@ pub struct PositionLivelinessObjective {
     pub frequency: f64,
     
     // Goal Value (shape of noise)
+    #[serde(skip)]
     pub goal: Vector3<f64>,
 
     // Inaccessible
+    #[serde(skip)]
     pub noise: Vector3<f64>,
+    #[serde(skip,default = "get_default_perlin")]
     pub perlin: Perlin,
+    #[serde(skip,default = "get_default_offsets")]
     pub offsets: [f64;3]
 
 }
@@ -65,7 +86,7 @@ impl PositionLivelinessObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct OrientationLivelinessObjective {
     // Adds orientation liveliness to the link
     pub name: String,
@@ -74,11 +95,15 @@ pub struct OrientationLivelinessObjective {
     pub frequency: f64,
     
     // Goal Value (shape of noise)
+    #[serde(skip)]
     pub goal: Vector3<f64>,
 
     // Inaccessible
+    #[serde(skip)]
     pub noise: UnitQuaternion<f64>,
+    #[serde(skip,default = "get_default_perlin")]
     pub perlin: Perlin,
+    #[serde(skip,default = "get_default_offsets")]
     pub offsets: [f64;3]
 }
 
@@ -122,7 +147,7 @@ impl OrientationLivelinessObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct JointLivelinessObjective {
     // Adds joint liveliness to the specified joint
     pub name: String,
@@ -131,10 +156,13 @@ pub struct JointLivelinessObjective {
     pub frequency: f64,
     
     // Goal Value (shape of noise)
+    #[serde(skip)]
     pub goal: f64,
 
     // Inaccessible
+    #[serde(skip)]
     pub noise: f64,
+    #[serde(skip,default = "get_default_perlin")]
     pub perlin: Perlin,
 }
 
@@ -170,7 +198,7 @@ impl JointLivelinessObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct RelativeMotionLivelinessObjective {
     // Defining a vector line between two links (link1 and link2), this objective promotes lively motion of the second link along that vector
     pub name: String,
@@ -179,11 +207,13 @@ pub struct RelativeMotionLivelinessObjective {
     pub link2: String,
     pub frequency: f64,
     
-    // Goal Value (shape of noise)
+    #[serde(skip)]
     pub goal: f64,
 
     // Inaccessible
+    #[serde(skip)]
     pub noise: f64,
+    #[serde(skip,default = "get_default_perlin")]
     pub perlin: Perlin
 }
 
@@ -225,7 +255,7 @@ impl RelativeMotionLivelinessObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct OriginPositionLivelinessObjective {
     // Adds position liveliness to the specified link
     pub name: String,
@@ -233,11 +263,15 @@ pub struct OriginPositionLivelinessObjective {
     pub frequency: f64,
     
     // Goal Value (shape of noise)
+    #[serde(skip)]
     pub goal: Vector3<f64>,
 
     // Inaccessible
+    #[serde(skip)]
     pub noise: Vector3<f64>,
+    #[serde(skip,default = "get_default_perlin")]
     pub perlin: Perlin,
+    #[serde(skip,default = "get_default_offsets")]
     pub offsets: [f64;3]
 
 }
@@ -281,7 +315,7 @@ impl OriginPositionLivelinessObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct OriginOrientationLivelinessObjective {
     // Adds orientation liveliness to the link
     pub name: String,
@@ -289,11 +323,15 @@ pub struct OriginOrientationLivelinessObjective {
     pub frequency: f64,
     
     // Goal Value (shape of noise)
+    #[serde(skip)]
     pub goal: Vector3<f64>,
 
     // Inaccessible
+    #[serde(skip)]
     pub noise: UnitQuaternion<f64>,
+    #[serde(skip,default = "get_default_perlin")]
     pub perlin: Perlin,
+    #[serde(skip,default = "get_default_offsets")]
     pub offsets: [f64;3]
 }
 

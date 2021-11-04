@@ -1,10 +1,12 @@
+use serde::{Serialize, Deserialize};
 use nalgebra::{Vector3};
 use crate::objectives::objective::groove_loss;
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use std::f64::consts::{E};
 
-#[derive(Clone,Debug)]
+
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct CollisionAvoidanceObjective {
     pub name: String,
     pub weight: f64
@@ -35,7 +37,7 @@ impl CollisionAvoidanceObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointLimitsObjective {
     pub name: String,
     pub weight: f64
@@ -78,8 +80,7 @@ impl JointLimitsObjective {
     }
 }
 
-// ======= VelocityMinimizationObjective ======= 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct VelocityMinimizationObjective {
     pub name: String,
     pub weight: f64
@@ -112,7 +113,7 @@ impl VelocityMinimizationObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginVelocityMinimizationObjective {
     pub name: String,
     pub weight: f64
@@ -142,7 +143,7 @@ impl OriginVelocityMinimizationObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct AccelerationMinimizationObjective {
     pub name: String,
     pub weight: f64
@@ -180,7 +181,7 @@ impl AccelerationMinimizationObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginAccelerationMinimizationObjective {
     pub name: String,
     pub weight: f64
@@ -213,7 +214,7 @@ impl OriginAccelerationMinimizationObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JerkMinimizationObjective {
     pub name: String,
     pub weight: f64
@@ -254,7 +255,7 @@ impl JerkMinimizationObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginJerkMinimizationObjective {
     pub name: String,
     pub weight: f64
@@ -291,15 +292,21 @@ impl OriginJerkMinimizationObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct SmoothnessMacroObjective {
     pub name: String,
     pub weight: f64,
+    #[serde(skip_serializing,default = "SmoothnessMacroObjective::default_velocity_objective")]
     velocity_objective: VelocityMinimizationObjective,
+    #[serde(skip_serializing,default = "SmoothnessMacroObjective::default_acceleration_objective")]
     acceleration_objective: AccelerationMinimizationObjective,
+    #[serde(skip_serializing,default = "SmoothnessMacroObjective::default_jerk_objective")]
     jerk_objective: JerkMinimizationObjective,
+    #[serde(skip_serializing,default = "SmoothnessMacroObjective::default_origin_velocity_objective")]
     base_velocity_objective: OriginVelocityMinimizationObjective,
+    #[serde(skip_serializing,default = "SmoothnessMacroObjective::default_origin_acceleration_objective")]
     base_acceleration_objective: OriginAccelerationMinimizationObjective,
+    #[serde(skip_serializing,default = "SmoothnessMacroObjective::default_origin_jerk_objective")]
     base_jerk_objective: OriginJerkMinimizationObjective
 }
 
@@ -332,5 +339,29 @@ impl SmoothnessMacroObjective {
         let base_jerk_cost = self.base_jerk_objective.call(v, state, is_core);
         return self.weight * (velocity_cost + acceleration_cost + jerk_cost +
                base_velocity_cost + base_acceleration_cost + base_jerk_cost);
+    }
+
+    pub fn default_velocity_objective() -> VelocityMinimizationObjective {
+        VelocityMinimizationObjective::new("Macro Velocity".to_string(), 0.21)
+    }
+
+    pub fn default_acceleration_objective() -> AccelerationMinimizationObjective {
+        AccelerationMinimizationObjective::new("Macro Acceleration".to_string(), 0.08)
+    }
+
+    pub fn default_jerk_objective() -> JerkMinimizationObjective {
+        JerkMinimizationObjective::new("Macro Jerk".to_string(), 0.04)
+    }
+
+    pub fn default_origin_velocity_objective() -> OriginVelocityMinimizationObjective {
+        OriginVelocityMinimizationObjective::new("Macro Origin Velocity".to_string(), 0.47)
+    }
+
+    pub fn default_origin_acceleration_objective() -> OriginAccelerationMinimizationObjective {
+        OriginAccelerationMinimizationObjective::new("Macro Origin Acceleration".to_string(), 0.15)
+    }
+
+    pub fn default_origin_jerk_objective() -> OriginJerkMinimizationObjective {
+        OriginJerkMinimizationObjective::new("Macro Origin Jerk".to_string(), 0.05)
     }
 }

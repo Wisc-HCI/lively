@@ -1,3 +1,4 @@
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use nalgebra::geometry::{Isometry3};
 use nalgebra::{Vector3};
@@ -7,14 +8,20 @@ use crate::utils::info::*;
 A read-only struct that provides information about the origin, jointstate, and frames of a robot.
 */
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct State {
     pub origin: Isometry3<f64>,
     pub joints: HashMap<String,f64>,
+    #[serde(skip_deserializing)]
     pub frames: HashMap<String,Isometry3<f64>>,
+    #[serde(skip_deserializing)]
     pub proximity: Vec<ProximityInfo>,
+    #[serde(skip_deserializing)]
     pub center_of_mass: Vector3<f64>,
+    #[serde(skip)]
     default_joint_position: f64,
+    #[serde(skip,default="Isometry3::identity")]
     default_frame_transform: Isometry3<f64>
 }
 

@@ -1,7 +1,9 @@
+use serde::{Serialize,Deserialize};
 use nalgebra::geometry::{Translation3, Isometry3, UnitQuaternion};
 use nalgebra::{Vector3};
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug)]
+#[serde(tag = "type")]
 pub enum Goal {
     Translation(Translation3<f64>),
     Rotation(UnitQuaternion<f64>),

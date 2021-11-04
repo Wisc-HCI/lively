@@ -1,7 +1,8 @@
+use serde::{Serialize, Deserialize};
 use urdf_rs::{Mimic};
 // use std::fmt::Display;
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct MimicInfo {
     pub joint: String,
     pub multiplier: f64,
@@ -31,7 +32,8 @@ impl From<Mimic> for MimicInfo {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
+#[serde(rename_all = "camelCase")]
 pub struct JointInfo {
     pub name: String,
     pub joint_type: String,
@@ -51,7 +53,8 @@ impl JointInfo {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
+#[serde(rename_all = "camelCase")]
 pub struct LinkInfo {
     pub name: String,
     pub parent_joint: String,
@@ -63,7 +66,7 @@ impl LinkInfo {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct ProximityInfo {
     pub frame1: String,
     pub frame2: String,

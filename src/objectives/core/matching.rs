@@ -1,15 +1,17 @@
+use serde::{Serialize, Deserialize};
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use crate::objectives::objective::groove_loss;
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct PositionMatchObjective {
     pub name: String,
     pub weight: f64,
     pub link: String,
     // Goal Value
+    #[serde(skip)]
     pub goal: Vector3<f64>
 }
 
@@ -34,12 +36,13 @@ impl PositionMatchObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OrientationMatchObjective {
     pub name: String,
     pub weight: f64,
     pub link: String,
     // Goal Value
+    #[serde(skip)]
     pub goal: UnitQuaternion<f64>
 }
 
@@ -65,13 +68,14 @@ impl OrientationMatchObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointMatchObjective {
     // Sets a joint to a value given in scalar goal
     pub name: String,
     pub weight: f64,
     pub joint: String,
     // Goal Value
+    #[serde(skip)]
     pub goal: f64
 }
 
@@ -92,12 +96,13 @@ impl JointMatchObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginPositionMatchObjective {
     // Adds position liveliness to the Origin node (first three entries in x are these values)
     pub name: String,
     pub weight: f64,
     // Goal Value
+    #[serde(skip)]
     pub goal: Vector3<f64>
 }
 
@@ -118,12 +123,13 @@ impl OriginPositionMatchObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginOrientationMatchObjective {
     // Adds Orientation liveliness to the Origin node (first three entries in x are these values)
     pub name: String,
     pub weight: f64,
     // Goal Value
+    #[serde(skip)]
     pub goal: UnitQuaternion<f64>
 }
 
@@ -144,7 +150,7 @@ impl OriginOrientationMatchObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct DistanceMatchObjective {
     // Specify that the cartesian distance between two links is maintained
     pub name: String,
@@ -152,6 +158,7 @@ pub struct DistanceMatchObjective {
     pub link1: String,
     pub link2: String,
     // Goal Value
+    #[serde(skip)]
     pub goal: f64
 }
 

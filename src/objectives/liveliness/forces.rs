@@ -1,9 +1,10 @@
+use serde::{Serialize, Deserialize};
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use crate::objectives::objective::groove_loss;
 use std::f64::consts::{E};
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct GravityObjective {
     pub name: String,
     pub weight: f64,

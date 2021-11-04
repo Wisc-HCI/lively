@@ -1,3 +1,4 @@
+use serde::{Serialize,Deserialize};
 use crate::utils::state::State;
 use crate::utils::vars::Vars;
 use crate::utils::goals::Goal;
@@ -8,7 +9,8 @@ use crate::objectives::core::mirroring::{*};
 use crate::objectives::liveliness::forces::{*};
 use crate::objectives::liveliness::perlin::{*};
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug)]
+#[serde(tag = "type")]
 pub enum Objective {
     PositionMatch(PositionMatchObjective),
     OrientationMatch(OrientationMatchObjective),

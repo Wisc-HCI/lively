@@ -1,26 +1,34 @@
+#[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
+#[cfg(feature = "pybindings")]
 use std::collections::HashMap;
+#[cfg(feature = "pybindings")]
 use nalgebra::geometry::{Translation3, Isometry3, Quaternion, UnitQuaternion};
+#[cfg(feature = "pybindings")]
 use nalgebra::{Vector3};
 
+#[cfg(feature = "pybindings")]
 #[pyclass]
 #[derive(Clone,Debug)]
 pub struct Size {
     pub value: Vector3<f64>
 }
 
+#[cfg(feature = "pybindings")]
 #[pyclass]
 #[derive(Clone,Debug)]
 pub struct Translation {
     pub value: Translation3<f64>
 }
 
+#[cfg(feature = "pybindings")]
 #[pyclass]
 #[derive(Clone,Debug)]
 pub struct Rotation {
     pub value: UnitQuaternion<f64>
 }
 
+#[cfg(feature = "pybindings")]
 #[pyclass]
 #[derive(Clone,Debug)]
 pub struct Transform {
@@ -30,6 +38,7 @@ pub struct Transform {
     pub rotation: Py<Rotation>
 }
 
+#[cfg(feature = "pybindings")]
 #[pyclass]
 #[derive(Clone,Debug)]
 pub struct Ellipse {
@@ -41,6 +50,7 @@ pub struct Ellipse {
     pub size: Size
 }
 
+#[cfg(feature = "pybindings")]
 #[pyclass]
 #[derive(Clone,Debug)]
 pub struct RotationRange {
@@ -50,6 +60,7 @@ pub struct RotationRange {
     pub delta: f64
 }
 
+#[cfg(feature = "pybindings")]
 #[pyclass]
 #[derive(Clone,Debug)]
 pub struct ScalarRange {
@@ -59,25 +70,25 @@ pub struct ScalarRange {
     pub delta: f64
 }
 
-
+#[cfg(feature = "pybindings")]
 impl Size {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { value: Vector3::new(x, y, z) }
     }
 }
-
+#[cfg(feature = "pybindings")]
 impl Translation {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { value: Translation3::new(x, y, z) }
     }
 }
-
+#[cfg(feature = "pybindings")]
 impl Rotation {
     pub fn new(w: f64, x: f64, y: f64, z: f64) -> Self {
         Self { value: UnitQuaternion::new_normalize(Quaternion::new(w, x, y, z )) }
     }
 }
-
+#[cfg(feature = "pybindings")]
 impl Transform {
     pub fn get_isometry(&self, py: Python) -> Isometry3<f64> {
         let t: Translation = self.translation.extract(py).unwrap();
@@ -85,25 +96,26 @@ impl Transform {
         return Isometry3::from_parts(t.value, r.value)
     }
 }
-
+#[cfg(feature = "pybindings")]
 impl Ellipse {
     pub fn new(translation: Translation, rotation: Rotation, size: Size) -> Self {
         Self { translation, rotation, size }
     }
 }
-
+#[cfg(feature = "pybindings")]
 impl RotationRange {
     pub fn new(rotation: Rotation, delta: f64) -> Self {
         Self { rotation, delta }
     }
 }
-
+#[cfg(feature = "pybindings")]
 impl ScalarRange {
     pub fn new(value: f64, delta: f64) -> Self {
         Self { value, delta }
     }
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl Size {
     #[new]
@@ -157,6 +169,7 @@ impl Size {
     }
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl Translation {
     #[new]
@@ -210,6 +223,7 @@ impl Translation {
     }
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl Rotation {
     #[new]
@@ -259,6 +273,7 @@ impl Rotation {
 
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl Transform {
     #[new]
@@ -300,12 +315,14 @@ impl Transform {
 
 }
 
+#[cfg(feature = "pybindings")]
 impl From<Vector3<f64>> for Translation {
     fn from(vector: Vector3<f64>) -> Self {
         Self { value: Translation3::new(vector.x, vector.y, vector.z) }
     }
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl Ellipse {
     #[new]
@@ -314,6 +331,7 @@ impl Ellipse {
     }
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl RotationRange {
     #[new]
@@ -322,6 +340,7 @@ impl RotationRange {
     }
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl ScalarRange {
     #[new]

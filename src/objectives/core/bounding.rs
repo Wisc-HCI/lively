@@ -1,16 +1,26 @@
+use serde::{Serialize, Deserialize};
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use crate::objectives::objective::groove_loss;
 use nalgebra::geometry::{Isometry3, UnitQuaternion};
 use nalgebra::{Vector3, vector};
 
-#[derive(Clone,Debug)]
+fn get_default_pos_bound() -> (Isometry3<f64>,Vector3<f64>) {
+    return (Isometry3::identity(),vector![0.0,0.0,0.0])
+}
+
+fn get_default_rot_bound() -> (UnitQuaternion<f64>,f64) {
+    return (UnitQuaternion::identity(),0.0)
+}
+
+#[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct PositionBoundingObjective {
     // Bounds the position within a region according to the input provided in goals.
     pub name: String,
     pub weight: f64,
     pub link: String,
     // Goal Value
+    #[serde(skip,default="get_default_pos_bound")]
     pub goal: (Isometry3<f64>,Vector3<f64>)
 }
 
@@ -36,13 +46,14 @@ impl PositionBoundingObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OrientationBoundingObjective {
     // Bounds the orientation within a region on the unit sphere according to the input provided in goals.
     pub name: String,
     pub weight: f64,
     pub link: String,
     // Goal Value
+    #[serde(skip,default="get_default_rot_bound")]
     pub goal: (UnitQuaternion<f64>,f64)
 }
 
@@ -65,13 +76,14 @@ impl OrientationBoundingObjective {
     }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointBoundingObjective {
     // Bounds the position within a region according to the input provided in goals.
     pub name: String,
     pub weight: f64,
     pub joint: String,
     // Goal Value
+    #[serde(skip)]
     pub goal: (f64,f64)
 }
 

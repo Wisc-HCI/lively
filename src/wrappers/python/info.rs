@@ -1,52 +1,64 @@
+#[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
+#[cfg(feature = "pybindings")]
 use crate::utils::info::{MimicInfo,LinkInfo,JointInfo,ProximityInfo};
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="MimicInfo")]
 #[derive(Clone,Debug)]
 pub struct PyMimicInfo(MimicInfo);
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="LinkInfo")]
 #[derive(Clone,Debug)]
 pub struct PyLinkInfo(LinkInfo);
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="JointInfo")]
 #[derive(Clone,Debug)]
 pub struct PyJointInfo(JointInfo);
 
+#[cfg(feature = "pybindings")]
 #[pyclass(name="ProximityInfo")]
 #[derive(Clone,Debug)]
 pub struct PyProximityInfo(ProximityInfo);
 
+#[cfg(feature = "pybindings")]
 impl From<MimicInfo> for PyMimicInfo {
     fn from(mimicinfo:MimicInfo) -> PyMimicInfo {
         PyMimicInfo(mimicinfo)
     }
 }
 
+#[cfg(feature = "pybindings")]
 impl From<LinkInfo> for PyLinkInfo {
     fn from(linkinfo:LinkInfo) -> PyLinkInfo {
         PyLinkInfo(linkinfo)
     }
 }
 
+#[cfg(feature = "pybindings")]
 impl From<JointInfo> for PyJointInfo {
     fn from(jointinfo:JointInfo) -> PyJointInfo {
         PyJointInfo(jointinfo)
     }
 }
 
+#[cfg(feature = "pybindings")]
 impl From<ProximityInfo> for PyProximityInfo {
     fn from(proxinfo:ProximityInfo) -> PyProximityInfo {
         PyProximityInfo(proxinfo)
     }
 }
 
+#[cfg(feature = "pybindings")]
 impl From<PyProximityInfo> for ProximityInfo {
     fn from(pyproxinfo: PyProximityInfo) -> ProximityInfo {
         pyproxinfo.0
     }
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyMimicInfo {
     #[getter]
@@ -63,6 +75,7 @@ impl PyMimicInfo {
     }
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyJointInfo {
     #[getter]
@@ -108,6 +121,7 @@ impl PyJointInfo {
     }
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyLinkInfo {
     #[getter]
@@ -126,6 +140,7 @@ impl PyLinkInfo {
     }
 }
 
+#[cfg(feature = "pybindings")]
 #[pymethods]
 impl PyProximityInfo {
     #[getter]

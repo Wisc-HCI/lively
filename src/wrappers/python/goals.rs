@@ -1,8 +1,13 @@
+#[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
+#[cfg(feature = "pybindings")]
 use crate::utils::goals::Goal;
+#[cfg(feature = "pybindings")]
 use crate::wrappers::python::geometry::{*};
+#[cfg(feature = "pybindings")]
 use nalgebra::geometry::{Isometry3};
 
+#[cfg(feature = "pybindings")]
 #[derive(Clone,Debug,FromPyObject)]
 pub enum PyGoal {
     Translation(Translation),
@@ -14,6 +19,7 @@ pub enum PyGoal {
     ScalarRange(ScalarRange)
 }
 
+#[cfg(feature = "pybindings")]
 impl IntoPy<PyObject> for PyGoal {
     fn into_py(self, py: Python) -> PyObject {
         match self {
@@ -28,6 +34,7 @@ impl IntoPy<PyObject> for PyGoal {
     }
 }
 
+#[cfg(feature = "pybindings")]
 impl From<PyGoal> for Goal {
     fn from(pygoal: PyGoal) -> Goal {
         match pygoal {
@@ -42,6 +49,7 @@ impl From<PyGoal> for Goal {
     }
 }
 
+#[cfg(feature = "pybindings")]
 impl From<Goal> for PyGoal {
     fn from(goal: Goal) -> PyGoal {
         match goal {

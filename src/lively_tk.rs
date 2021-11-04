@@ -32,14 +32,13 @@ impl Solver {
     pub fn new(
         urdf: String, 
         objectives: Vec<Objective>, 
-        root_bounds: Option<Vec<[f64; 2]>>,
-        collision_shapes: Option<Vec<Shape>>,
-        _zones: Option<Vec<Zone>>,
+        root_bounds: Option<Vec<(f64,f64)>>,
+        shapes: Option<Vec<Shape>>,
         initial_state: Option<State>
     ) -> Self {
         
         // Define the robot model, which is used for kinematics and handling collisions
-        let robot_model = RobotModel::new(urdf, collision_shapes.unwrap_or(vec![]));
+        let robot_model = RobotModel::new(urdf, shapes.unwrap_or(vec![]));
         let current_state: State;
         match initial_state {
             Some(state) => current_state = robot_model.get_filled_state(state),
@@ -59,8 +58,8 @@ impl Solver {
                 lower_bounds = Vec::new();
                 upper_bounds = Vec::new();
                 for bound in bounds {
-                    lower_bounds.push(bound[0]);
-                    upper_bounds.push(bound[1]);
+                    lower_bounds.push(bound.0 + bound.1);
+                    upper_bounds.push(bound.0 - bound.1);
                 }
             },
             None => {
@@ -146,8 +145,7 @@ impl Solver {
         goals: Option<Vec<Option<Goal>>>,
         weights: Option<Vec<Option<f64>>>,
         time: f64,
-        collision_shapes: Option<Vec<Shape>>,
-        _zones: Option<Vec<Zone>>,
+        shapes: Option<Vec<Shape>>,
         max_retries: Option<u64>,
         max_iterations: Option<usize>,
         only_core: Option<bool>
@@ -191,7 +189,7 @@ impl Solver {
         }
 
         // Update the collision objects if provided
-        match collision_shapes {
+        match shapes {
             Some(objects) => self.robot_model.collision_manager.set_transient_shapes(&objects),
             None => {}
         }
