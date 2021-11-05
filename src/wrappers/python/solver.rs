@@ -61,13 +61,13 @@ impl PySolver {
         goals: Option<Vec<Option<PyGoal>>>,
         weights: Option<Vec<Option<f64>>>,
         time: f64,
-        collision_shapes: Option<Vec<PyShape>>,
+        shapes: Option<Vec<PyShape>>,
         max_retries: Option<u64>,
         max_iterations: Option<usize>,
         only_core: Option<bool>
     ) -> PyResult<PyState> {
         let inner_goals = goals.map(|gs| gs.iter().map(|og| og.as_ref().map(|g| Goal::from(g.clone()))).collect());
-        let inner_shapes = collision_shapes.map(|cs| cs.iter().map(|s| Shape::from(s.clone())).collect());
+        let inner_shapes = shapes.map(|cs| cs.iter().map(|s| Shape::from(s.clone())).collect());
         Ok(PyState::from(self.0.solve(
             inner_goals,
             weights,

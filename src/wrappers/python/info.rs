@@ -144,21 +144,25 @@ impl PyLinkInfo {
 #[pymethods]
 impl PyProximityInfo {
     #[getter]
-    pub fn get_frame1(&self) -> PyResult<String> {
-        Ok(self.0.frame1.clone())
+    pub fn get_shape1(&self) -> PyResult<String> {
+        Ok(self.0.shape1.clone())
     }
     #[getter]
-    pub fn get_frame2(&self) -> PyResult<String> {
-        Ok(self.0.frame2.clone())
+    pub fn get_shape2(&self) -> PyResult<String> {
+        Ok(self.0.shape2.clone())
     }
     #[getter]
     pub fn get_distance(&self) -> PyResult<Option<f64>> {
         Ok(self.0.distance.clone())
     }
+    #[getter]
+    pub fn get_physical(&self) -> PyResult<bool> {
+        Ok(self.0.physical.clone())
+    }
     fn __str__(&self) -> PyResult<String> {
-        Ok(format!("<Proximity (frame1: {}, frame2: {}, distance: {})>", self.0.frame1, self.0.frame2, self.0.distance.unwrap_or(100.0)))
+        Ok(format!("<Proximity (shape1: {}, shape2: {}, distance: {})>", self.0.shape1, self.0.shape2, self.0.distance.unwrap_or(100.0)))
     }
     fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("<Proximity (frame1: {}, frame2: {}, distance: {})>", self.0.frame1, self.0.frame2, self.0.distance.unwrap_or(100.0)))
+        Ok(format!("<Proximity (shape1: {}, shape2: {}, distance: {})>", self.0.shape1, self.0.shape2, self.0.distance.unwrap_or(100.0)))
     }
 }

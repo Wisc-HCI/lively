@@ -68,13 +68,14 @@ impl LinkInfo {
 
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct ProximityInfo {
-    pub frame1: String,
-    pub frame2: String,
-    pub distance: Option<f64>
+    pub shape1: String,
+    pub shape2: String,
+    pub distance: Option<f64>,
+    pub physical: bool
 }
 
 impl ProximityInfo {
-    pub fn new(frame1: String, frame2: String, distance: Option<f64>) -> Self {
-        Self { frame1, frame2, distance }
+    pub fn new(shape1: String, shape2: String, distance: Option<f64>, physical: bool) -> Self {
+        Self { shape1, shape2, distance, physical }
     }
 }
