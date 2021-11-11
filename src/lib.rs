@@ -104,11 +104,11 @@ pub struct ScalarRange {
 }
 
 #[cfg(feature = "jsbindings")]
-#[wasm_bindgen(js_name = Solver)]
+#[wasm_bindgen(js_name=Solver)]
 pub struct JsSolver(Solver);
 
 #[cfg(feature = "jsbindings")]
-#[wasm_bindgen]
+#[wasm_bindgen(js_class=Solver)]
 impl JsSolver {
     #[wasm_bindgen(constructor)]
     pub fn new(
@@ -116,14 +116,20 @@ impl JsSolver {
         objectives: &JsValue, 
         root_bounds: &JsValue,
         shapes: &JsValue,
-        initial_state: &JsValue
+        initial_state: &JsValue,
+        only_core: Option<bool>,
+        max_retries: Option<u64>,
+        max_iterations: Option<usize>
     ) -> Self {
             let inner_objectives:Vec<Objective> = objectives.into_serde().unwrap();
             let temp_bounds:Option<Vec<ScalarRange>> = root_bounds.into_serde().unwrap();
             let inner_bounds:Option<Vec<(f64,f64)>> = temp_bounds.map(|bs| bs.iter().map(|b| (b.value,b.delta)).collect());
             let inner_shapes:Option<Vec<Shape>> = shapes.into_serde().unwrap();
             let inner_state:Option<State> = initial_state.into_serde().unwrap();
-            Self(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state))
+            // let inner_retries: Option<u64> = max_retries.into_serde().unwrap();
+            // let inner_iterations: Option<usize> = max_iterations.into_serde().unwrap();
+            // let inner_core: Option<bool> = only_core.into_serde().unwrap();
+            Self(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, only_core, max_retries, max_iterations))
     }
 
     #[wasm_bindgen(getter)]
@@ -131,34 +137,38 @@ impl JsSolver {
         JsValue::from_serde(&self.0.objective_set.objectives).unwrap()
     }
 
+    #[wasm_bindgen(getter)]
+    pub fn current_state(&self) -> JsValue {
+        JsValue::from_serde(&self.0.vars.history.prev1).unwrap()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn current_goals(&self) -> JsValue {
+        let goals: Vec<Option<Goal>> = self.0.objective_set.objectives.iter().map(|o| o.get_goal()).collect();
+        JsValue::from_serde(&goals).unwrap()
+    }
+
     pub fn reset(
         &mut self, 
         state: &JsValue,
-        weights: Vec<f64>
+        weights: &JsValue,
     ) {
         let inner_state:State = state.into_serde().unwrap();
-        let inner_weights:Option<Vec<Option<f64>>> = Option::Some(weights.iter().map(|w| Option::Some(w.clone())).collect());
+        let inner_weights:Option<Vec<Option<f64>>> = weights.into_serde().unwrap();
         self.0.reset(inner_state,inner_weights);
     }
 
     pub fn solve(
         &mut self,
         goals: &JsValue,
-        weights: Vec<f64>,
+        weights: &JsValue,
         time: f64,
-        shapes: &JsValue,
-        max_retries: Option<u64>,
-        max_iterations: Option<usize>,
-        only_core: Option<bool>
+        shapes: &JsValue
     ) -> JsValue {
         let inner_goals: Option<Vec<Option<Goal>>> = goals.into_serde().unwrap();
-        let inner_weights:Option<Vec<Option<f64>>> = Option::Some(weights.iter().map(|w| Option::Some(w.clone())).collect());
+        let inner_weights:Option<Vec<Option<f64>>> = weights.into_serde().unwrap();
         let inner_shapes: Option<Vec<Shape>> = shapes.into_serde().unwrap();
-        JsValue::from_serde(&self.0.solve(
-            inner_goals,
-            inner_weights,
-            time,
-            inner_shapes,
-            max_retries,max_iterations,only_core)).unwrap()
+        let state:State = self.0.solve(inner_goals,inner_weights,time,inner_shapes);
+        return JsValue::from_serde(&state).unwrap();
     }
 }

@@ -34,13 +34,16 @@ impl PySolver {
         objectives: Vec<PyObjective>, 
         root_bounds: Option<Vec<ScalarRange>>,
         shapes: Option<Vec<PyShape>>,
-        initial_state: Option<PyState>
+        initial_state: Option<PyState>,
+        only_core: Option<bool>,
+        max_retries: Option<u64>,
+        max_iterations: Option<usize>
     ) -> Self {
             let inner_objectives = objectives.iter().map(|o| Objective::from(o.clone())).collect();
             let inner_shapes = shapes.map(|cs| cs.iter().map(|s| Shape::from(s.clone())).collect());
             let inner_bounds = root_bounds.map(|bs| bs.iter().map(|b| (b.value,b.delta)).collect());
             let inner_state = initial_state.map(|s| State::from(s));
-            PySolver(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state))
+            PySolver(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, only_core, max_retries, max_iterations))
     }
 
     #[getter]
@@ -61,10 +64,7 @@ impl PySolver {
         goals: Option<Vec<Option<PyGoal>>>,
         weights: Option<Vec<Option<f64>>>,
         time: f64,
-        shapes: Option<Vec<PyShape>>,
-        max_retries: Option<u64>,
-        max_iterations: Option<usize>,
-        only_core: Option<bool>
+        shapes: Option<Vec<PyShape>>
     ) -> PyResult<PyState> {
         let inner_goals = goals.map(|gs| gs.iter().map(|og| og.as_ref().map(|g| Goal::from(g.clone()))).collect());
         let inner_shapes = shapes.map(|cs| cs.iter().map(|s| Shape::from(s.clone())).collect());
@@ -72,7 +72,6 @@ impl PySolver {
             inner_goals,
             weights,
             time,
-            inner_shapes,
-            max_retries,max_iterations,only_core)))
+            inner_shapes)))
     }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "lively_tk"
-version = "0.9.0"
+version = "0.9.6"
 description = "A real-time robot control framework with liveliness."
 repository = "https://github.com/Wisc-HCI/lively_tk"
 license = "MIT"
@@ -18,7 +18,8 @@ nalgebra = { version = "0.29", features = ["serde-serialize-no-std"]}
 rapier3d-f64 = "0.11.0"
 parry3d = "0.7.0"
 yaml-rust = "0.4"
-optimization_engine = "0.6.0"
+# optimization_engine = "0.6.0"
+optimization_engine = {git = "https://github.com/yepw/optimization-engine"}
 ndarray = "0.13.0"
 num = "0.2.0"
 # nlopt = "0.5.1"

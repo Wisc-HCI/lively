@@ -1,6 +1,6 @@
 [![PyPI version](https://img.shields.io/pypi/v/lively_tk)](https://badge.fury.io/py/lively_tk)
 ![Upload Python Package](https://github.com/Wisc-HCI/lively_tk/workflows/Upload%20Python%20Package/badge.svg)
-# LivelyTK v0.9.0 (beta)
+# LivelyTK v0.9.6 (beta)
 
 _NOTE: Since LivelyTK is still in beta, the design is subject to change and should not be considered final!_
 
@@ -35,7 +35,10 @@ solver = Solver(
     shapes=[
         BoxShape(name="Table",frame="world",physical=True,x=2,y=1,z=1.2,local_transform=Transform.isometry())
     ], 
-    initial_state=State(origin=Transform.identity(),joints={"panda_joint1":0.0,"panda_joint2":0.0,...}) # Optional
+    initial_state=State(origin=Transform.identity(),joints={"panda_joint1":0.0,"panda_joint2":0.0,...}), # Optional
+    only_core=False, # Only use this flag if you are not using liveliness objectives and want a slight speed-up.
+    max_retries=1, # Number of times the solution is attempted (default 1)
+    max_iterations=150 # Number of iterations per try (default 150)
 )
 ```
 
@@ -44,25 +47,28 @@ _javascript_
 import {
     Solver, PositionMatchObjective, OrientationMatchObjective, 
     SmoothnessMacroObjective, CollisionAvoidanceObjective, 
-    State, Transform, ScalarRange, BoxShape} from "@peopleandrobots/lively_tk";
+    State, Transform, ScalarRange, BoxShape} from "@people_and_robots/lively_tk";
 
 let solver = new Solver(
-    urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
-    objectives=[
+    '<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
+    [
         {type:'PositionMatch',name:"EE Position",link:"panda_hand",weight:50},
         {type:'OrientationMatch',name:"EE Rotation",link:"panda_hand",weight:25},
         {type:'SmoothnessMacro',name:"General Smoothness",weight:10},
         {type:'CollisionAvoidance',name:"Collision Avoidance",weight:10}
         ...
     ], 
-    root_bounds=[
+    [
         {value:0.0,delta:0.0},{value:0.0,delta:0.0},{value:0.0,delta:0.0}, // Translational
         {value:0.0,delta:0.0},{value:0.0,delta:0.0},{value:0.0,delta:0.0}  // Rotational
     ],
-    shapes=[
+    [
         {type:'Box',name="Table",frame:"world",physical:True,x:2,y:1,z:1.2,localTransform:{translation:[0,0,0],rotation:[1,0,0,0]}}
     ], 
-    initial_state={origin={translation:[0,0,0],rotation:[1,0,0,0]},joints={panda_joint1:0.0,panda_joint2:0.0,...}} // Optional
+    {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{panda_joint1:0.0,panda_joint2:0.0,...}}, // Optional
+    false, // Only use this flag if you are not using liveliness objectives and want a slight speed-up.
+    1, // Number of times the solution is attempted (default 1)
+    150 // Number of iterations per try (default 150)
 )
 ```
 
@@ -77,7 +83,10 @@ solver.reset(state=State(origin=Transform.identity(),joints={"panda_joint1":0.0,
 
 _javascript_
 ```javascript
-solver.reset(state={origin={translation:[0,0,0],rotation:[1,0,0,0]},joints={panda_joint1:0.0,panda_joint2:0.0,...}},weights=[50.0,30.0,20.0,10.0])
+solver.reset(
+    {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{panda_joint1:0.0,panda_joint2:0.0,...}}, // New starting state
+    [50.0,30.0,20.0,10.0] // New starting weights
+)
 ```
 
 ## Solving
@@ -88,9 +97,6 @@ The `Solver` class has a `solve` method that represents the core functionality o
 2. `weights`: A list of floats, order corresponding to the order of the objectives.
 3. `time`: (float) The current time. If no liveliness objectives are used, this has no effect.
 4. `shapes`: A list of shape objects. 
-4. `max_retries`: (int) Number of random restarts to perform when searching for a solution.
-5. `max_iterations`: (int) Number of iterations for each round of search.
-6. `only_core`: (bool) Ignore liveliness objectives and disable the second liveliness optimization. *Note: Not advised to switch within runs. Only use this flag if you are not using liveliness objectives and want a slight speed-up.*
 
 The `solve` method returns a fully-filled `State` object
 
@@ -368,5 +374,11 @@ To build, download and `cd` to this directory. Then run:
 
 ```bash
 # Build the javascript bundle
-wasm-pack build --scope peopleandrobots -- --features jsbindings
+wasm-pack build --scope people_and_robots -- --features jsbindings
+
+# Pack
+wasm-pack pack
+
+# Publish
+wasm-pack publish --access=public
 ```

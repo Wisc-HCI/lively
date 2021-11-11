@@ -19,6 +19,7 @@ pub struct RobotModel {
     pub joint_names: Vec<String>,
     pub joint_converters: Vec<(f64, f64, usize, String)>, // Multipler, Offset, Index, JointName\
     pub dims: usize,
+    pub origin_link: String,
     pub links: Vec<LinkInfo>,
     pub joints: Vec<JointInfo>
 }
@@ -34,6 +35,8 @@ impl RobotModel {
         
         let mut joints: Vec<JointInfo> = Vec::new();
         let mut links: Vec<LinkInfo> = Vec::new();
+
+        let mut origin_link: String = String::from("base_link");
 
         let mut non_mimic_count: usize = 0;
         for joint in chain.iter_joints() {
@@ -106,6 +109,9 @@ impl RobotModel {
                 }
             }
             links.push(LinkInfo::new(link.name.clone(), parent_joint.clone()));
+            if parent_joint.as_str() == "world" {
+                origin_link = link.name.clone();
+            } 
         }
 
         let mut child_map: HashMap<String, String> = HashMap::new();
@@ -141,7 +147,7 @@ impl RobotModel {
             }
         }
 
-        Self { description, chain, collision_manager, child_map, joint_names, joints, links, joint_converters, dims }
+        Self { description, chain, collision_manager, child_map, joint_names, joints, links, joint_converters, dims, origin_link }
     }
 
     pub fn get_state(&self, x: &Vec<f64>) -> State {
@@ -169,6 +175,7 @@ impl RobotModel {
         // self.chain.update_link_transforms();
         
         // Update the stored joint transforms
+        frames.insert(self.origin_link.clone(),origin);
         for joint in self.chain.iter_joints() {
             let transform = joint.world_transform().unwrap_or(Isometry3::identity());
             frames.insert(self.child_map.get(&joint.name).unwrap().to_string(), transform);

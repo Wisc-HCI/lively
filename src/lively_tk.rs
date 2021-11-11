@@ -25,7 +25,12 @@ pub struct Solver {
 
     // Optimization values
     pub xopt: Vec<f64>,
-    pub xopt_core: Vec<f64>
+    pub xopt_core: Vec<f64>,
+
+    // Optimization Settings
+    pub only_core: bool,
+    pub max_retries: u64,
+    pub max_iterations: usize,
 }
 
 impl Solver {
@@ -34,7 +39,10 @@ impl Solver {
         objectives: Vec<Objective>, 
         root_bounds: Option<Vec<(f64,f64)>>,
         shapes: Option<Vec<Shape>>,
-        initial_state: Option<State>
+        initial_state: Option<State>,
+        only_core: Option<bool>,
+        max_retries: Option<u64>,
+        max_iterations: Option<usize>
     ) -> Self {
         
         // Define the robot model, which is used for kinematics and handling collisions
@@ -104,7 +112,10 @@ impl Solver {
             upper_bounds,
             lower_bounds,
             xopt: initial_x.clone(),
-            xopt_core: initial_x.clone()
+            xopt_core: initial_x.clone(),
+            only_core: only_core.unwrap_or(false),
+            max_retries: max_retries.unwrap_or(1),
+            max_iterations: max_iterations.unwrap_or(150)
         }
     }
 
@@ -145,10 +156,7 @@ impl Solver {
         goals: Option<Vec<Option<Goal>>>,
         weights: Option<Vec<Option<f64>>>,
         time: f64,
-        shapes: Option<Vec<Shape>>,
-        max_retries: Option<u64>,
-        max_iterations: Option<usize>,
-        only_core: Option<bool>
+        shapes: Option<Vec<Shape>>
     ) -> State {
         
         let xopt = self.xopt.clone();
@@ -183,7 +191,7 @@ impl Solver {
             None => {}
         }
 
-        // TODO: Refactor this to be within objective
+        // Update liveliness objectives based on time
         for objective in self.objective_set.objectives.iter_mut() {
             objective.update(time)
         }
@@ -195,27 +203,25 @@ impl Solver {
         }
 
         // First, do xopt_core to develop a non-lively baseline
-        self.xopt_core = self.solve_with_retries(xopt_core,max_retries.unwrap_or(1),max_iterations.unwrap_or(150),true,&mut rng);
+        self.xopt_core = self.solve_with_retries(xopt_core,true,&mut rng);
         self.vars.state_core = self.robot_model.get_state(&self.xopt_core);
         self.vars.history_core.update(&self.vars.state_core);
 
 
-        if only_core.unwrap_or(false) {
+        if self.only_core {
             self.vars.history.update(&self.vars.state_core);
             return self.vars.state_core.clone()
         } else {
-            self.xopt = self.solve_with_retries(xopt,max_retries.unwrap_or(1),max_iterations.unwrap_or(150),false,&mut rng);
+            self.xopt = self.solve_with_retries(xopt,false,&mut rng);
             let state = self.robot_model.get_state(&self.xopt);
             self.vars.history.update(&state);
             return state
         }
     }
     
-    fn solve_with_retries(
+    pub fn solve_with_retries(
         &mut self,
         x: Vec<f64>,
-        max_retries: u64,
-        max_iterations: usize,
         is_core: bool,
         rng: &mut ThreadRng
     ) -> Vec<f64> {
@@ -226,7 +232,7 @@ impl Solver {
         let mut xopt = x.clone();
         let mut try_count = 0;
 
-        while try_count < max_retries {
+        while try_count < self.max_retries {
 
             if try_count > 0 {
                 let mut i:usize = 0;
@@ -246,7 +252,7 @@ impl Solver {
                 &mut self.panoc_cache, 
                 &self.lower_bounds, 
                 &self.upper_bounds, 
-                max_iterations, 
+                self.max_iterations, 
                 is_core
             );
             if try_cost < best_cost {

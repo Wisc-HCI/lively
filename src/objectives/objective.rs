@@ -8,6 +8,7 @@ use crate::objectives::core::matching::{*};
 use crate::objectives::core::mirroring::{*};
 use crate::objectives::liveliness::forces::{*};
 use crate::objectives::liveliness::perlin::{*};
+use nalgebra::Translation3;
 
 #[derive(Serialize,Deserialize,Clone,Debug)]
 #[serde(tag = "type")]
@@ -156,6 +157,39 @@ impl Objective {
             Self::Gravity(obj) => obj.weight = weight,
             Self::SmoothnessMacro(obj) => obj.weight = weight,
             Self::DistanceMatch(obj) => obj.weight = weight
+        }
+    }
+
+    pub fn get_goal(&self) -> Option<Goal> {
+        match self {
+            Self::PositionMatch(obj) => return Some(Goal::Translation(Translation3::from(obj.goal))),
+            Self::OrientationMatch(obj) => return Some(Goal::Rotation(obj.goal)),
+            Self::PositionLiveliness(obj) => return Some(Goal::Size(obj.goal)),
+            Self::OrientationLiveliness(obj) => return Some(Goal::Size(obj.goal)),
+            Self::PositionMirroring(obj) => return Some(Goal::Translation(Translation3::from(obj.goal))),
+            Self::OrientationMirroring(obj) => return Some(Goal::Rotation(obj.goal)),
+            Self::PositionBounding(obj) => return Some(Goal::Ellipse {pose: obj.goal.0, size: obj.goal.1 }),
+            Self::OrientationBounding(obj) => return Some(Goal::RotationRange {rotation: obj.goal.0, delta: obj.goal.1}),
+            Self::JointMatch(obj) => return Some(Goal::Scalar(obj.goal)),
+            Self::JointLiveliness(obj) => return Some(Goal::Scalar(obj.goal)),
+            Self::JointMirroring(obj) => return Some(Goal::Scalar(obj.goal)),
+            Self::JointLimits(_obj) => return None,
+            Self::JointBounding(obj) => return Some(Goal::ScalarRange {value: obj.goal.0, delta: obj.goal.1}),
+            Self::CollisionAvoidance(_obj) => return None,
+            Self::VelocityMinimization(_obj) => return None,
+            Self::AccelerationMinimization(_obj) => return None,
+            Self::JerkMinimization(_obj) => return None,
+            Self::OriginVelocityMinimization(_obj) => return None,
+            Self::OriginAccelerationMinimization(_obj) => return None,
+            Self::OriginJerkMinimization(_obj) => return None,
+            Self::RelativeMotionLiveliness(obj) => return Some(Goal::Scalar(obj.goal)),
+            Self::OriginPositionLiveliness(obj) => return Some(Goal::Size(obj.goal)),
+            Self::OriginOrientationLiveliness(obj) => return Some(Goal::Size(obj.goal)),
+            Self::OriginPositionMatch(obj) => return Some(Goal::Translation(Translation3::from(obj.goal))),
+            Self::OriginOrientationMatch(obj) => return Some(Goal::Rotation(obj.goal)),
+            Self::Gravity(_obj) => return None,
+            Self::SmoothnessMacro(_obj) => return None,
+            Self::DistanceMatch(obj) => return Some(Goal::Scalar(obj.goal))
         }
     }
 
