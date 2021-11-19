@@ -29,7 +29,7 @@ urdf-rs = "0.6.1"
 serde = { version = "1.0", features = ["derive"]}
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"], optional = true }
 getrandom = { version = "0.2", features = ["js"] }
-pyo3 = {version = "0.14.5", features = ["extension-module"], optional = true}
+pyo3 = {version = "0.15.1", features = ["extension-module"], optional = true}
 
 [profile.dev]
 opt-level = 3
