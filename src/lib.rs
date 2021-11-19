@@ -31,6 +31,8 @@ use crate::utils::state::State;
 #[cfg(feature = "jsbindings")]
 use crate::utils::goals::*;
 #[cfg(feature = "jsbindings")]
+use crate::utils::info::*;
+#[cfg(feature = "jsbindings")]
 use crate::utils::shapes::*;
 #[cfg(feature = "jsbindings")]
 use crate::objectives::objective::*;
@@ -163,12 +165,12 @@ impl JsSolver {
         goals: &JsValue,
         weights: &JsValue,
         time: f64,
-        shapes: &JsValue
+        shape_updates: &JsValue
     ) -> JsValue {
         let inner_goals: Option<Vec<Option<Goal>>> = goals.into_serde().unwrap();
         let inner_weights:Option<Vec<Option<f64>>> = weights.into_serde().unwrap();
-        let inner_shapes: Option<Vec<Shape>> = shapes.into_serde().unwrap();
-        let state:State = self.0.solve(inner_goals,inner_weights,time,inner_shapes);
+        let inner_updates: Option<Vec<ShapeUpdate>> = shape_updates.into_serde().unwrap();
+        let state:State = self.0.solve(inner_goals,inner_weights,time,inner_updates);
         return JsValue::from_serde(&state).unwrap();
     }
 }

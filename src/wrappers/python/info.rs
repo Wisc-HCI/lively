@@ -1,7 +1,15 @@
 #[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
 #[cfg(feature = "pybindings")]
-use crate::utils::info::{MimicInfo,LinkInfo,JointInfo,ProximityInfo};
+use nalgebra::Isometry3;
+#[cfg(feature = "pybindings")]
+use crate::utils::info::{MimicInfo,LinkInfo,JointInfo,ProximityInfo,ShapeUpdate};
+#[cfg(feature = "pybindings")]
+use crate::utils::shapes::Shape;
+#[cfg(feature = "pybindings")]
+use crate::wrappers::python::shapes::{PyShape};
+#[cfg(feature = "pybindings")]
+use crate::wrappers::python::geometry::{Translation,Rotation};
 
 #[cfg(feature = "pybindings")]
 #[pyclass(name="MimicInfo")]
@@ -152,17 +160,61 @@ impl PyProximityInfo {
         Ok(self.0.shape2.clone())
     }
     #[getter]
-    pub fn get_distance(&self) -> PyResult<Option<f64>> {
+    pub fn get_distance(&self) -> PyResult<f64> {
         Ok(self.0.distance.clone())
+    }
+    #[getter]
+    pub fn get_points(&self) -> PyResult<Option<([f64;3],[f64;3])>> {
+        match self.0.points {
+            Some((point1,point2)) => return Ok(Some(([point1.x,point1.y,point1.z],[point2.x,point2.y,point2.z]))),
+            None => return Ok(None)
+        }
     }
     #[getter]
     pub fn get_physical(&self) -> PyResult<bool> {
         Ok(self.0.physical.clone())
     }
     fn __str__(&self) -> PyResult<String> {
-        Ok(format!("<Proximity (shape1: {}, shape2: {}, distance: {})>", self.0.shape1, self.0.shape2, self.0.distance.unwrap_or(100.0)))
+        Ok(format!("<Proximity (shape1: {}, shape2: {}, distance: {})>", self.0.shape1, self.0.shape2, self.0.distance))
     }
     fn __repr__(&self) -> PyResult<String> {
-        Ok(format!("<Proximity (shape1: {}, shape2: {}, distance: {})>", self.0.shape1, self.0.shape2, self.0.distance.unwrap_or(100.0)))
+        Ok(format!("<Proximity (shape1: {}, shape2: {}, distance: {})>", self.0.shape1, self.0.shape2, self.0.distance))
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[derive(Clone,Debug,FromPyObject)]
+pub enum PyShapeUpdate {
+    Add{
+        id: String,
+        shape: PyShape
+    },
+    Move{
+        id: String,
+        translation: Translation,
+        rotation: Rotation
+    },
+    Delete(String)
+}
+
+// #[cfg(feature = "pybindings")]
+// impl IntoPy<PyObject> for PyShapeUpdate {
+//     fn into_py(self, py: Python) -> PyObject {
+//         match self {
+//             Self::Add{id,shape} => obj.into_py(py),
+//             Self::Move{id,translation,rotation} => obj.into_py(py),
+//             Self::Delete(obj) => obj.into_py(py)
+//         }
+//     }
+// }
+
+#[cfg(feature = "pybindings")]
+impl From<PyShapeUpdate> for ShapeUpdate {
+    fn from(pyshape:PyShapeUpdate) -> ShapeUpdate {
+        match pyshape {
+            PyShapeUpdate::Add{id,shape} => ShapeUpdate::Add{id,shape:Shape::from(shape)},
+            PyShapeUpdate::Move{id,translation,rotation} => ShapeUpdate::Move{id,pose:Isometry3::from_parts(translation.value,rotation.value)},
+            PyShapeUpdate::Delete(id) => ShapeUpdate::Delete(id)
+        }
     }
 }

@@ -7,6 +7,8 @@ use crate::objectives::objective::Objective;
 #[cfg(feature = "pybindings")]
 use crate::utils::shapes::*;
 #[cfg(feature = "pybindings")]
+use crate::utils::info::*;
+#[cfg(feature = "pybindings")]
 use crate::utils::state::State;
 #[cfg(feature = "pybindings")]
 use crate::utils::goals::Goal;
@@ -16,6 +18,8 @@ use crate::wrappers::python::objectives::*;
 use crate::wrappers::python::shapes::*;
 #[cfg(feature = "pybindings")]
 use crate::wrappers::python::goals::*;
+#[cfg(feature = "pybindings")]
+use crate::wrappers::python::info::*;
 #[cfg(feature = "pybindings")]
 use crate::wrappers::python::geometry::*;
 #[cfg(feature = "pybindings")]
@@ -64,14 +68,14 @@ impl PySolver {
         goals: Option<Vec<Option<PyGoal>>>,
         weights: Option<Vec<Option<f64>>>,
         time: f64,
-        shapes: Option<Vec<PyShape>>
+        shape_updates: Option<Vec<PyShapeUpdate>>
     ) -> PyResult<PyState> {
         let inner_goals = goals.map(|gs| gs.iter().map(|og| og.as_ref().map(|g| Goal::from(g.clone()))).collect());
-        let inner_shapes = shapes.map(|cs| cs.iter().map(|s| Shape::from(s.clone())).collect());
+        let inner_updates = shape_updates.map(|cs| cs.iter().map(|s| ShapeUpdate::from(s.clone())).collect());
         Ok(PyState::from(self.0.solve(
             inner_goals,
             weights,
             time,
-            inner_shapes)))
+            inner_updates)))
     }
 }

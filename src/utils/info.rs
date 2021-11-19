@@ -1,5 +1,8 @@
 use serde::{Serialize, Deserialize};
 use urdf_rs::{Mimic};
+use nalgebra::geometry::Point3;
+use nalgebra::Isometry3;
+use crate::utils::shapes::Shape;
 // use std::fmt::Display;
 
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
@@ -70,12 +73,26 @@ impl LinkInfo {
 pub struct ProximityInfo {
     pub shape1: String,
     pub shape2: String,
-    pub distance: Option<f64>,
+    pub distance: f64,
+    pub points: Option<(Point3<f64>,Point3<f64>)>,
     pub physical: bool
 }
 
 impl ProximityInfo {
-    pub fn new(shape1: String, shape2: String, distance: Option<f64>, physical: bool) -> Self {
-        Self { shape1, shape2, distance, physical }
+    pub fn new(shape1: String, shape2: String, distance: f64, points: Option<(Point3<f64>,Point3<f64>)>, physical: bool) -> Self {
+        Self { shape1, shape2, distance, points, physical }
     }
+}
+
+#[derive(Serialize,Deserialize,Clone,Debug)]
+pub enum ShapeUpdate {
+    Add{
+        id: String,
+        shape: Shape
+    },
+    Move{
+        id: String,
+        pose: Isometry3<f64>
+    },
+    Delete(String)
 }

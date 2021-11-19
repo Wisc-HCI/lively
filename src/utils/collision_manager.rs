@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::utils::shapes::*;
-use crate::utils::info::ProximityInfo;
+use crate::utils::info::{ProximityInfo,ShapeUpdate};
 use nalgebra::geometry::{Isometry3};
 
 #[derive(Clone,Debug)]
@@ -24,8 +24,12 @@ impl CollisionManager {
 
     // }
 
-    pub fn set_transient_shapes(&mut self, _transient_shapes: &Vec<Shape>) {
+    pub fn perform_updates(&mut self, shape_updates: &Vec<ShapeUpdate>) {
 
+    }
+
+    pub fn clear_all_transient_shapes(&mut self) {
+        // Clear all the transient shapes present
     }
 
     pub fn get_proximity(&self, _frames: &HashMap<String, Isometry3<f64>>) -> Vec<ProximityInfo> {

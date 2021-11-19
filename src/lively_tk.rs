@@ -131,7 +131,7 @@ impl Solver {
         // Handle updating the values in vars
         self.vars.history.reset(&current_state);
         self.vars.history_core.reset(&current_state);
-        self.robot_model.collision_manager.set_transient_shapes(&vec![]);
+        self.robot_model.collision_manager.clear_all_transient_shapes();
 
         // Handle updating weights
         match weights {
@@ -156,7 +156,7 @@ impl Solver {
         goals: Option<Vec<Option<Goal>>>,
         weights: Option<Vec<Option<f64>>>,
         time: f64,
-        shapes: Option<Vec<Shape>>
+        shape_updates: Option<Vec<ShapeUpdate>>
     ) -> State {
         
         let xopt = self.xopt.clone();
@@ -197,8 +197,8 @@ impl Solver {
         }
 
         // Update the collision objects if provided
-        match shapes {
-            Some(objects) => self.robot_model.collision_manager.set_transient_shapes(&objects),
+        match shape_updates {
+            Some(updates) => self.robot_model.collision_manager.perform_updates(&updates),
             None => {}
         }
 
