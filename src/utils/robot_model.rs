@@ -31,7 +31,7 @@ impl RobotModel {
         let description: Robot = read_from_string(&urdf.as_str()).unwrap();
         let chain: Chain<f64> = Chain::from(description.clone());
 
-        let collision_manager: CollisionManager = CollisionManager::new(collision_objects.clone());
+        let collision_manager: CollisionManager = CollisionManager::new(chain.clone(),collision_objects.clone());
         
         let mut joints: Vec<JointInfo> = Vec::new();
         let mut links: Vec<LinkInfo> = Vec::new();
