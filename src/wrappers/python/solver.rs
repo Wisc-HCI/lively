@@ -55,6 +55,26 @@ impl PySolver {
         Ok(self.0.objective_set.objectives.iter().map(|o| PyObjective::from(o.clone())).collect())
     }
 
+    #[getter]
+    pub fn get_current_state(&self) -> PyResult<PyState> {
+        Ok(PyState::from(self.0.vars.history.prev1.clone()))
+    }
+
+    #[getter]
+    pub fn get_current_goals(&self) -> PyResult<Vec<Option<PyGoal>>> {
+        Ok(self.0.objective_set.objectives.iter().map(|o| o.get_goal().map(|g| PyGoal::from(g.clone()))).collect())
+    }
+
+    #[getter]
+    pub fn get_links(&self) -> PyResult<Vec<PyLinkInfo>> {
+        Ok(self.0.robot_model.links.iter().map(|l| PyLinkInfo::from(l.clone())).collect())
+    }
+
+    #[getter]
+    pub fn get_joints(&self) -> PyResult<Vec<PyJointInfo>> {
+        Ok(self.0.robot_model.joints.iter().map(|j| PyJointInfo::from(j.clone())).collect())
+    }
+
     fn reset(
         &mut self, 
         state: PyState,

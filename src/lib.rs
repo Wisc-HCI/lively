@@ -150,6 +150,16 @@ impl JsSolver {
         JsValue::from_serde(&goals).unwrap()
     }
 
+    #[wasm_bindgen(getter)]
+    pub fn links(&self) -> JsValue {
+        JsValue::from_serde(&self.0.robot_model.links).unwrap()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn joints(&self) -> JsValue {
+        JsValue::from_serde(&self.0.robot_model.joints).unwrap()
+    }
+
     pub fn reset(
         &mut self, 
         state: &JsValue,
