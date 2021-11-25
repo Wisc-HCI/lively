@@ -1,5 +1,6 @@
 use serde::{Serialize, Deserialize};
 use nalgebra::geometry::{Isometry3};
+use nalgebra::Vector3;
 
 #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -77,77 +78,42 @@ impl SphereShape {
     }
 }
 
-// #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
-// #[serde(rename_all = "camelCase")]
-// pub struct BoxZone {
-//     pub frame: String,
-//     pub name: String,
-//     pub x: f64,
-//     pub y: f64,
-//     pub z: f64,
-//     pub local_transform: Isometry3<f64>
-//     // handle: Whatever Parry3D/Rapier handle is needed
-// }
+#[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct MeshShape {
+    pub frame: String,
+    pub name: String,
+    pub physical: bool,
+    pub filename: String,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub local_transform: Isometry3<f64>
+}
 
-// impl BoxZone {
-//     pub fn new(name: String, frame:String, x: f64, y: f64, z: f64, local_transform: Isometry3<f64>) -> Self {
-//         // TODO: add/create shape and handle
-//         Self {name, frame, x, y, z, local_transform}
-//     }
-// }
+impl MeshShape {
+    pub fn new(name: String, frame:String, physical:bool, filename: String, x: f64, y: f64, z: f64, local_transform: Isometry3<f64>) -> Self {
+        // TODO: add/create shape and handle
+        Self {name, frame, physical, filename, x, y, z, local_transform}
+    }
+}
 
-// #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
-// #[serde(rename_all = "camelCase")]
-// pub struct CylinderZone {
-//     pub frame: String,
-//     pub name: String,
-//     pub length: f64,
-//     pub radius: f64,
-//     pub local_transform: Isometry3<f64>,
-//     // handle: Whatever Parry3D/Rapier handle is needed 
-// }
+#[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct HullShape {
+    pub frame: String,
+    pub name: String,
+    pub physical: bool,
+    pub points: Vec<Vector3<f64>>,
+    pub local_transform: Isometry3<f64>
+}
 
-// impl CylinderZone {
-//     pub fn new(name: String, frame:String, length: f64, radius: f64, local_transform: Isometry3<f64>) -> Self {
-//         // TODO: add/create shape and handle
-//         Self {name, frame, length, radius, local_transform}
-//     }
-// }
-
-// #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
-// #[serde(rename_all = "camelCase")]
-// pub struct CapsuleZone {
-//     pub frame: String,
-//     pub name: String,
-//     pub length: f64,
-//     pub radius: f64,
-//     pub local_transform: Isometry3<f64>,
-//     // handle: Whatever Parry3D/Rapier handle is needed 
-// }
-
-// impl CapsuleZone {
-//     pub fn new(name: String, frame:String, length: f64, radius: f64, local_transform: Isometry3<f64>) -> Self {
-//         // TODO: add/create shape and handle
-//         Self {name, frame, length, radius, local_transform}
-//     }
-// }
-
-// #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
-// #[serde(rename_all = "camelCase")]
-// pub struct SphereZone {
-//     pub frame: String,
-//     pub name: String,
-//     pub radius: f64,
-//     pub local_transform: Isometry3<f64>
-//     // handle: Whatever Parry3D/Rapier handle is needed 
-// }
-
-// impl SphereZone {
-//     pub fn new(name: String, frame:String, radius: f64, local_transform: Isometry3<f64>) -> Self {
-//         // TODO: add/create shape and handle
-//         Self {name, frame, radius, local_transform}
-//     }
-// }
+impl HullShape {
+    pub fn new(name: String, frame:String, physical:bool, points: Vec<Vector3<f64>>, local_transform: Isometry3<f64>) -> Self {
+        // TODO: add/create shape and handle
+        Self {name, frame, physical, points, local_transform}
+    }
+}
 
 #[derive(Serialize,Deserialize,Clone,PartialEq,Debug)]
 #[serde(tag = "type")]
@@ -155,16 +121,7 @@ pub enum Shape {
     Box(BoxShape),
     Cylinder(CylinderShape),
     Sphere(SphereShape),
-    Capsule(CapsuleShape)
+    Capsule(CapsuleShape),
+    Mesh(MeshShape),
+    Hull(HullShape)
 }
-
-
-
-// #[derive(Serialize,Deserialize,Clone,PartialEq,Debug)]
-// #[serde(tag = "type")]
-// pub enum Zone {
-//     Box(BoxZone),
-//     Cylinder(CylinderZone),
-//     Sphere(SphereZone),
-//     Capsule(CapsuleZone)
-// }

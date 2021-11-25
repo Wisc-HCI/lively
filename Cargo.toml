@@ -1,6 +1,6 @@
 [package]
 name = "lively_tk"
-version = "0.9.7"
+version = "0.9.8"
 description = "A real-time robot control framework with liveliness."
 repository = "https://github.com/Wisc-HCI/lively_tk"
 license = "MIT"

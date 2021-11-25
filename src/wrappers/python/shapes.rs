@@ -1,6 +1,8 @@
 #[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
 #[cfg(feature = "pybindings")]
+use nalgebra::vector;
+#[cfg(feature = "pybindings")]
 use crate::utils::shapes::*;
 #[cfg(feature = "pybindings")]
 use crate::wrappers::python::geometry::*;
@@ -24,6 +26,16 @@ pub struct PyCylinderShape(CylinderShape);
 #[pyclass(name="CapsuleShape")] 
 #[derive(Clone,Debug,PartialEq)]
 pub struct PyCapsuleShape(CapsuleShape);
+
+#[cfg(feature = "pybindings")]
+#[pyclass(name="HullShape")] 
+#[derive(Clone,Debug,PartialEq)]
+pub struct PyHullShape(HullShape);
+
+#[cfg(feature = "pybindings")]
+#[pyclass(name="MeshShape")] 
+#[derive(Clone,Debug,PartialEq)]
+pub struct PyMeshShape(MeshShape);
 
 #[cfg(feature = "pybindings")]
 #[derive(Clone,Debug,FromPyObject)]
@@ -313,6 +325,150 @@ impl PyCapsuleShape {
     #[setter]
     fn set_radius(&mut self,value:f64) -> PyResult<()> {
         self.0.radius = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_local_transform(&mut self, py: Python, local_transform: Transform) -> PyResult<()> {
+        self.0.local_transform = local_transform.get_isometry(py);
+        Ok(())
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl PyMeshShape {
+    #[new]
+    fn new(py: Python, name: String, frame:String, physical:bool, filename: String, x: f64, y: f64, z: f64, local_transform: Transform) -> Self {
+        return Self(MeshShape{name, frame, physical, filename, x, y, z, local_transform: local_transform.get_isometry(py)})
+    }
+    #[getter]
+    fn get_name(&self) -> PyResult<String> {
+        Ok(self.0.name.clone())
+    }
+    #[getter]
+    fn get_frame(&self) -> PyResult<String> {
+        Ok(self.0.frame.clone())
+    }
+    #[getter]
+    fn get_physical(&self) -> PyResult<bool> {
+        Ok(self.0.physical.clone())
+    }
+    #[getter]
+    fn get_filename(&self) -> PyResult<String> {
+        Ok(self.0.filename.clone())
+    }
+    #[getter]
+    fn get_x(&self) -> PyResult<f64> {
+        Ok(self.0.x.clone())
+    }
+    #[getter]
+    fn get_y(&self) -> PyResult<f64> {
+        Ok(self.0.y.clone())
+    }
+    #[getter]
+    fn get_z(&self) -> PyResult<f64> {
+        Ok(self.0.z.clone())
+    }
+    #[getter]
+    fn get_local_transform(&self, py: Python) -> PyResult<Transform> {
+        Ok(Transform {
+            translation: Py::new(py, Translation { value: self.0.local_transform.translation })?,
+            rotation: Py::new(py, Rotation { value: self.0.local_transform.rotation })?
+        })
+    }
+    #[setter]
+    fn set_name(&mut self,value:String) -> PyResult<()> {
+        self.0.name = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_frame(&mut self,value:String) -> PyResult<()> {
+        self.0.frame = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_physical(&mut self,value:bool) -> PyResult<()> {
+        self.0.physical = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_filename(&mut self,value:String) -> PyResult<()> {
+        self.0.filename = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_x(&mut self,value:f64) -> PyResult<()> {
+        self.0.x = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_y(&mut self,value:f64) -> PyResult<()> {
+        self.0.y = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_z(&mut self,value:f64) -> PyResult<()> {
+        self.0.z = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_local_transform(&mut self, py: Python, local_transform: Transform) -> PyResult<()> {
+        self.0.local_transform = local_transform.get_isometry(py);
+        Ok(())
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl PyHullShape {
+    #[new]
+    fn new(py: Python, name: String, frame:String, physical:bool, points: Vec<[f64;3]>, local_transform: Transform) -> Self {
+        return Self(HullShape{
+            name, frame, physical, 
+            points: points.iter().map(|p| vector![p[0],p[1],p[2]]).collect(), 
+            local_transform: local_transform.get_isometry(py)})
+    }
+    #[getter]
+    fn get_name(&self) -> PyResult<String> {
+        Ok(self.0.name.clone())
+    }
+    #[getter]
+    fn get_frame(&self) -> PyResult<String> {
+        Ok(self.0.frame.clone())
+    }
+    #[getter]
+    fn get_physical(&self) -> PyResult<bool> {
+        Ok(self.0.physical.clone())
+    }
+    #[getter]
+    fn get_points(&self) -> PyResult<Vec<[f64;3]>> {
+        Ok(self.0.points.iter().map(|p| [p.x,p.y,p.z]).collect())
+    }
+    #[getter]
+    fn get_local_transform(&self, py: Python) -> PyResult<Transform> {
+        Ok(Transform {
+            translation: Py::new(py, Translation { value: self.0.local_transform.translation })?,
+            rotation: Py::new(py, Rotation { value: self.0.local_transform.rotation })?
+        })
+    }
+    #[setter]
+    fn set_name(&mut self,value:String) -> PyResult<()> {
+        self.0.name = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_frame(&mut self,value:String) -> PyResult<()> {
+        self.0.frame = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_physical(&mut self,value:bool) -> PyResult<()> {
+        self.0.physical = value;
+        Ok(())
+    }
+    #[setter]
+    fn set_points(&mut self,value:Vec<[f64;3]>) -> PyResult<()> {
+        self.0.points = value.iter().map(|p| vector![p[0],p[1],p[2]]).collect();
         Ok(())
     }
     #[setter]

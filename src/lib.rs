@@ -54,6 +54,8 @@ fn lively_tk(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PySphereShape>()?;
     m.add_class::<PyCylinderShape>()?;
     m.add_class::<PyCapsuleShape>()?;
+    m.add_class::<PyHullShape>()?;
+    m.add_class::<PyMeshShape>()?;
     // m.add_class::<PyBoxZone>()?;
     // m.add_class::<PySphereZone>()?;
     // m.add_class::<PyCylinderZone>()?;
@@ -139,12 +141,12 @@ impl JsSolver {
         JsValue::from_serde(&self.0.objective_set.objectives).unwrap()
     }
 
-    #[wasm_bindgen(getter)]
+    #[wasm_bindgen(getter = currentState)]
     pub fn current_state(&self) -> JsValue {
         JsValue::from_serde(&self.0.vars.history.prev1).unwrap()
     }
 
-    #[wasm_bindgen(getter)]
+    #[wasm_bindgen(getter = currentGoals)]
     pub fn current_goals(&self) -> JsValue {
         let goals: Vec<Option<Goal>> = self.0.objective_set.objectives.iter().map(|o| o.get_goal()).collect();
         JsValue::from_serde(&goals).unwrap()

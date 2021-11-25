@@ -1,8 +1,9 @@
 use serde::{Serialize, Deserialize};
-use urdf_rs::{Mimic};
+use urdf_rs::{Mimic, Link, Geometry};
 use nalgebra::geometry::Point3;
 use nalgebra::Isometry3;
-use crate::utils::shapes::Shape;
+use k::urdf::isometry_from;
+use crate::utils::shapes::{Shape, BoxShape, CylinderShape, SphereShape, CapsuleShape, MeshShape};
 // use std::fmt::Display;
 
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
@@ -61,11 +62,41 @@ impl JointInfo {
 pub struct LinkInfo {
     pub name: String,
     pub parent_joint: String,
+    pub visuals: Vec<Shape>,
+    pub collisions: Vec<Shape>
 }
 
 impl LinkInfo {
-    pub fn new(name: String, parent_joint: String) -> Self {
-        Self { name, parent_joint }
+    pub fn new(name: String, parent_joint: String, visuals: Vec<Shape>, collisions: Vec<Shape>) -> Self {
+        Self { name, parent_joint, visuals, collisions }
+    }
+}
+
+impl From<Link> for LinkInfo {
+    fn from(link: Link) -> Self {
+        let name: String = link.name.clone();
+        let parent_joint: String = String::from("world"); // Override later if needed
+        let visuals: Vec<Shape> = link.visual.iter().map(|visual| match &visual.geometry {
+            Geometry::Box{size} => Shape::Box(BoxShape::new(visual.name.as_ref().unwrap_or(&link.name.clone()).to_string(),link.name.clone(),true,size[0],size[1],size[2],isometry_from(&visual.origin))),
+            Geometry::Sphere{radius} => Shape::Sphere(SphereShape::new(visual.name.as_ref().unwrap_or(&link.name.clone()).to_string(),link.name.clone(),true,radius.clone(),isometry_from(&visual.origin))),
+            Geometry::Cylinder{radius,length} => Shape::Cylinder(CylinderShape::new(visual.name.as_ref().unwrap_or(&link.name.clone()).to_string(),link.name.clone(),true,length.clone(),radius.clone(),isometry_from(&visual.origin))),
+            Geometry::Capsule{radius,length} => Shape::Capsule(CapsuleShape::new(visual.name.as_ref().unwrap_or(&link.name.clone()).to_string(),link.name.clone(),true,length.clone(),radius.clone(),isometry_from(&visual.origin))),
+            Geometry::Mesh{filename,scale} => {
+                let size = scale.unwrap_or([1.0,1.0,1.0]);
+                return Shape::Mesh(MeshShape::new(visual.name.as_ref().unwrap_or(&link.name.clone()).to_string(),link.name.clone(),true,filename.clone(),size[0],size[1],size[2],isometry_from(&visual.origin)))
+            },
+        }).collect();
+        let collisions: Vec<Shape> = link.collision.iter().map(|collision| match &collision.geometry {
+            Geometry::Box{size} => Shape::Box(BoxShape::new(collision.name.as_ref().unwrap_or(&link.name.clone()).to_string(),link.name.clone(),true,size[0],size[1],size[2],isometry_from(&collision.origin))),
+            Geometry::Sphere{radius} => Shape::Sphere(SphereShape::new(collision.name.as_ref().unwrap_or(&link.name.clone()).to_string(),link.name.clone(),true,radius.clone(),isometry_from(&collision.origin))),
+            Geometry::Cylinder{radius,length} => Shape::Cylinder(CylinderShape::new(collision.name.as_ref().unwrap_or(&link.name.clone()).to_string(),link.name.clone(),true,length.clone(),radius.clone(),isometry_from(&collision.origin))),
+            Geometry::Capsule{radius,length} => Shape::Capsule(CapsuleShape::new(collision.name.as_ref().unwrap_or(&link.name.clone()).to_string(),link.name.clone(),true,length.clone(),radius.clone(),isometry_from(&collision.origin))),
+            Geometry::Mesh{filename,scale} => {
+                let size = scale.unwrap_or([1.0,1.0,1.0]);
+                return Shape::Mesh(MeshShape::new(collision.name.as_ref().unwrap_or(&link.name.clone()).to_string(),link.name.clone(),true,filename.clone(),size[0],size[1],size[2],isometry_from(&collision.origin)))
+            },
+        }).collect();
+        return Self { name, parent_joint, visuals, collisions }
     }
 }
 

@@ -108,7 +108,9 @@ impl RobotModel {
                     parent_joint = joint.name.clone();
                 }
             }
-            links.push(LinkInfo::new(link.name.clone(), parent_joint.clone()));
+            let mut link_info = LinkInfo::from(link.clone());
+            link_info.parent_joint = parent_joint.clone();
+            links.push(link_info);
             if parent_joint.as_str() == "world" {
                 origin_link = link.name.clone();
             } 

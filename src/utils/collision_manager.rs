@@ -158,89 +158,86 @@ impl CollisionManager {
                             let box_collider = ColliderBuilder::new(box_shape).position(box_object.local_transform).active_events(ActiveEvents::CONTACT_EVENTS).user_data(1).build();
                             link_collider_set.insert(box_collider);
                             println!{"persistent shape added to the world frame"}
-                            
+                        }         
+                    }
+                },
 
-                    }         
-
-                }
-            },
-
-            shapes::Shape::Cylinder(cylinder_object) => {
+                shapes::Shape::Cylinder(cylinder_object) => {
                     let new_length = cylinder_object.length / 2.0;
                     let cylinder_shape = SharedShape::cylinder(new_length, cylinder_object.radius); 
                     let frame_existing_collider_handle = collider_handle_look_up.get_mut(&cylinder_object.frame);
-                        match frame_existing_collider_handle{
-                            Some(collider_handle) => {
-                                match collider_vector_look_up.get_mut(&cylinder_object.frame) {
-                                    Some(collider_vector) => {
-                                        collider_vector.push((cylinder_object.local_transform,cylinder_shape.clone()));
-                                        let new_collider = ColliderBuilder::compound(collider_vector.to_vec()).active_events(ActiveEvents::CONTACT_EVENTS).user_data(0).build();
-                                        match link_collider_set.remove(*collider_handle, &mut island_manager, &mut robot_rigid_body_set,false) {
-                                            Some(_collider) => {
-                                                let new_handle = link_collider_set.insert(new_collider);                                      
-                                                link_group.push((cylinder_object.frame.to_string(),new_handle.clone()));
-                                                shape_name_look_up.insert(new_handle.clone(),cylinder_object.frame.to_string());
-                                           
-                                                println!{"added to the compund shape"}
-                                            },
-                                            None => {
-                                                println!("could not remove please check !!!!");
-                                            },
-                                        }
-    
-                                    },
-                                    None => {
-                                        println!("could not get collider vector");
-    
-                                    },
-                                }
-                            },
-                                None => {
-                                    let cylinder_collider = ColliderBuilder::new(cylinder_shape).position(cylinder_object.local_transform).active_events(ActiveEvents::CONTACT_EVENTS).user_data(1).build();
-                                    link_collider_set.insert(cylinder_collider);
-                                    println!{"persistent shape added to the world frame"}                             
-                                },
-                                    
-                }
-            },
+                    match frame_existing_collider_handle{
+                        Some(collider_handle) => {
+                            match collider_vector_look_up.get_mut(&cylinder_object.frame) {
+                                Some(collider_vector) => {
+                                    collider_vector.push((cylinder_object.local_transform,cylinder_shape.clone()));
+                                    let new_collider = ColliderBuilder::compound(collider_vector.to_vec()).active_events(ActiveEvents::CONTACT_EVENTS).user_data(0).build();
+                                    match link_collider_set.remove(*collider_handle, &mut island_manager, &mut robot_rigid_body_set,false) {
+                                        Some(_collider) => {
+                                            let new_handle = link_collider_set.insert(new_collider);                                      
+                                            link_group.push((cylinder_object.frame.to_string(),new_handle.clone()));
+                                            shape_name_look_up.insert(new_handle.clone(),cylinder_object.frame.to_string());
+                                        
+                                            println!{"added to the compund shape"}
+                                        },
+                                        None => {
+                                            println!("could not remove please check !!!!");
+                                        },
+                                    }
 
-            shapes::Shape::Sphere(sphere_object) => {
+                                },
+                                None => {
+                                    println!("could not get collider vector");
+
+                                },
+                            }
+                        },
+                        None => {
+                            let cylinder_collider = ColliderBuilder::new(cylinder_shape).position(cylinder_object.local_transform).active_events(ActiveEvents::CONTACT_EVENTS).user_data(1).build();
+                            link_collider_set.insert(cylinder_collider);
+                            println!{"persistent shape added to the world frame"}                             
+                        },
+                            
+                    }
+                },
+
+                shapes::Shape::Sphere(sphere_object) => {
                     let sphere_shape = SharedShape::ball(sphere_object.radius);
                     let frame_existing_collider_handle = collider_handle_look_up.get_mut(&sphere_object.frame);                     
-                        match frame_existing_collider_handle{
-                            Some(collider_handle) => {
-                                match collider_vector_look_up.get_mut(&sphere_object.frame) {
-                                    Some(collider_vector) => {
-                                        collider_vector.push((sphere_object.local_transform,sphere_shape.clone()));
-                                        let new_collider = ColliderBuilder::compound(collider_vector.to_vec()).active_events(ActiveEvents::CONTACT_EVENTS).user_data(0).build();
-                                        match link_collider_set.remove(*collider_handle, &mut island_manager, &mut robot_rigid_body_set,false) {
-                                            Some(_collider) => {
-                                                let new_handle = link_collider_set.insert(new_collider);
-                                                link_group.push((sphere_object.frame.to_string(),new_handle.clone()));
-                                                shape_name_look_up.insert(new_handle.clone(),sphere_object.frame.to_string());
-                                                println!{"added to the compund shape"}
-                                            },
-                                            None => {
-                                                println!("could not remove please check !!!!");
-                                            },
-                                        }
-    
-                                    },
-                                    None => {
-                                        println!("could not get collider vector");
-    
-                                    },
-                                }
-                            },
+                    match frame_existing_collider_handle{
+                        Some(collider_handle) => {
+                            match collider_vector_look_up.get_mut(&sphere_object.frame) {
+                                Some(collider_vector) => {
+                                    collider_vector.push((sphere_object.local_transform,sphere_shape.clone()));
+                                    let new_collider = ColliderBuilder::compound(collider_vector.to_vec()).active_events(ActiveEvents::CONTACT_EVENTS).user_data(0).build();
+                                    match link_collider_set.remove(*collider_handle, &mut island_manager, &mut robot_rigid_body_set,false) {
+                                        Some(_collider) => {
+                                            let new_handle = link_collider_set.insert(new_collider);
+                                            link_group.push((sphere_object.frame.to_string(),new_handle.clone()));
+                                            shape_name_look_up.insert(new_handle.clone(),sphere_object.frame.to_string());
+                                            println!{"added to the compund shape"}
+                                        },
+                                        None => {
+                                            println!("could not remove please check !!!!");
+                                        },
+                                    }
+
+                                },
+                                None => {
+                                    println!("could not get collider vector");
+
+                                },
+                            }
+                        },
                         None => {
                             let sphere_collider = ColliderBuilder::new(sphere_shape).position(sphere_object.local_transform).active_events(ActiveEvents::CONTACT_EVENTS).user_data(1).build();
                             link_collider_set.insert(sphere_collider);
                             println!{"persistent shape added to the world frame"}
                         },
                     }                           
-            },
+                },
 
-            shapes::Shape::Capsule(capsule_object) => {
+                shapes::Shape::Capsule(capsule_object) => {
                     let point_a = Point::new(capsule_object.length * vector![0.0,1.0,0.0][0],capsule_object.length  * vector![0.0,1.0,0.0][1],capsule_object.length * vector![0.0,1.0,0.0][2] );
                     let point_b = Point::new(capsule_object.length * vector![0.0,-1.0,0.0][0],capsule_object.length   * vector![0.0,-1.0,0.0][1],capsule_object.length * vector![0.0,-1.0,0.0][2]);
                     let capsule_shape = SharedShape::capsule(point_a,point_b ,capsule_object.radius);
@@ -278,12 +275,24 @@ impl CollisionManager {
                         },
                     }                  
                 }
+
+                shapes::Shape::Hull(_hull_object) => {
+                    /*
+                    Handle Hull Objects
+                    */
+                }
+
+                shapes::Shape::Mesh(_mesh_object) => {
+                    /*
+                    Ignore Mesh Objects
+                    */
+                }
             }
         }
 
         Self { broad_phase,narrow_phase, link_group,
-               link_collider_set,robot_rigid_body_set,transient_group,collider_vector_look_up
-               ,island_manager,collider_handle_look_up,collider_changed,shape_name_look_up}
+               link_collider_set,robot_rigid_body_set,transient_group,collider_vector_look_up,
+               island_manager,collider_handle_look_up,collider_changed,shape_name_look_up}
         
     }
 
@@ -336,12 +345,17 @@ impl CollisionManager {
                                 .active_events(ActiveEvents::CONTACT_EVENTS).user_data(physical).build();
                             let handle = self.link_collider_set.insert(capsule_collider);
                             self.transient_group.push((id.to_string(),handle ));
-                                
-                                 
-
                         },
-
-
+                        shapes::Shape::Hull(_hull_object) => {
+                            /*
+                            Handle Hull Objects
+                            */
+                        }
+                        shapes::Shape::Mesh(_mesh_object) => {
+                            /*
+                            Ignore Mesh Objects
+                            */
+                        }
                     }
 
 
