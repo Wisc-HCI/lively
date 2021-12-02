@@ -13,7 +13,6 @@ use rapier3d_f64::prelude::SharedShape;
 use std::collections::HashMap;
 use std::fmt;
 
-
 #[derive(Clone)]
 pub struct CollisionManager {
     link_group: Vec<(String, ColliderHandle)>,
@@ -36,16 +35,15 @@ impl fmt::Debug for CollisionManager {
 
 impl CollisionManager {
     pub fn new(links: Vec<LinkInfo>, persistent_shapes: Vec<shapes::Shape>) -> Self {
-        let  island_manager = IslandManager::new();
+        let island_manager = IslandManager::new();
         let broad_phase = BroadPhase::new();
         let narrow_phase = NarrowPhase::new();
         let mut link_collider_set = ColliderSet::new();
-        let  robot_rigid_body_set = RigidBodySet::new();
-        let  link_group: Vec<(String, ColliderHandle)> = vec![];
-        
+        let robot_rigid_body_set = RigidBodySet::new();
+        let link_group: Vec<(String, ColliderHandle)> = vec![];
         let collider_changed: Vec<ColliderHandle> = vec![];
         let transient_group: Vec<(String, ColliderHandle)> = vec![];
-        let  shape_name_look_up = HashMap::new();
+        let shape_name_look_up = HashMap::new();
 
         for link in links.iter() {
             let mut collider_vec: Vec<(Isometry<Real>, SharedShape)> = Vec::new();
@@ -224,7 +222,6 @@ impl CollisionManager {
                         Ignore Mesh Objects
                         */
                     }
-                    
                 }
             }
         }
@@ -235,8 +232,8 @@ impl CollisionManager {
             link_group,
             link_collider_set,
             robot_rigid_body_set,
-            transient_group,    
-            island_manager,          
+            transient_group,
+            island_manager,
             collider_changed,
             shape_name_look_up,
         }
