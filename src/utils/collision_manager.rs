@@ -45,7 +45,7 @@ impl CollisionManager {
         let transient_group: Vec<(String, ColliderHandle)> = vec![];
         let shape_name_look_up = HashMap::new();
 
-        for link in links.iter() {
+        for link in &links {
             let mut collider_vec: Vec<(Isometry<Real>, SharedShape)> = Vec::new();
             let frame_name = &link.name;
             for collision in &link.collisions {
