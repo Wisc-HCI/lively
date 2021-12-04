@@ -470,13 +470,13 @@ impl CollisionManager {
         }
 
         let mut pair_event_vec = Vec::<BroadPhasePairEvent>::new();
-        new_broad_phase.update(
-            1.0,
-            &mut new_link_collider_set,
-            &new_collider_changed[0..new_collider_changed.len() - 1],
-            &[],
-            &mut pair_event_vec,
-        );
+        // new_broad_phase.update(
+        //     1.0,
+        //     &mut new_link_collider_set,
+        //     &new_collider_changed[0..new_collider_changed.len() - 1],
+        //     &[],
+        //     &mut pair_event_vec,
+        // );
         // let gravity = vector![0.0, 0.0, 0.0];
         // let integration_parameters = IntegrationParameters::default();
         let mut collision_pipeline = CollisionPipeline::new();
