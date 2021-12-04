@@ -469,7 +469,7 @@ impl CollisionManager {
             }
         }
 
-        let mut pair_event_vec = Vec::<BroadPhasePairEvent>::new();
+        // let mut pair_event_vec = Vec::<BroadPhasePairEvent>::new();
         // new_broad_phase.update(
         //     1.0,
         //     &mut new_link_collider_set,
