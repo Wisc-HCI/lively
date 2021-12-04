@@ -186,3 +186,41 @@ impl JsSolver {
         return JsValue::from_serde(&state).unwrap();
     }
 }
+
+#[cfg(feature = "jsbindings")]
+#[wasm_bindgen]
+extern "C" {
+    // Use `js_namespace` here to bind `console.log(..)` instead of just
+    // `log(..)`
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
+#[cfg(feature = "jsbindings")]
+macro_rules! console_log {
+    // Note that this is using the `log` function imported above during
+    // `bare_bones`
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
+
+#[cfg(feature = "jsbindings")]
+#[wasm_bindgen]
+pub fn solve(solver: &mut JsSolver, goals: &JsValue, weights: &JsValue, time: f64, shape_updates: &JsValue) -> JsValue {
+    let inner_goals: Option<Vec<Option<Goal>>> = goals.into_serde().unwrap();
+    let inner_weights:Option<Vec<Option<f64>>> = weights.into_serde().unwrap();
+    let inner_updates: Option<Vec<ShapeUpdate>> = shape_updates.into_serde().unwrap();
+    console_log!("Received Goals: {:?}",inner_goals);
+    console_log!("Received Weights: {:?}",inner_weights);
+    console_log!("Received Updates: {:?}",inner_updates);
+    let state:State = solver.0.solve(inner_goals,inner_weights,time,inner_updates);
+    console_log!("Produced State: {:?}",state);
+    return JsValue::from_serde(&state).unwrap();
+}
+
+#[cfg(feature = "jsbindings")]
+#[wasm_bindgen]
+pub fn reset(solver: &mut JsSolver, state: &JsValue, weights: &JsValue) {
+    let inner_state:State = state.into_serde().unwrap();
+    let inner_weights:Option<Vec<Option<f64>>> = weights.into_serde().unwrap();
+    solver.0.reset(inner_state,inner_weights);
+}
