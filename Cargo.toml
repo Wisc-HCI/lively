@@ -1,6 +1,6 @@
 [package]
 name = "lively_tk"
-version = "0.9.13"
+version = "0.9.14"
 description = "A real-time robot control framework with liveliness."
 repository = "https://github.com/Wisc-HCI/lively_tk"
 license = "MIT"
@@ -33,9 +33,11 @@ pyo3 = {version = "0.15.1", features = ["extension-module"], optional = true}
 
 [profile.dev]
 opt-level = 3
+debug = true
 
 [profile.release]
 opt-level = 3
+debug = true
 
 [lib]
 name = "lively_tk_lib"

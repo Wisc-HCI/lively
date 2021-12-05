@@ -9,7 +9,7 @@ package_name = 'lively_tk'
 
 setup(
     name=package_name,
-    version='0.9.13',
+    version='0.9.14',
     packages=[package_name],
     rust_extensions=[RustExtension("lively_tk.lively_tk", binding=Binding.PyO3, quiet=True, features=['pybindings'])],
     install_requires=['setuptools','wheel','setuptools_rust'],
