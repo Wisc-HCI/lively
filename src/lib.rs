@@ -6,6 +6,8 @@ use pyo3::prelude::*;
 use serde::{Serialize,Deserialize};
 #[cfg(feature = "jsbindings")]
 use wasm_bindgen::prelude::*;
+#[cfg(feature = "jsbindings")]
+extern crate console_error_panic_hook;
 
 pub mod utils;
 pub mod objectives;
@@ -125,6 +127,7 @@ impl JsSolver {
         max_retries: Option<u64>,
         max_iterations: Option<usize>
     ) -> Self {
+            console_error_panic_hook::set_once();
             let inner_objectives:Vec<Objective> = objectives.into_serde().unwrap();
             let temp_bounds:Option<Vec<ScalarRange>> = root_bounds.into_serde().unwrap();
             let inner_bounds:Option<Vec<(f64,f64)>> = temp_bounds.map(|bs| bs.iter().map(|b| (b.value,b.delta)).collect());
@@ -209,11 +212,11 @@ pub fn solve(solver: &mut JsSolver, goals: &JsValue, weights: &JsValue, time: f6
     let inner_goals: Option<Vec<Option<Goal>>> = goals.into_serde().unwrap();
     let inner_weights:Option<Vec<Option<f64>>> = weights.into_serde().unwrap();
     let inner_updates: Option<Vec<ShapeUpdate>> = shape_updates.into_serde().unwrap();
-    console_log!("Received Goals: {:?}",inner_goals);
-    console_log!("Received Weights: {:?}",inner_weights);
-    console_log!("Received Updates: {:?}",inner_updates);
+    // console_log!("Received Goals: {:?}",inner_goals);
+    // console_log!("Received Weights: {:?}",inner_weights);
+    // console_log!("Received Updates: {:?}",inner_updates);
     let state:State = solver.0.solve(inner_goals,inner_weights,time,inner_updates);
-    console_log!("Produced State: {:?}",state);
+    // console_log!("Produced State: {:?}",state);
     return JsValue::from_serde(&state).unwrap();
 }
 

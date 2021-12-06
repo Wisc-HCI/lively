@@ -1,6 +1,6 @@
 [package]
 name = "lively_tk"
-version = "0.9.14"
+version = "0.9.21"
 description = "A real-time robot control framework with liveliness."
 repository = "https://github.com/Wisc-HCI/lively_tk"
 license = "MIT"
@@ -11,14 +11,15 @@ edition = "2018"
 
 [features]
 pybindings = ["pyo3"]
-jsbindings = ["wasm-bindgen"]
+jsbindings = ["wasm-bindgen","console_error_panic_hook"]
 
 [dependencies]
 nalgebra = { version = "0.29", features = ["serde-serialize-no-std"]}
-rapier3d-f64 = "0.11.0"
+rapier3d-f64 = { version = "0.11.0", features = ["wasm-bindgen"]}
 parry3d-f64 = "0.7.0"
 yaml-rust = "0.4"
-optimization_engine = { version = "0.7", features = ["wasm"] }
+# optimization_engine = { version = "0.7", features = ["wasm"] }
+optimization_engine = {git = "https://github.com/yepw/optimization-engine"}
 ndarray = "0.13.0"
 num = "0.2.0"
 # nlopt = "0.5.1"
@@ -30,6 +31,7 @@ serde = { version = "1.0", features = ["derive"]}
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"], optional = true }
 getrandom = { version = "0.2", features = ["js"] }
 pyo3 = {version = "0.15.1", features = ["extension-module"], optional = true}
+console_error_panic_hook = { version = "0.1.7", optional = true }
 
 [profile.dev]
 opt-level = 3
@@ -38,6 +40,7 @@ debug = true
 [profile.release]
 opt-level = 3
 debug = true
+codegen-units = 1
 
 [lib]
 name = "lively_tk_lib"

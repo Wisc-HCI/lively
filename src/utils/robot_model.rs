@@ -31,8 +31,6 @@ impl RobotModel {
         let description: Robot = read_from_string(&urdf.as_str()).unwrap();
         let chain: Chain<f64> = Chain::from(description.clone());
 
-       
-        
         let mut joints: Vec<JointInfo> = Vec::new();
         let mut links: Vec<LinkInfo> = Vec::new();
 
@@ -185,7 +183,7 @@ impl RobotModel {
             frames.insert(self.child_map.get(&joint.name).unwrap().to_string(), transform);
         };
 
-        let proximity = self.collision_manager.get_proximity(&frames);
+        let proximity: Vec<ProximityInfo> = self.collision_manager.get_proximity(&frames);
         let center_of_mass_vec = center_of_mass(&self.chain);
 
         // Return the current state.
