@@ -1,6 +1,8 @@
 #[cfg(feature = "pybindings")]
 extern crate pyo3;
 #[cfg(feature = "pybindings")]
+extern crate pyo3_log;
+#[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
 #[cfg(feature = "jsbindings")]
 use serde::{Serialize,Deserialize};
@@ -44,6 +46,7 @@ use crate::lively_tk::Solver;
 #[cfg(feature = "pybindings")]
 #[pymodule]
 fn lively_tk(_py: Python, m: &PyModule) -> PyResult<()> {
+    pyo3_log::init();
     // State
     m.add_class::<PyState>()?;
     // Info

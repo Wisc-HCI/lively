@@ -27,7 +27,7 @@ pub struct RobotModel {
 impl RobotModel {
     
     pub fn new(urdf: String, collision_objects: Vec<Shape>) -> Self {
-
+        
         let description: Robot = read_from_string(&urdf.as_str()).unwrap();
         let chain: Chain<f64> = Chain::from(description.clone());
 

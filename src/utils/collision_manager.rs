@@ -13,6 +13,8 @@ use rapier3d_f64::prelude::SharedShape;
 use std::collections::HashMap;
 use std::fmt;
 
+use log::info;
+
 #[derive(Clone)]
 pub struct CollisionManager {
     link_group: Vec<(String, ColliderHandle)>,
@@ -35,6 +37,7 @@ impl fmt::Debug for CollisionManager {
 
 impl CollisionManager {
     pub fn new(links: Vec<LinkInfo>, persistent_shapes: Vec<shapes::Shape>) -> Self {
+        info!("Creating CollisionManager");
         let island_manager = IslandManager::new();
         let broad_phase = BroadPhase::new();
         let narrow_phase = NarrowPhase::new();

@@ -1,6 +1,6 @@
 [package]
 name = "lively_tk"
-version = "0.9.21"
+version = "0.9.22"
 description = "A real-time robot control framework with liveliness."
 repository = "https://github.com/Wisc-HCI/lively_tk"
 license = "MIT"
@@ -10,7 +10,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-pybindings = ["pyo3"]
+pybindings = ["pyo3","pyo3-log"]
 jsbindings = ["wasm-bindgen","console_error_panic_hook"]
 
 [dependencies]
@@ -31,6 +31,8 @@ serde = { version = "1.0", features = ["derive"]}
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"], optional = true }
 getrandom = { version = "0.2", features = ["js"] }
 pyo3 = {version = "0.15.1", features = ["extension-module"], optional = true}
+pyo3-log = {version = "0.5.0", optional = true}
+log = {version = "0.4.14"}
 console_error_panic_hook = { version = "0.1.7", optional = true }
 
 [profile.dev]
