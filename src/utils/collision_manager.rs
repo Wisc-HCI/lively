@@ -688,6 +688,6 @@ impl CollisionManager {
             }
         }
 
-        return vec![];
+        return result_vector;
     }
 }
