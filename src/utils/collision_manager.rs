@@ -43,11 +43,11 @@ impl CollisionManager {
         let narrow_phase = NarrowPhase::new();
         let mut link_collider_set = ColliderSet::new();
         let robot_rigid_body_set = RigidBodySet::new();
-        let link_group: Vec<(String, ColliderHandle)> = vec![];
+        let mut link_group: Vec<(String, ColliderHandle)> = vec![];
         let collider_changed: Vec<ColliderHandle> = vec![];
         let transient_group: Vec<(String, ColliderHandle)> = vec![];
-        let shape_name_look_up = HashMap::new();
-        info!("length for link is {:?}" , links);
+        let mut shape_name_look_up = HashMap::new();
+        //info!("length for link is {:?}" , links);
         for link in &links {
             let mut collider_vec: Vec<(Isometry<Real>, SharedShape)> = Vec::new();
             let frame_name = &link.name;
@@ -104,7 +104,8 @@ impl CollisionManager {
                                 .active_events(ActiveEvents::CONTACT_EVENTS)
                                 .user_data(1)
                                 .build();
-                            link_collider_set.insert(box_collider);
+                            let collider_handle = link_collider_set.insert(box_collider);
+                            shape_name_look_up.insert(collider_handle,box_object.name.to_string());
                             println! {"persistent shape(box) added to the world frame"}
                         }
                     }
@@ -123,7 +124,8 @@ impl CollisionManager {
                                 .active_events(ActiveEvents::CONTACT_EVENTS)
                                 .user_data(1)
                                 .build();
-                            link_collider_set.insert(cylinder_collider);
+                                let collider_handle = link_collider_set.insert(cylinder_collider);
+                                shape_name_look_up.insert(collider_handle,cylinder_object.name.to_string());
                             println! {"persistent shape(cylinder) added to the world frame"}
                         }
                     }
@@ -138,7 +140,8 @@ impl CollisionManager {
                                 .active_events(ActiveEvents::CONTACT_EVENTS)
                                 .user_data(1)
                                 .build();
-                            link_collider_set.insert(sphere_collider);
+                                let collider_handle = link_collider_set.insert(sphere_collider);
+                                shape_name_look_up.insert(collider_handle,sphere_object.name.to_string());
                             println! {"persistent shape(sphere) added to the world frame"}
                         }
                     }
@@ -211,7 +214,8 @@ impl CollisionManager {
                                             .active_events(ActiveEvents::CONTACT_EVENTS)
                                             .user_data(1)
                                             .build();
-                                        link_collider_set.insert(hull_collider);
+                                            let collider_handle = link_collider_set.insert(hull_collider);
+                                            shape_name_look_up.insert(collider_handle,hull_object.name.to_string());
                                         println!("persistent shape(hull) added to the world frame");
                                     }
                                     None => {
@@ -231,7 +235,9 @@ impl CollisionManager {
 
             if collider_vec.len()!= 0 {    
                 let link_collider = ColliderBuilder::compound(collider_vec).active_events(ActiveEvents::CONTACT_EVENTS).user_data(0).build();
-                link_collider_set.insert(link_collider);                     
+                let collider_handle = link_collider_set.insert(link_collider);    
+                shape_name_look_up.insert(collider_handle, frame_name.to_string());       
+                link_group.push((frame_name.to_string(), collider_handle)); 
             }
         }
         
