@@ -47,7 +47,7 @@ impl CollisionManager {
         let collider_changed: Vec<ColliderHandle> = vec![];
         let transient_group: Vec<(String, ColliderHandle)> = vec![];
         let shape_name_look_up = HashMap::new();
-
+        info!("length for link is {:?}" , links);
         for link in &links {
             let mut collider_vec: Vec<(Isometry<Real>, SharedShape)> = Vec::new();
             let frame_name = &link.name;
@@ -58,6 +58,7 @@ impl CollisionManager {
                         let cylinder_shape =
                             SharedShape::cylinder(new_length, cylinder_object.radius);
                         collider_vec.push((cylinder_object.local_transform, cylinder_shape));
+                        
                     }
                     shapes::Shape::Sphere(sphere_object) => {
                         let sphere_shape = SharedShape::ball(sphere_object.radius);
@@ -227,7 +228,13 @@ impl CollisionManager {
                     }
                 }
             }
+
+            if collider_vec.len()!= 0 {    
+                let link_collider = ColliderBuilder::compound(collider_vec).active_events(ActiveEvents::CONTACT_EVENTS).user_data(0).build();
+                link_collider_set.insert(link_collider);                     
+            }
         }
+        
 
         Self {
             broad_phase,
@@ -500,6 +507,7 @@ impl CollisionManager {
         );
 
         for pairs in new_narrow_phase.contact_pairs() {
+            info!("colliding pairs detected");
             let handle1 = pairs.collider1;
             let handle2 = pairs.collider2;
             let collider1 = new_link_collider_set.get(handle1);
