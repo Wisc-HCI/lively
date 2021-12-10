@@ -4,6 +4,7 @@ use crate::utils::shapes;
 use nalgebra::geometry::Isometry3;
 use nalgebra::vector;
 use nalgebra::Point3;
+use nalgebra::base::Vector3;
 use parry3d_f64::query::closest_points::*;
 use rapier3d_f64::dynamics::*;
 use rapier3d_f64::geometry::*;
@@ -12,6 +13,7 @@ use rapier3d_f64::pipeline::*;
 use rapier3d_f64::prelude::SharedShape;
 use std::collections::HashMap;
 use std::fmt;
+use std::f64::consts::FRAC_PI_2;
 
 use log::info;
 
@@ -37,7 +39,7 @@ impl fmt::Debug for CollisionManager {
 
 impl CollisionManager {
     pub fn new(links: Vec<LinkInfo>, persistent_shapes: Vec<shapes::Shape>) -> Self {
-        info!("Creating CollisionManager");
+        //info!("Creating CollisionManager");
         let island_manager = IslandManager::new();
         let broad_phase = BroadPhase::new();
         let narrow_phase = NarrowPhase::new();
@@ -57,8 +59,8 @@ impl CollisionManager {
                         let new_length = cylinder_object.length / 2.0;
                         let cylinder_shape =
                             SharedShape::cylinder(new_length, cylinder_object.radius);
-                        collider_vec.push((cylinder_object.local_transform, cylinder_shape));
-                        
+                        let transform_offset = Isometry3::new(vector![0.0,0.0,0.0] , Vector3::z() * FRAC_PI_2);
+                        collider_vec.push((transform_offset*cylinder_object.local_transform, cylinder_shape));
                     }
                     shapes::Shape::Sphere(sphere_object) => {
                         let sphere_shape = SharedShape::ball(sphere_object.radius);
@@ -72,14 +74,14 @@ impl CollisionManager {
                     shapes::Shape::Capsule(capsule_object) => {
                         let length = capsule_object.length;
                         let point_a = Point::new(
-                            length * vector![0.0, 1.0, 0.0][0],
-                            length * vector![0.0, 1.0, 0.0][1],
-                            length * vector![0.0, 1.0, 0.0][2],
+                            0.0,
+                            0.0,
+                            length,
                         );
                         let point_b = Point::new(
-                            length * vector![0.0, -1.0, 0.0][0],
-                            length * vector![0.0, -1.0, 0.0][1],
-                            length * vector![0.0, -1.0, 0.0][2],
+                            0.0,
+                            0.0,
+                            -length,
                         );
                         let capsule_shape =
                             SharedShape::capsule(point_a, point_b, capsule_object.radius);
@@ -105,7 +107,7 @@ impl CollisionManager {
                                 .user_data(1)
                                 .build();
                             let collider_handle = link_collider_set.insert(box_collider);
-                            shape_name_look_up.insert(collider_handle,box_object.name.to_string());
+                            shape_name_look_up.insert(collider_handle, box_object.name.to_string());
                             println! {"persistent shape(box) added to the world frame"}
                         }
                     }
@@ -124,8 +126,9 @@ impl CollisionManager {
                                 .active_events(ActiveEvents::CONTACT_EVENTS)
                                 .user_data(1)
                                 .build();
-                                let collider_handle = link_collider_set.insert(cylinder_collider);
-                                shape_name_look_up.insert(collider_handle,cylinder_object.name.to_string());
+                            let collider_handle = link_collider_set.insert(cylinder_collider);
+                            shape_name_look_up
+                                .insert(collider_handle, cylinder_object.name.to_string());
                             println! {"persistent shape(cylinder) added to the world frame"}
                         }
                     }
@@ -140,8 +143,9 @@ impl CollisionManager {
                                 .active_events(ActiveEvents::CONTACT_EVENTS)
                                 .user_data(1)
                                 .build();
-                                let collider_handle = link_collider_set.insert(sphere_collider);
-                                shape_name_look_up.insert(collider_handle,sphere_object.name.to_string());
+                            let collider_handle = link_collider_set.insert(sphere_collider);
+                            shape_name_look_up
+                                .insert(collider_handle, sphere_object.name.to_string());
                             println! {"persistent shape(sphere) added to the world frame"}
                         }
                     }
@@ -214,8 +218,10 @@ impl CollisionManager {
                                             .active_events(ActiveEvents::CONTACT_EVENTS)
                                             .user_data(1)
                                             .build();
-                                            let collider_handle = link_collider_set.insert(hull_collider);
-                                            shape_name_look_up.insert(collider_handle,hull_object.name.to_string());
+                                        let collider_handle =
+                                            link_collider_set.insert(hull_collider);
+                                        shape_name_look_up
+                                            .insert(collider_handle, hull_object.name.to_string());
                                         println!("persistent shape(hull) added to the world frame");
                                     }
                                     None => {
@@ -233,14 +239,16 @@ impl CollisionManager {
                 }
             }
 
-            if collider_vec.len()!= 0 {    
-                let link_collider = ColliderBuilder::compound(collider_vec).active_events(ActiveEvents::CONTACT_EVENTS).user_data(0).build();
-                let collider_handle = link_collider_set.insert(link_collider);    
-                shape_name_look_up.insert(collider_handle, frame_name.to_string());       
-                link_group.push((frame_name.to_string(), collider_handle)); 
+            if collider_vec.len() != 0 {
+                let link_collider = ColliderBuilder::compound(collider_vec)
+                    .active_events(ActiveEvents::CONTACT_EVENTS)
+                    .user_data(0)
+                    .build();
+                let collider_handle = link_collider_set.insert(link_collider);
+                shape_name_look_up.insert(collider_handle, frame_name.to_string());
+                link_group.push((frame_name.to_string(), collider_handle));
             }
         }
-        
 
         Self {
             broad_phase,
@@ -513,7 +521,7 @@ impl CollisionManager {
         );
 
         for pairs in new_narrow_phase.contact_pairs() {
-            info!("colliding pairs detected");
+            //info!("colliding pairs detected");
             let handle1 = pairs.collider1;
             let handle2 = pairs.collider2;
             let collider1 = new_link_collider_set.get(handle1);
