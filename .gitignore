@@ -15,3 +15,4 @@ lively_tk.egg-info
 dist**
 lively_tk/__pycache__/__init__.*
 lively_tk/lively_tk.cpython-*
+tests/.ipynb_checkpoints
