@@ -1,10 +1,10 @@
 use crate::utils::info::{LinkInfo, ProximityInfo, ShapeUpdate};
 use crate::utils::shapes;
 
+use nalgebra::base::Vector3;
 use nalgebra::geometry::Isometry3;
 use nalgebra::vector;
 use nalgebra::Point3;
-use nalgebra::base::Vector3;
 use parry3d_f64::query::closest_points::*;
 use rapier3d_f64::dynamics::*;
 use rapier3d_f64::geometry::*;
@@ -12,8 +12,8 @@ use rapier3d_f64::math::*;
 use rapier3d_f64::pipeline::*;
 use rapier3d_f64::prelude::SharedShape;
 use std::collections::HashMap;
+use std::f64::consts::PI;
 use std::fmt;
-use std::f64::consts::FRAC_PI_2;
 
 // use log::info;
 
@@ -59,8 +59,11 @@ impl CollisionManager {
                         let new_length = cylinder_object.length / 2.0;
                         let cylinder_shape =
                             SharedShape::cylinder(new_length, cylinder_object.radius);
-                        let transform_offset = Isometry3::new(vector![0.0,0.0,0.0] , Vector3::z() * FRAC_PI_2);
-                        collider_vec.push((transform_offset*cylinder_object.local_transform, cylinder_shape));
+                        let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
+                        collider_vec.push((
+                            cylinder_object.local_transform * transform_offset,
+                            cylinder_shape,
+                        ));
                     }
                     shapes::Shape::Sphere(sphere_object) => {
                         let sphere_shape = SharedShape::ball(sphere_object.radius);
@@ -73,16 +76,8 @@ impl CollisionManager {
                     }
                     shapes::Shape::Capsule(capsule_object) => {
                         let length = capsule_object.length;
-                        let point_a = Point::new(
-                            0.0,
-                            0.0,
-                            length,
-                        );
-                        let point_b = Point::new(
-                            0.0,
-                            0.0,
-                            -length,
-                        );
+                        let point_a = Point::new(0.0, 0.0, length);
+                        let point_b = Point::new(0.0, 0.0, -length);
                         let capsule_shape =
                             SharedShape::capsule(point_a, point_b, capsule_object.radius);
                         collider_vec.push((capsule_object.local_transform, capsule_shape));
@@ -116,13 +111,18 @@ impl CollisionManager {
                             let new_length = cylinder_object.length / 2.0;
                             let cylinder_shape =
                                 SharedShape::cylinder(new_length, cylinder_object.radius);
-                            collider_vec.push((cylinder_object.local_transform, cylinder_shape));
+                            let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
+                            collider_vec.push((
+                                cylinder_object.local_transform * transform_offset,
+                                cylinder_shape,
+                            ));
                         } else if cylinder_object.frame == "world" {
                             let new_length = cylinder_object.length / 2.0;
                             let cylinder_shape =
                                 SharedShape::cylinder(new_length, cylinder_object.radius);
+                            let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
                             let cylinder_collider = ColliderBuilder::new(cylinder_shape)
-                                .position(cylinder_object.local_transform)
+                                .position(cylinder_object.local_transform * transform_offset)
                                 .active_events(ActiveEvents::CONTACT_EVENTS)
                                 .user_data(1)
                                 .build();
@@ -291,11 +291,12 @@ impl CollisionManager {
                             let physical = if cylinder_object.physical { 2 } else { 1 };
 
                             let new_length = cylinder_object.length / 2.0;
+                            let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
                             let cylinder_collider = ColliderBuilder::new(SharedShape::cylinder(
                                 new_length,
                                 cylinder_object.radius,
                             ))
-                            .position(cylinder_object.local_transform)
+                            .position(cylinder_object.local_transform * transform_offset)
                             .active_events(ActiveEvents::CONTACT_EVENTS)
                             .user_data(physical)
                             .build();
