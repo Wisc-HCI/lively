@@ -29,7 +29,7 @@ pub struct Solver {
 
     // Optimization Settings
     pub only_core: bool,
-    pub max_retries: u64,
+    pub max_retries: usize,
     pub max_iterations: usize,
 }
 
@@ -41,7 +41,7 @@ impl Solver {
         shapes: Option<Vec<Shape>>,
         initial_state: Option<State>,
         only_core: Option<bool>,
-        max_retries: Option<u64>,
+        max_retries: Option<usize>,
         max_iterations: Option<usize>
     ) -> Self {
         

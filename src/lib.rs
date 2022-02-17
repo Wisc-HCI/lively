@@ -127,7 +127,7 @@ impl JsSolver {
         shapes: &JsValue,
         initial_state: &JsValue,
         only_core: Option<bool>,
-        max_retries: Option<u64>,
+        max_retries: Option<usize>,
         max_iterations: Option<usize>
     ) -> Self {
             console_error_panic_hook::set_once();

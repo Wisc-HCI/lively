@@ -40,7 +40,7 @@ impl PySolver {
         shapes: Option<Vec<PyShape>>,
         initial_state: Option<PyState>,
         only_core: Option<bool>,
-        max_retries: Option<u64>,
+        max_retries: Option<usize>,
         max_iterations: Option<usize>
     ) -> Self {
             let inner_objectives = objectives.iter().map(|o| Objective::from(o.clone())).collect();
