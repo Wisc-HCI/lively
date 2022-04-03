@@ -124,6 +124,8 @@ impl RobotModel {
             child_map.insert(link.parent_joint.clone(),link.name.clone());
         }
 
+        // println!("Child map {:?}",child_map);
+
         for joint in chain.iter_joints() {
             // Push the joint name to the names vec
             joint_names.push(joint.name.clone());
@@ -177,10 +179,20 @@ impl RobotModel {
         // self.chain.update_link_transforms();
         
         // Update the stored joint transforms
+        // println!("Getting state!")
+
         frames.insert(self.origin_link.clone(),origin);
-        for joint in self.chain.iter_joints() {
+        for node in self.chain.iter() {
+            let joint = node.joint();
+            // println!("Joint Name {:?}",joint.name);
             let transform = joint.world_transform().unwrap_or(Isometry3::identity());
-            frames.insert(self.child_map.get(&joint.name).unwrap().to_string(), transform);
+            match self.child_map.get(&joint.name) {
+                Some(child_rel) => {
+                    frames.insert(child_rel.to_string(), transform);
+                },
+                None => {}
+            };
+            // frames.insert(self.child_map.get(&joint.name).unwrap().to_string(), transform);
         };
 
         let proximity: Vec<ProximityInfo> = self.collision_manager.get_proximity(&frames);
