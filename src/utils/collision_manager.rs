@@ -542,7 +542,7 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            1.0,
+                            10.0,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
@@ -592,17 +592,22 @@ impl CollisionManager {
                         // println!("contacts found between compound shape and (non-physical transient shapes or world frame
                         //             persistent shapes)");
                         let shape1 = first.shape(); //Shape
+                        
+                        
                         let shape_collider_1_pos = *first.position();
-                        //println!("{:?}" ,shape_collider_1_pos);
+                       
                         let shape2 = second.shape();
                         let shape_collider_2_pos = *second.position();
+
+                        //  println!("shape 1 is {:?}" ,shape_collider_1_pos);
+                        //  println!("shape 2 is {:?}" ,shape_collider_2_pos);
 
                         match parry3d_f64::query::closest_points(
                             &shape_collider_1_pos,
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            1.0,
+                            10.0,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
@@ -660,7 +665,7 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            1.0,
+                            10.0,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {

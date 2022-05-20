@@ -97,5 +97,6 @@ impl PySolver {
             weights,
             time,
             inner_updates)))
+        
     }
 }
