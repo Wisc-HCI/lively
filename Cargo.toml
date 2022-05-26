@@ -1,11 +1,13 @@
 [package]
 name = "lively_tk"
-version = "0.9.27"
+version = "0.9.29"
 description = "A real-time robot control framework with liveliness."
 repository = "https://github.com/Wisc-HCI/lively_tk"
+homepage = "https://wisc-hci.github.io/lively_tk/"
 license = "MIT"
 authors = ["djrakita <djrakita@gmail.com>","andrewjschoen <schoen.andrewj@gmail.com>"]
-edition = "2018"
+edition = "2021"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -14,19 +16,20 @@ pybindings = ["pyo3","pyo3-log"]
 jsbindings = ["wasm-bindgen","console_error_panic_hook"]
 
 [dependencies]
-nalgebra = { version = "0.29", features = ["serde-serialize-no-std"]}
-rapier3d-f64 = { version = "0.11.0", features = ["wasm-bindgen"]}
-parry3d-f64 = "0.7.0"
+nalgebra = { version = "0.31", features = ["serde-serialize-no-std"]}
+rapier3d-f64 = { version = "0.12.0", features = ["wasm-bindgen"]}
+parry3d-f64 = "0.9.0"
 yaml-rust = "0.4"
-# optimization_engine = { version = "0.7", features = ["wasm"] }
+# optimization_engine = { version = "0.7.4", features = ["wasm"] }
 optimization_engine = {git = "https://github.com/yepw/optimization-engine"}
 ndarray = "0.13.0"
 num = "0.2.0"
 # nlopt = "0.5.1"
 rand = "0.8.1"
 noise = "0.7.0"
-k = { version = "0.26.0" }
-urdf-rs = "0.6.1"
+k = {git = "https://github.com/AndrewJSchoen/k"}
+# k = { version = "0.28.0" }
+urdf-rs = "0.6.2"
 serde = { version = "1.0", features = ["derive"]}
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"], optional = true }
 getrandom = { version = "0.2", features = ["js"] }
@@ -47,4 +50,5 @@ codegen-units = 1
 [lib]
 name = "lively_tk_lib"
 path = "src/lib.rs"
-crate-type = ["rlib", "dylib", "cdylib"]
+# crate-type = ["rlib", "dylib", "cdylib"]
+crate-type = ["rlib", "cdylib"]
