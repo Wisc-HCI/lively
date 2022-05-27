@@ -98,7 +98,7 @@ impl CollisionManager {
                                 SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
                             let box_collider = ColliderBuilder::new(box_shape)
                                 .position(box_object.local_transform)
-                                .active_events(ActiveEvents::CONTACT_EVENTS)
+                                .active_events(ActiveEvents::COLLISION_EVENTS)
                                 .user_data(1)
                                 .build();
                             let collider_handle = link_collider_set.insert(box_collider);
@@ -123,7 +123,7 @@ impl CollisionManager {
                             let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
                             let cylinder_collider = ColliderBuilder::new(cylinder_shape)
                                 .position(cylinder_object.local_transform * transform_offset)
-                                .active_events(ActiveEvents::CONTACT_EVENTS)
+                                .active_events(ActiveEvents::COLLISION_EVENTS)
                                 .user_data(1)
                                 .build();
                             let collider_handle = link_collider_set.insert(cylinder_collider);
@@ -140,7 +140,7 @@ impl CollisionManager {
                             let sphere_shape = SharedShape::ball(sphere_object.radius);
                             let sphere_collider = ColliderBuilder::new(sphere_shape)
                                 .position(sphere_object.local_transform)
-                                .active_events(ActiveEvents::CONTACT_EVENTS)
+                                .active_events(ActiveEvents::COLLISION_EVENTS)
                                 .user_data(1)
                                 .build();
                             let collider_handle = link_collider_set.insert(sphere_collider);
@@ -179,7 +179,7 @@ impl CollisionManager {
                                 SharedShape::capsule(point_a, point_b, capsule_object.radius);
                             let capsule_collider = ColliderBuilder::new(capsule_shape)
                                 .position(capsule_object.local_transform)
-                                .active_events(ActiveEvents::CONTACT_EVENTS)
+                                .active_events(ActiveEvents::COLLISION_EVENTS)
                                 .user_data(1)
                                 .build();
                             link_collider_set.insert(capsule_collider);
@@ -215,7 +215,7 @@ impl CollisionManager {
                                     Some(valid_hull_shape) => {
                                         let hull_collider = ColliderBuilder::new(valid_hull_shape)
                                             .position(hull_object.local_transform)
-                                            .active_events(ActiveEvents::CONTACT_EVENTS)
+                                            .active_events(ActiveEvents::COLLISION_EVENTS)
                                             .user_data(1)
                                             .build();
                                         let collider_handle =
@@ -241,7 +241,7 @@ impl CollisionManager {
 
             if collider_vec.len() != 0 {
                 let link_collider = ColliderBuilder::compound(collider_vec)
-                    .active_events(ActiveEvents::CONTACT_EVENTS)
+                    .active_events(ActiveEvents::COLLISION_EVENTS)
                     .user_data(0)
                     .build();
                 let collider_handle = link_collider_set.insert(link_collider);
@@ -281,7 +281,7 @@ impl CollisionManager {
                                 box_object.z,
                             ))
                             .position(box_object.local_transform)
-                            .active_events(ActiveEvents::CONTACT_EVENTS)
+                            .active_events(ActiveEvents::COLLISION_EVENTS)
                             .user_data(physical)
                             .build();
                             let handle = self.link_collider_set.insert(box_collider);
@@ -297,7 +297,7 @@ impl CollisionManager {
                                 cylinder_object.radius,
                             ))
                             .position(cylinder_object.local_transform * transform_offset)
-                            .active_events(ActiveEvents::CONTACT_EVENTS)
+                            .active_events(ActiveEvents::COLLISION_EVENTS)
                             .user_data(physical)
                             .build();
                             let handle = self.link_collider_set.insert(cylinder_collider);
@@ -309,7 +309,7 @@ impl CollisionManager {
                             let sphere_collider =
                                 ColliderBuilder::new(SharedShape::ball(sphere_object.radius))
                                     .position(sphere_object.local_transform)
-                                    .active_events(ActiveEvents::CONTACT_EVENTS)
+                                    .active_events(ActiveEvents::COLLISION_EVENTS)
                                     .user_data(physical)
                                     .build();
                             let handle = self.link_collider_set.insert(sphere_collider);
@@ -334,7 +334,7 @@ impl CollisionManager {
                                 capsule_object.radius,
                             ))
                             .position(capsule_object.local_transform)
-                            .active_events(ActiveEvents::CONTACT_EVENTS)
+                            .active_events(ActiveEvents::COLLISION_EVENTS)
                             .user_data(physical)
                             .build();
                             let handle = self.link_collider_set.insert(capsule_collider);
@@ -354,7 +354,7 @@ impl CollisionManager {
                                 Some(valid_hull_shape) => {
                                     let hull_collider = ColliderBuilder::new(valid_hull_shape)
                                         .position(hull_object.local_transform)
-                                        .active_events(ActiveEvents::CONTACT_EVENTS)
+                                        .active_events(ActiveEvents::COLLISION_EVENTS)
                                         .user_data(physical)
                                         .build();
                                     let handle = self.link_collider_set.insert(hull_collider);
