@@ -542,7 +542,7 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            10.0,
+                            0.33,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
@@ -607,7 +607,7 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            10.0,
+                            0.33,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
@@ -665,7 +665,7 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            10.0,
+                            0.33,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
