@@ -15,6 +15,8 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
 
+const IGNORE_DISTANCE: f64 = 10.0;
+
 // use log::info;
 
 #[derive(Clone)]
@@ -542,7 +544,7 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            0.33,
+                            IGNORE_DISTANCE,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
@@ -607,7 +609,7 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            0.33,
+                            IGNORE_DISTANCE,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
@@ -665,7 +667,7 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            0.33,
+                            IGNORE_DISTANCE,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
