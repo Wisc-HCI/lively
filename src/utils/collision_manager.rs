@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
 
-const IGNORE_DISTANCE: f64 = 10.0;
+const IGNORE_DISTANCE: f64 = 5.0;
 
 // use log::info;
 
@@ -515,7 +515,7 @@ impl CollisionManager {
         let event_handler = ();
 
         collision_pipeline.step(
-            0.1,
+            0.05,
             &mut new_broad_phase,
             &mut new_narrow_phase,
             &mut new_robot_rigid_body_set,
@@ -524,7 +524,7 @@ impl CollisionManager {
             &event_handler,
         );
 
-        //println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );
+        println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );
 
         for pairs in new_narrow_phase.contact_pairs() {
             // info!("colliding pairs detected");
