@@ -15,6 +15,8 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
 
+const IGNORE_DISTANCE: f64 = 5.0;
+
 // use log::info;
 
 #[derive(Clone)]
@@ -86,6 +88,7 @@ impl CollisionManager {
                     _ => {}
                 }
             }
+        
             for shape in &persistent_shapes {
                 match shape {
                     shapes::Shape::Box(box_object) => {
@@ -98,12 +101,12 @@ impl CollisionManager {
                                 SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
                             let box_collider = ColliderBuilder::new(box_shape)
                                 .position(box_object.local_transform)
-                                .active_events(ActiveEvents::CONTACT_EVENTS)
+                                .active_events(ActiveEvents::COLLISION_EVENTS)
                                 .user_data(1)
                                 .build();
                             let collider_handle = link_collider_set.insert(box_collider);
                             shape_name_look_up.insert(collider_handle, box_object.name.to_string());
-                            println! {"persistent shape(box) added to the world frame"}
+                            //println! {"persistent shape(box) added to the world frame"}
                         }
                     }
                     shapes::Shape::Cylinder(cylinder_object) => {
@@ -123,13 +126,13 @@ impl CollisionManager {
                             let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
                             let cylinder_collider = ColliderBuilder::new(cylinder_shape)
                                 .position(cylinder_object.local_transform * transform_offset)
-                                .active_events(ActiveEvents::CONTACT_EVENTS)
+                                .active_events(ActiveEvents::COLLISION_EVENTS)
                                 .user_data(1)
                                 .build();
                             let collider_handle = link_collider_set.insert(cylinder_collider);
                             shape_name_look_up
                                 .insert(collider_handle, cylinder_object.name.to_string());
-                            println! {"persistent shape(cylinder) added to the world frame"}
+                            //println! {"persistent shape(cylinder) added to the world frame"}
                         }
                     }
                     shapes::Shape::Sphere(sphere_object) => {
@@ -140,13 +143,13 @@ impl CollisionManager {
                             let sphere_shape = SharedShape::ball(sphere_object.radius);
                             let sphere_collider = ColliderBuilder::new(sphere_shape)
                                 .position(sphere_object.local_transform)
-                                .active_events(ActiveEvents::CONTACT_EVENTS)
+                                .active_events(ActiveEvents::COLLISION_EVENTS)
                                 .user_data(1)
                                 .build();
                             let collider_handle = link_collider_set.insert(sphere_collider);
                             shape_name_look_up
                                 .insert(collider_handle, sphere_object.name.to_string());
-                            println! {"persistent shape(sphere) added to the world frame"}
+                            //println! {"persistent shape(sphere) added to the world frame"}
                         }
                     }
                     shapes::Shape::Capsule(capsule_object) => {
@@ -179,11 +182,11 @@ impl CollisionManager {
                                 SharedShape::capsule(point_a, point_b, capsule_object.radius);
                             let capsule_collider = ColliderBuilder::new(capsule_shape)
                                 .position(capsule_object.local_transform)
-                                .active_events(ActiveEvents::CONTACT_EVENTS)
+                                .active_events(ActiveEvents::COLLISION_EVENTS)
                                 .user_data(1)
                                 .build();
                             link_collider_set.insert(capsule_collider);
-                            println!("persistent shape(capsule) added to the world frame");
+                            //("persistent shape(capsule) added to the world frame");
                         }
                     }
                     shapes::Shape::Hull(hull_object) => {
@@ -215,14 +218,14 @@ impl CollisionManager {
                                     Some(valid_hull_shape) => {
                                         let hull_collider = ColliderBuilder::new(valid_hull_shape)
                                             .position(hull_object.local_transform)
-                                            .active_events(ActiveEvents::CONTACT_EVENTS)
+                                            .active_events(ActiveEvents::COLLISION_EVENTS)
                                             .user_data(1)
                                             .build();
                                         let collider_handle =
                                             link_collider_set.insert(hull_collider);
                                         shape_name_look_up
                                             .insert(collider_handle, hull_object.name.to_string());
-                                        println!("persistent shape(hull) added to the world frame");
+                                       // println!("persistent shape(hull) added to the world frame");
                                     }
                                     None => {
                                         println!("the given points cannot form a valid hull shape");
@@ -241,7 +244,7 @@ impl CollisionManager {
 
             if collider_vec.len() != 0 {
                 let link_collider = ColliderBuilder::compound(collider_vec)
-                    .active_events(ActiveEvents::CONTACT_EVENTS)
+                    .active_events(ActiveEvents::COLLISION_EVENTS)
                     .user_data(0)
                     .build();
                 let collider_handle = link_collider_set.insert(link_collider);
@@ -281,7 +284,7 @@ impl CollisionManager {
                                 box_object.z,
                             ))
                             .position(box_object.local_transform)
-                            .active_events(ActiveEvents::CONTACT_EVENTS)
+                            .active_events(ActiveEvents::COLLISION_EVENTS)
                             .user_data(physical)
                             .build();
                             let handle = self.link_collider_set.insert(box_collider);
@@ -297,7 +300,7 @@ impl CollisionManager {
                                 cylinder_object.radius,
                             ))
                             .position(cylinder_object.local_transform * transform_offset)
-                            .active_events(ActiveEvents::CONTACT_EVENTS)
+                            .active_events(ActiveEvents::COLLISION_EVENTS)
                             .user_data(physical)
                             .build();
                             let handle = self.link_collider_set.insert(cylinder_collider);
@@ -309,7 +312,7 @@ impl CollisionManager {
                             let sphere_collider =
                                 ColliderBuilder::new(SharedShape::ball(sphere_object.radius))
                                     .position(sphere_object.local_transform)
-                                    .active_events(ActiveEvents::CONTACT_EVENTS)
+                                    .active_events(ActiveEvents::COLLISION_EVENTS)
                                     .user_data(physical)
                                     .build();
                             let handle = self.link_collider_set.insert(sphere_collider);
@@ -334,7 +337,7 @@ impl CollisionManager {
                                 capsule_object.radius,
                             ))
                             .position(capsule_object.local_transform)
-                            .active_events(ActiveEvents::CONTACT_EVENTS)
+                            .active_events(ActiveEvents::COLLISION_EVENTS)
                             .user_data(physical)
                             .build();
                             let handle = self.link_collider_set.insert(capsule_collider);
@@ -354,7 +357,7 @@ impl CollisionManager {
                                 Some(valid_hull_shape) => {
                                     let hull_collider = ColliderBuilder::new(valid_hull_shape)
                                         .position(hull_object.local_transform)
-                                        .active_events(ActiveEvents::CONTACT_EVENTS)
+                                        .active_events(ActiveEvents::COLLISION_EVENTS)
                                         .user_data(physical)
                                         .build();
                                     let handle = self.link_collider_set.insert(hull_collider);
@@ -512,7 +515,7 @@ impl CollisionManager {
         let event_handler = ();
 
         collision_pipeline.step(
-            1.0,
+            0.05,
             &mut new_broad_phase,
             &mut new_narrow_phase,
             &mut new_robot_rigid_body_set,
@@ -520,6 +523,8 @@ impl CollisionManager {
             &physics_hooks,
             &event_handler,
         );
+
+        println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );
 
         for pairs in new_narrow_phase.contact_pairs() {
             // info!("colliding pairs detected");
@@ -542,10 +547,11 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            10.0,
+                            IGNORE_DISTANCE,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
+                                   
                                     ClosestPoints::Intersecting => {
                                         let shape_name1 =
                                             self.shape_name_look_up.get(&handle1).unwrap();
@@ -584,9 +590,11 @@ impl CollisionManager {
                                     ClosestPoints::Disjoint => {
                                         //println!("disjoint is ignored");
                                     }
+                                    
+
                                 }
-                            }
-                            Err(_) => {}
+                            },
+                            Err(_) => {println!("disjoint is ignored")}
                         }
                     } else if first.user_data == 0 && second.user_data == 1 {
                         // println!("contacts found between compound shape and (non-physical transient shapes or world frame
@@ -607,7 +615,7 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            10.0,
+                            IGNORE_DISTANCE,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
@@ -650,8 +658,8 @@ impl CollisionManager {
                                         // println!("disjoint is ignored");
                                     }
                                 }
-                            }
-                            Err(_) => {}
+                            },
+                            Err(_) => {println!("disjoint is ignored")}
                         }
                     } else if first.user_data == 0 && second.user_data == 2 {
                         // println!("contact found between compound shape and physical persistent shapes");
@@ -665,7 +673,7 @@ impl CollisionManager {
                             shape1,
                             &shape_collider_2_pos,
                             shape2,
-                            10.0,
+                            IGNORE_DISTANCE,
                         ) {
                             Ok(valid_closest_points) => {
                                 match valid_closest_points {
@@ -708,8 +716,8 @@ impl CollisionManager {
                                         // println!("disjoint is ignored");
                                     }
                                 }
-                            }
-                            Err(_) => {}
+                            },
+                            Err(_) => {println!("disjoint is ignored")}
                         }
                     } else {
                         // println!("contact found between other shapes are ignored");
