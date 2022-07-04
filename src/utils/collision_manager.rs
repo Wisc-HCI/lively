@@ -14,6 +14,7 @@ use rapier3d_f64::prelude::SharedShape;
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
+use profiling::scope;
 
 const IGNORE_DISTANCE: f64 = 5.0;
 
@@ -40,6 +41,7 @@ impl fmt::Debug for CollisionManager {
 }
 
 impl CollisionManager {
+    #[profiling::function]
     pub fn new(links: Vec<LinkInfo>, persistent_shapes: Vec<shapes::Shape>) -> Self {
         // info!("Creating CollisionManager");
         let island_manager = IslandManager::new();
@@ -269,8 +271,9 @@ impl CollisionManager {
     // pub fn set_robot_frames(&mut self, _frames: &HashMap<String, Isometry3<f64>>) {
 
     // }
-
+    #[profiling::function]
     pub fn perform_updates(&mut self, shape_updates: &Vec<ShapeUpdate>) {
+        //scope!("perform updates");
         for update in shape_updates {
             match update {
                 ShapeUpdate::Add { id, shape } => {
@@ -420,7 +423,7 @@ impl CollisionManager {
             }
         }
     }
-
+    #[profiling::function]
     pub fn clear_all_transient_shapes(&mut self) {
         for (_, transient_handle) in &mut self.transient_group {
             self.link_collider_set.remove(
@@ -441,92 +444,34 @@ impl CollisionManager {
         self.transient_group.clear();
     }
 
+    // pub fn collision_pipeline_step(mut new_broad_phase : BroadPhase, mut new_narrow_phase : NarrowPhase, mut new_robot_rigid_body_set :  RigidBodySet,mut new_link_collider_set : ColliderSet) -> NarrowPhase{
+    //     let mut collision_pipeline = CollisionPipeline::new();
+    //     let physics_hooks = ();
+    //     let event_handler = ();
+
+    //     collision_pipeline.step(
+    //         1.0,
+    //         &mut new_broad_phase,
+    //         &mut new_narrow_phase,
+    //         &mut new_robot_rigid_body_set,
+    //         &mut new_link_collider_set,
+    //         &physics_hooks,
+    //         &event_handler,
+    //     );
+
+    //     println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );
+    //     return new_narrow_phase;
+    // }
+
+    
+
+    #[profiling::function]
     pub fn get_proximity(&self, frames: &HashMap<String, Isometry3<f64>>) -> Vec<ProximityInfo> {
-        //----------------------------------------------------setframes()
-        let mut new_link_group = self.link_group.clone();
-        let mut new_transient_group = self.transient_group.clone();
-        let mut new_link_collider_set = self.link_collider_set.clone();
-        let mut new_robot_rigid_body_set = self.robot_rigid_body_set.clone();
-        let mut new_broad_phase = self.broad_phase.clone();
-        let mut new_narrow_phase = self.narrow_phase.clone();
-        // let mut new_collider_vector_look_up = self.collider_vector_look_up.clone();
-        // let mut new_collider_handle_look_up = self.collider_handle_look_up.clone();
-        // let mut new_island_manager = self.island_manager.clone();
-        let mut new_collider_changed = self.collider_changed.clone();
+
+    #[profiling::function]
+    pub fn iterate_contact_pairs(&self, mut new_broad_phase : BroadPhase, mut new_narrow_phase : NarrowPhase, mut new_robot_rigid_body_set :  RigidBodySet, mut new_link_collider_set : ColliderSet) -> Vec<ProximityInfo> {
         let mut result_vector: Vec<ProximityInfo> = vec![];
-        // let mut self.shape_name_look_up = self.shape_name_look_up.clone();
-
-        for (name, group_handle) in &mut new_link_group {
-            // println!("{}" , name);
-            let link_collider = new_link_collider_set.get_mut(*group_handle);
-            match link_collider {
-                Some(matched_link_collider) => {
-                    let transform = frames.get(name);
-                    match transform {
-                        Some(matched_transform) => {
-                            // println!("{:?}", matched_transform);
-                            matched_link_collider.set_position(*matched_transform);
-                            new_collider_changed.push(*group_handle);
-                            // println!("value assigned");
-                        }
-                        None => {} //println!("Could not find the value"),
-                    }
-                }
-                None => {
-                    //println!("{}{}" , " persistent shape updated for frame " , name);
-                }
-            }
-        }
-
-        for (name, group_handle) in &mut new_transient_group {
-            let transient_collider = new_link_collider_set.get_mut(*group_handle);
-            match transient_collider {
-                Some(matched_transient_collider) => {
-                    let transform = frames.get(name);
-                    match transform {
-                        Some(matched_transform) => {
-                            //println!("{:?}", matched_transform);
-                            matched_transient_collider.set_position(*matched_transform);
-                            new_collider_changed.push(*group_handle);
-                            //println!("value assigned");
-                        }
-                        None => {} //println!("Could not find the value"),
-                    }
-                }
-                None => {} //println!("Could not find the handle"),
-            }
-        }
-
-        // let mut pair_event_vec = Vec::<BroadPhasePairEvent>::new();
-        // new_broad_phase.update(
-        //     1.0,
-        //     &mut new_link_collider_set,
-        //     &new_collider_changed[0..new_collider_changed.len() - 1],
-        //     &[],
-        //     &mut pair_event_vec,
-        // );
-        // let gravity = vector![0.0, 0.0, 0.0];
-        // let integration_parameters = IntegrationParameters::default();
-        let mut collision_pipeline = CollisionPipeline::new();
-        // let mut joint_set = JointSet::new();
-        // let mut ccd_solver = CCDSolver::new();
-        //let mut rigid_body_set = RigidBodySet::new();
-        let physics_hooks = ();
-        let event_handler = ();
-
-        collision_pipeline.step(
-            0.05,
-            &mut new_broad_phase,
-            &mut new_narrow_phase,
-            &mut new_robot_rigid_body_set,
-            &mut new_link_collider_set,
-            &physics_hooks,
-            &event_handler,
-        );
-
-        println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );
-
-        for pairs in new_narrow_phase.contact_pairs() {
+       for pairs in new_narrow_phase.contact_pairs() {
             // info!("colliding pairs detected");
             let handle1 = pairs.collider1;
             let handle2 = pairs.collider2;
@@ -728,5 +673,321 @@ impl CollisionManager {
         }
 
         return result_vector;
+    }
+
+        #[profiling::function]
+        pub fn collision_pipeline_step(mut new_broad_phase : BroadPhase, mut new_narrow_phase : NarrowPhase, mut new_robot_rigid_body_set :  RigidBodySet, mut new_link_collider_set : ColliderSet) -> (NarrowPhase,ColliderSet){
+            let mut collision_pipeline = CollisionPipeline::new();
+            let physics_hooks = ();
+            let event_handler = ();
+    
+            collision_pipeline.step(
+                1.0,
+                &mut new_broad_phase,
+                &mut new_narrow_phase,
+                &mut new_robot_rigid_body_set,
+                &mut new_link_collider_set,
+                &physics_hooks,
+                &event_handler,
+            );
+    
+            println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );
+            return (new_narrow_phase,new_link_collider_set);
+        }
+
+       
+
+        
+       // scope!("get");
+        //----------------------------------------------------setframes()
+        let mut new_link_group = self.link_group.clone();
+        let mut new_transient_group = self.transient_group.clone();
+        let mut new_link_collider_set = self.link_collider_set.clone();
+        let mut new_robot_rigid_body_set = self.robot_rigid_body_set.clone();
+        let mut new_broad_phase = self.broad_phase.clone();
+        let mut new_narrow_phase = self.narrow_phase.clone();
+        // let mut new_collider_vector_look_up = self.collider_vector_look_up.clone();
+        // let mut new_collider_handle_look_up = self.collider_handle_look_up.clone();
+        // let mut new_island_manager = self.island_manager.clone();
+        let mut new_collider_changed = self.collider_changed.clone();
+        let mut result_vector: Vec<ProximityInfo> = vec![];
+        // let mut self.shape_name_look_up = self.shape_name_look_up.clone();
+
+        for (name, group_handle) in &mut new_link_group {
+            // println!("{}" , name);
+            let link_collider = new_link_collider_set.get_mut(*group_handle);
+            match link_collider {
+                Some(matched_link_collider) => {
+                    let transform = frames.get(name);
+                    match transform {
+                        Some(matched_transform) => {
+                            // println!("{:?}", matched_transform);
+                            matched_link_collider.set_position(*matched_transform);
+                            new_collider_changed.push(*group_handle);
+                            // println!("value assigned");
+                        }
+                        None => {} //println!("Could not find the value"),
+                    }
+                }
+                None => {
+                    //println!("{}{}" , " persistent shape updated for frame " , name);
+                }
+            }
+        }
+
+        for (name, group_handle) in &mut new_transient_group {
+            let transient_collider = new_link_collider_set.get_mut(*group_handle);
+            match transient_collider {
+                Some(matched_transient_collider) => {
+                    let transform = frames.get(name);
+                    match transform {
+                        Some(matched_transform) => {
+                            //println!("{:?}", matched_transform);
+                            matched_transient_collider.set_position(*matched_transform);
+                            new_collider_changed.push(*group_handle);
+                            //println!("value assigned");
+                        }
+                        None => {} //println!("Could not find the value"),
+                    }
+                }
+                None => {} //println!("Could not find the handle"),
+            }
+        }
+
+        // let mut pair_event_vec = Vec::<BroadPhasePairEvent>::new();
+        // new_broad_phase.update(
+        //     1.0,
+        //     &mut new_link_collider_set,
+        //     &new_collider_changed[0..new_collider_changed.len() - 1],
+        //     &[],
+        //     &mut pair_event_vec,
+        // );
+        // let gravity = vector![0.0, 0.0, 0.0];
+        // let integration_parameters = IntegrationParameters::default();
+        // let mut collision_pipeline = CollisionPipeline::new();
+        // // let mut joint_set = JointSet::new();
+        // // let mut ccd_solver = CCDSolver::new();
+        // //let mut rigid_body_set = RigidBodySet::new();
+        // let physics_hooks = ();
+        // let event_handler = ();
+
+        // collision_pipeline.step(
+        //     1.0,
+        //     &mut new_broad_phase,
+        //     &mut new_narrow_phase,
+        //     &mut new_robot_rigid_body_set,
+        //     &mut new_link_collider_set,
+        //     &physics_hooks,
+        //     &event_handler,
+        // );
+
+        // println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );collision_pipeline_step
+        let (new_narrow_phase,new_link_collider_set) = collision_pipeline_step(new_broad_phase, new_narrow_phase,  new_robot_rigid_body_set, new_link_collider_set);
+        result_vector = iterate_contact_pairs(&self,new_broad_phase, new_narrow_phase,  new_robot_rigid_body_set, new_link_collider_set);
+
+        return result_vector;
+
+        // for pairs in new_narrow_phase.contact_pairs() {
+        //     // info!("colliding pairs detected");
+        //     let handle1 = pairs.collider1;
+        //     let handle2 = pairs.collider2;
+        //     let collider1 = new_link_collider_set.get(handle1);
+        //     let collider2 = new_link_collider_set.get(handle2);
+
+        //     match (collider1, collider2) {
+        //         (Some(first), Some(second)) => {
+        //             if first.user_data == 0 && second.user_data == 0 {
+        //                 //println!("contacts found between compound shapes");
+        //                 let shape1 = first.shape(); //Shape
+        //                 let shape_collider_1_pos = *first.position();
+        //                 //println!("{:?}" ,shape_collider_1_pos);
+        //                 let shape2 = second.shape();
+        //                 let shape_collider_2_pos = *second.position();
+        //                 match parry3d_f64::query::closest_points(
+        //                     &shape_collider_1_pos,
+        //                     shape1,
+        //                     &shape_collider_2_pos,
+        //                     shape2,
+        //                     IGNORE_DISTANCE,
+        //                 ) {
+        //                     Ok(valid_closest_points) => {
+        //                         match valid_closest_points {
+                                   
+        //                             ClosestPoints::Intersecting => {
+        //                                 let shape_name1 =
+        //                                     self.shape_name_look_up.get(&handle1).unwrap();
+        //                                 let shape_name2 =
+        //                                     self.shape_name_look_up.get(&handle2).unwrap();
+        //                                 result_vector.push(ProximityInfo::new(
+        //                                     shape_name1.to_string(),
+        //                                     shape_name2.to_string(),
+        //                                     0.0,
+        //                                     None,
+        //                                     true,
+        //                                 ));
+
+        //                                 // // Distance is zero and there are no points included
+        //                                 // infos.push(ProximityInfo::new(shape1_name,shape2_name,Some(0.0),None,is_physical))
+        //                             }
+        //                             ClosestPoints::WithinMargin(point1, point2) => {
+        //                                 let shape_name1 =
+        //                                     self.shape_name_look_up.get(&handle1).unwrap();
+        //                                 let shape_name2 =
+        //                                     self.shape_name_look_up.get(&handle2).unwrap();
+        //                                 let dist = ((point1.x - point2.x) * (point1.x - point2.x)
+        //                                     + (point1.y - point2.y) * (point1.y - point2.y)
+        //                                     + (point1.z - point2.z) * (point1.z - point2.z) as f64)
+        //                                     .sqrt();
+        //                                 result_vector.push(ProximityInfo::new(
+        //                                     shape_name1.to_string(),
+        //                                     shape_name2.to_string(),
+        //                                     dist,
+        //                                     Some((point1, point2)),
+        //                                     true,
+        //                                 ));
+        //                                 // let dist = distance(point1,point2);
+        //                                 // infos.push(ProximityInfo::new(shape1_name,shape2_name,Some(dist),Some((point1,point2)),is_physical))
+        //                             }
+        //                             ClosestPoints::Disjoint => {
+        //                                 //println!("disjoint is ignored");
+        //                             }
+                                    
+
+        //                         }
+        //                     },
+        //                     Err(_) => {println!("disjoint is ignored")}
+        //                 }
+        //             } else if first.user_data == 0 && second.user_data == 1 {
+        //                 // println!("contacts found between compound shape and (non-physical transient shapes or world frame
+        //                 //             persistent shapes)");
+        //                 let shape1 = first.shape(); //Shape
+                        
+                        
+        //                 let shape_collider_1_pos = *first.position();
+                       
+        //                 let shape2 = second.shape();
+        //                 let shape_collider_2_pos = *second.position();
+
+        //                 //  println!("shape 1 is {:?}" ,shape_collider_1_pos);
+        //                 //  println!("shape 2 is {:?}" ,shape_collider_2_pos);
+
+        //                 match parry3d_f64::query::closest_points(
+        //                     &shape_collider_1_pos,
+        //                     shape1,
+        //                     &shape_collider_2_pos,
+        //                     shape2,
+        //                     IGNORE_DISTANCE,
+        //                 ) {
+        //                     Ok(valid_closest_points) => {
+        //                         match valid_closest_points {
+        //                             ClosestPoints::Intersecting => {
+        //                                 let shape_name1 =
+        //                                     self.shape_name_look_up.get(&handle1).unwrap();
+        //                                 let shape_name2 =
+        //                                     self.shape_name_look_up.get(&handle2).unwrap();
+        //                                 result_vector.push(ProximityInfo::new(
+        //                                     shape_name1.to_string(),
+        //                                     shape_name2.to_string(),
+        //                                     0.0,
+        //                                     None,
+        //                                     false,
+        //                                 ));
+
+        //                                 // // Distance is zero and there are no points included
+        //                                 // infos.push(ProximityInfo::new(shape1_name,shape2_name,Some(0.0),None,is_physical))
+        //                             }
+        //                             ClosestPoints::WithinMargin(point1, point2) => {
+        //                                 let shape_name1 =
+        //                                     self.shape_name_look_up.get(&handle1).unwrap();
+        //                                 let shape_name2 =
+        //                                     self.shape_name_look_up.get(&handle2).unwrap();
+        //                                 let dist = ((point1.x - point2.x) * (point1.x - point2.x)
+        //                                     + (point1.y - point2.y) * (point1.y - point2.y)
+        //                                     + (point1.z - point2.z) * (point1.z - point2.z) as f64)
+        //                                     .sqrt();
+        //                                 result_vector.push(ProximityInfo::new(
+        //                                     shape_name1.to_string(),
+        //                                     shape_name2.to_string(),
+        //                                     dist,
+        //                                     Some((point1, point2)),
+        //                                     false,
+        //                                 ));
+        //                                 // let dist = distance(point1,point2);
+        //                                 // infos.push(ProximityInfo::new(shape1_name,shape2_name,Some(dist),Some((point1,point2)),is_physical))
+        //                             }
+        //                             ClosestPoints::Disjoint => {
+        //                                 // println!("disjoint is ignored");
+        //                             }
+        //                         }
+        //                     },
+        //                     Err(_) => {println!("disjoint is ignored")}
+        //                 }
+        //             } else if first.user_data == 0 && second.user_data == 2 {
+        //                 // println!("contact found between compound shape and physical persistent shapes");
+        //                 let shape1 = first.shape(); //Shape
+        //                 let shape_collider_1_pos = *first.position();
+        //                 //println!("{:?}" ,shape_collider_1_pos);
+        //                 let shape2 = second.shape();
+        //                 let shape_collider_2_pos = *second.position();
+        //                 match parry3d_f64::query::closest_points(
+        //                     &shape_collider_1_pos,
+        //                     shape1,
+        //                     &shape_collider_2_pos,
+        //                     shape2,
+        //                     IGNORE_DISTANCE,
+        //                 ) {
+        //                     Ok(valid_closest_points) => {
+        //                         match valid_closest_points {
+        //                             ClosestPoints::Intersecting => {
+        //                                 let shape_name1 =
+        //                                     self.shape_name_look_up.get(&handle1).unwrap();
+        //                                 let shape_name2 =
+        //                                     self.shape_name_look_up.get(&handle2).unwrap();
+        //                                 result_vector.push(ProximityInfo::new(
+        //                                     shape_name1.to_string(),
+        //                                     shape_name2.to_string(),
+        //                                     0.0,
+        //                                     None,
+        //                                     true,
+        //                                 ));
+
+        //                                 // // Distance is zero and there are no points included
+        //                                 // infos.push(ProximityInfo::new(shape1_name,shape2_name,Some(0.0),None,is_physical))
+        //                             }
+        //                             ClosestPoints::WithinMargin(point1, point2) => {
+        //                                 let shape_name1 =
+        //                                     self.shape_name_look_up.get(&handle1).unwrap();
+        //                                 let shape_name2 =
+        //                                     self.shape_name_look_up.get(&handle2).unwrap();
+        //                                 let dist = ((point1.x - point2.x) * (point1.x - point2.x)
+        //                                     + (point1.y - point2.y) * (point1.y - point2.y)
+        //                                     + (point1.z - point2.z) * (point1.z - point2.z) as f64)
+        //                                     .sqrt();
+        //                                 result_vector.push(ProximityInfo::new(
+        //                                     shape_name1.to_string(),
+        //                                     shape_name2.to_string(),
+        //                                     dist,
+        //                                     Some((point1, point2)),
+        //                                     true,
+        //                                 ));
+        //                                 // let dist = distance(point1,point2);
+        //                                 // infos.push(ProximityInfo::new(shape1_name,shape2_name,Some(dist),Some((point1,point2)),is_physical))
+        //                             }
+        //                             ClosestPoints::Disjoint => {
+        //                                 // println!("disjoint is ignored");
+        //                             }
+        //                         }
+        //                     },
+        //                     Err(_) => {println!("disjoint is ignored")}
+        //                 }
+        //             } else {
+        //                 // println!("contact found between other shapes are ignored");
+        //             }
+        //         }
+        //         _ => {}
+        //     }
+        // }
+
+        // return result_vector;
     }
 }
