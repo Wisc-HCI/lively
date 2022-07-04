@@ -469,7 +469,7 @@ impl CollisionManager {
     pub fn get_proximity(&self, frames: &HashMap<String, Isometry3<f64>>) -> Vec<ProximityInfo> {
 
     #[profiling::function]
-    pub fn iterate_contact_pairs(&self, mut new_broad_phase : BroadPhase, mut new_narrow_phase : NarrowPhase, mut new_robot_rigid_body_set :  RigidBodySet, mut new_link_collider_set : ColliderSet) -> Vec<ProximityInfo> {
+    pub fn iterate_contact_pairs( shape_name_look_up : HashMap<ColliderHandle, String> , mut new_broad_phase : BroadPhase, mut new_narrow_phase : NarrowPhase, mut new_robot_rigid_body_set :  RigidBodySet, mut new_link_collider_set : ColliderSet) -> Vec<ProximityInfo> {
         let mut result_vector: Vec<ProximityInfo> = vec![];
        for pairs in new_narrow_phase.contact_pairs() {
             // info!("colliding pairs detected");
@@ -499,9 +499,9 @@ impl CollisionManager {
                                    
                                     ClosestPoints::Intersecting => {
                                         let shape_name1 =
-                                            self.shape_name_look_up.get(&handle1).unwrap();
+                                            shape_name_look_up.get(&handle1).unwrap();
                                         let shape_name2 =
-                                            self.shape_name_look_up.get(&handle2).unwrap();
+                                            shape_name_look_up.get(&handle2).unwrap();
                                         result_vector.push(ProximityInfo::new(
                                             shape_name1.to_string(),
                                             shape_name2.to_string(),
@@ -515,9 +515,9 @@ impl CollisionManager {
                                     }
                                     ClosestPoints::WithinMargin(point1, point2) => {
                                         let shape_name1 =
-                                            self.shape_name_look_up.get(&handle1).unwrap();
+                                            shape_name_look_up.get(&handle1).unwrap();
                                         let shape_name2 =
-                                            self.shape_name_look_up.get(&handle2).unwrap();
+                                            shape_name_look_up.get(&handle2).unwrap();
                                         let dist = ((point1.x - point2.x) * (point1.x - point2.x)
                                             + (point1.y - point2.y) * (point1.y - point2.y)
                                             + (point1.z - point2.z) * (point1.z - point2.z) as f64)
@@ -566,9 +566,9 @@ impl CollisionManager {
                                 match valid_closest_points {
                                     ClosestPoints::Intersecting => {
                                         let shape_name1 =
-                                            self.shape_name_look_up.get(&handle1).unwrap();
+                                            shape_name_look_up.get(&handle1).unwrap();
                                         let shape_name2 =
-                                            self.shape_name_look_up.get(&handle2).unwrap();
+                                            shape_name_look_up.get(&handle2).unwrap();
                                         result_vector.push(ProximityInfo::new(
                                             shape_name1.to_string(),
                                             shape_name2.to_string(),
@@ -582,9 +582,9 @@ impl CollisionManager {
                                     }
                                     ClosestPoints::WithinMargin(point1, point2) => {
                                         let shape_name1 =
-                                            self.shape_name_look_up.get(&handle1).unwrap();
+                                            shape_name_look_up.get(&handle1).unwrap();
                                         let shape_name2 =
-                                            self.shape_name_look_up.get(&handle2).unwrap();
+                                            shape_name_look_up.get(&handle2).unwrap();
                                         let dist = ((point1.x - point2.x) * (point1.x - point2.x)
                                             + (point1.y - point2.y) * (point1.y - point2.y)
                                             + (point1.z - point2.z) * (point1.z - point2.z) as f64)
@@ -624,9 +624,9 @@ impl CollisionManager {
                                 match valid_closest_points {
                                     ClosestPoints::Intersecting => {
                                         let shape_name1 =
-                                            self.shape_name_look_up.get(&handle1).unwrap();
+                                            shape_name_look_up.get(&handle1).unwrap();
                                         let shape_name2 =
-                                            self.shape_name_look_up.get(&handle2).unwrap();
+                                            shape_name_look_up.get(&handle2).unwrap();
                                         result_vector.push(ProximityInfo::new(
                                             shape_name1.to_string(),
                                             shape_name2.to_string(),
@@ -640,9 +640,9 @@ impl CollisionManager {
                                     }
                                     ClosestPoints::WithinMargin(point1, point2) => {
                                         let shape_name1 =
-                                            self.shape_name_look_up.get(&handle1).unwrap();
+                                           shape_name_look_up.get(&handle1).unwrap();
                                         let shape_name2 =
-                                            self.shape_name_look_up.get(&handle2).unwrap();
+                                            shape_name_look_up.get(&handle2).unwrap();
                                         let dist = ((point1.x - point2.x) * (point1.x - point2.x)
                                             + (point1.y - point2.y) * (point1.y - point2.y)
                                             + (point1.z - point2.z) * (point1.z - point2.z) as f64)
@@ -676,7 +676,7 @@ impl CollisionManager {
     }
 
         #[profiling::function]
-        pub fn collision_pipeline_step(mut new_broad_phase : BroadPhase, mut new_narrow_phase : NarrowPhase, mut new_robot_rigid_body_set :  RigidBodySet, mut new_link_collider_set : ColliderSet) -> (NarrowPhase,ColliderSet){
+        pub fn collision_pipeline_step(mut new_broad_phase : BroadPhase, mut new_narrow_phase : NarrowPhase, mut new_robot_rigid_body_set :  RigidBodySet, mut new_link_collider_set : ColliderSet) -> (NarrowPhase,ColliderSet,BroadPhase,RigidBodySet){
             let mut collision_pipeline = CollisionPipeline::new();
             let physics_hooks = ();
             let event_handler = ();
@@ -692,7 +692,7 @@ impl CollisionManager {
             );
     
             println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );
-            return (new_narrow_phase,new_link_collider_set);
+            return (new_narrow_phase,new_link_collider_set,new_broad_phase,new_robot_rigid_body_set);
         }
 
        
@@ -782,8 +782,8 @@ impl CollisionManager {
         // );
 
         // println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );collision_pipeline_step
-        let (new_narrow_phase,new_link_collider_set) = collision_pipeline_step(new_broad_phase, new_narrow_phase,  new_robot_rigid_body_set, new_link_collider_set);
-        result_vector = iterate_contact_pairs(&self,new_broad_phase, new_narrow_phase,  new_robot_rigid_body_set, new_link_collider_set);
+        let (new_narrow_phase,new_link_collider_set,new_broad_phase,new_robot_rigid_body_set) = collision_pipeline_step(new_broad_phase, new_narrow_phase,  new_robot_rigid_body_set, new_link_collider_set);
+        result_vector = iterate_contact_pairs(self.shape_name_look_up.clone(),new_broad_phase, new_narrow_phase,  new_robot_rigid_body_set, new_link_collider_set);
 
         return result_vector;
 
