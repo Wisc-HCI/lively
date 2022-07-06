@@ -6,11 +6,13 @@ use nalgebra::geometry::Isometry3;
 use nalgebra::vector;
 use nalgebra::Point3;
 use parry3d_f64::query::closest_points::*;
-use rapier3d_f64::dynamics::*;
-use rapier3d_f64::geometry::*;
-use rapier3d_f64::math::*;
-use rapier3d_f64::pipeline::*;
-use rapier3d_f64::prelude::SharedShape;
+use parry3d_f64::shape::*;
+use parry3d_f64::bounding_volume::AABB;
+// use rapier3d_f64::dynamics::*;
+// use rapier3d_f64::geometry::*;
+// use rapier3d_f64::math::*;
+// use rapier3d_f64::pipeline::*;
+// use rapier3d_f64::prelude::SharedShape;
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
@@ -22,16 +24,10 @@ const IGNORE_DISTANCE: f64 = 5.0;
 
 #[derive(Clone)]
 pub struct CollisionManager {
-    link_group: Vec<(String, ColliderHandle)>,
-    transient_group: Vec<(String, ColliderHandle)>,
-    link_collider_set: ColliderSet,
-    robot_rigid_body_set: RigidBodySet,
-    broad_phase: BroadPhase,
-    narrow_phase: NarrowPhase,
-    island_manager: IslandManager,
-    collider_changed: Vec<ColliderHandle>,
-    shape_name_look_up: HashMap<ColliderHandle, String>,
-    // string, struct ?
+    compound_shapes_list : Vec<(i32, AABB)>,
+    position_sharedshape_list: Vec<(Isometry3<f32>, SharedShape)>,
+
+
 }
 
 impl fmt::Debug for CollisionManager {
@@ -44,20 +40,14 @@ impl CollisionManager {
     #[profiling::function]
     pub fn new(links: Vec<LinkInfo>, persistent_shapes: Vec<shapes::Shape>) -> Self {
         // info!("Creating CollisionManager");
-        let island_manager = IslandManager::new();
-        let broad_phase = BroadPhase::new();
-        let narrow_phase = NarrowPhase::new();
-        let mut link_collider_set = ColliderSet::new();
-        let robot_rigid_body_set = RigidBodySet::new();
-        let mut link_group: Vec<(String, ColliderHandle)> = vec![];
-        let collider_changed: Vec<ColliderHandle> = vec![];
-        let transient_group: Vec<(String, ColliderHandle)> = vec![];
-        let mut shape_name_look_up = HashMap::new();
+      
         //info!("length for link is {:?}" , links);
+        let index: i32 = 0;
         for link in &links {
-            let mut collider_vec: Vec<(Isometry<Real>, SharedShape)> = Vec::new();
+            let mut collider_vec: Vec<(Isometry3<f64>, SharedShape)> = Vec::new();
             let frame_name = &link.name;
             for collision in &link.collisions {
+
                 match collision {
                     shapes::Shape::Cylinder(cylinder_object) => {
                         let new_length = cylinder_object.length / 2.0;
@@ -80,8 +70,8 @@ impl CollisionManager {
                     }
                     shapes::Shape::Capsule(capsule_object) => {
                         let length = capsule_object.length;
-                        let point_a = Point::new(0.0, 0.0, length);
-                        let point_b = Point::new(0.0, 0.0, -length);
+                        let point_a = Point3::new(0.0, 0.0, length);
+                        let point_b = Point3::new(0.0, 0.0, -length);
                         let capsule_shape =
                             SharedShape::capsule(point_a, point_b, capsule_object.radius);
                         collider_vec.push((capsule_object.local_transform, capsule_shape));
@@ -101,14 +91,9 @@ impl CollisionManager {
                         } else if box_object.frame == "world" {
                             let box_shape =
                                 SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
-                            let box_collider = ColliderBuilder::new(box_shape)
-                                .position(box_object.local_transform)
-                                .active_events(ActiveEvents::COLLISION_EVENTS)
-                                .user_data(1)
-                                .build();
-                            let collider_handle = link_collider_set.insert(box_collider);
-                            shape_name_look_up.insert(collider_handle, box_object.name.to_string());
-                            //println! {"persistent shape(box) added to the world frame"}
+                            let box_compound_collider_aabb = Compound::new(collider_vec).compute_local_aabb();
+                            index += 1;
+                            self.compound_shapes_list.insert((index,box_compound_collider_aabb));
                         }
                     }
                     shapes::Shape::Cylinder(cylinder_object) => {
