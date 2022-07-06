@@ -24,8 +24,7 @@ const IGNORE_DISTANCE: f64 = 5.0;
 
 #[derive(Clone)]
 pub struct CollisionManager {
-    compound_shapes_list : Vec<(i32, AABB)>,
-    position_sharedshape_list: Vec<(Isometry3<f32>, SharedShape)>,
+    scene_compound_shapes_aabb_list : Vec<(String, AABB)>,
 
 
 }
@@ -40,11 +39,15 @@ impl CollisionManager {
     #[profiling::function]
     pub fn new(links: Vec<LinkInfo>, persistent_shapes: Vec<shapes::Shape>) -> Self {
         // info!("Creating CollisionManager");
+        
+      
+        let mut scene_compound_shapes_aabb_list : Vec<(String, AABB)> = vec![];
+        let mut world_shapes_list : Vec<(Isometry3<f64>, SharedShape)> = vec![];
       
         //info!("length for link is {:?}" , links);
         let index: i32 = 0;
         for link in &links {
-            let mut collider_vec: Vec<(Isometry3<f64>, SharedShape)> = Vec::new();
+            let mut robot_shapes_list: Vec<(Isometry3<f64>, SharedShape)> = Vec::new();
             let frame_name = &link.name;
             for collision in &link.collisions {
 
@@ -54,19 +57,19 @@ impl CollisionManager {
                         let cylinder_shape =
                             SharedShape::cylinder(new_length, cylinder_object.radius);
                         let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
-                        collider_vec.push((
+                        robot_shapes_list.push((
                             cylinder_object.local_transform * transform_offset,
                             cylinder_shape,
                         ));
                     }
                     shapes::Shape::Sphere(sphere_object) => {
                         let sphere_shape = SharedShape::ball(sphere_object.radius);
-                        collider_vec.push((sphere_object.local_transform, sphere_shape));
+                        robot_shapes_list.push((sphere_object.local_transform, sphere_shape));
                     }
                     shapes::Shape::Box(box_object) => {
                         let box_shape =
                             SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
-                        collider_vec.push((box_object.local_transform, box_shape));
+                        robot_shapes_list.push((box_object.local_transform, box_shape));
                     }
                     shapes::Shape::Capsule(capsule_object) => {
                         let length = capsule_object.length;
@@ -74,7 +77,7 @@ impl CollisionManager {
                         let point_b = Point3::new(0.0, 0.0, -length);
                         let capsule_shape =
                             SharedShape::capsule(point_a, point_b, capsule_object.radius);
-                        collider_vec.push((capsule_object.local_transform, capsule_shape));
+                        robot_shapes_list.push((capsule_object.local_transform, capsule_shape));
                     }
                     shapes::Shape::Mesh(_mesh_object) => {}
                     _ => {}
@@ -84,135 +87,75 @@ impl CollisionManager {
             for shape in &persistent_shapes {
                 match shape {
                     shapes::Shape::Box(box_object) => {
+                        let box_shape =
+                        SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
                         if &box_object.frame == frame_name {
-                            let box_shape =
-                                SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
-                            collider_vec.push((box_object.local_transform, box_shape));
+                            robot_shapes_list.push((box_object.local_transform, box_shape));
                         } else if box_object.frame == "world" {
-                            let box_shape =
-                                SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
-                            let box_compound_collider_aabb = Compound::new(collider_vec).compute_local_aabb();
-                            index += 1;
-                            self.compound_shapes_list.insert((index,box_compound_collider_aabb));
+                            world_shapes_list.push((box_object.local_transform, box_shape));
                         }
                     }
                     shapes::Shape::Cylinder(cylinder_object) => {
-                        if &cylinder_object.frame == frame_name {
-                            let new_length = cylinder_object.length / 2.0;
-                            let cylinder_shape =
-                                SharedShape::cylinder(new_length, cylinder_object.radius);
-                            let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
-                            collider_vec.push((
+                        let new_length = cylinder_object.length / 2.0;
+                        let cylinder_shape = SharedShape::cylinder(new_length, cylinder_object.radius);
+                        let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
+                        if &cylinder_object.frame == frame_name { 
+                            robot_shapes_list.push((
                                 cylinder_object.local_transform * transform_offset,
                                 cylinder_shape,
                             ));
                         } else if cylinder_object.frame == "world" {
-                            let new_length = cylinder_object.length / 2.0;
-                            let cylinder_shape =
-                                SharedShape::cylinder(new_length, cylinder_object.radius);
-                            let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
-                            let cylinder_collider = ColliderBuilder::new(cylinder_shape)
-                                .position(cylinder_object.local_transform * transform_offset)
-                                .active_events(ActiveEvents::COLLISION_EVENTS)
-                                .user_data(1)
-                                .build();
-                            let collider_handle = link_collider_set.insert(cylinder_collider);
-                            shape_name_look_up
-                                .insert(collider_handle, cylinder_object.name.to_string());
-                            //println! {"persistent shape(cylinder) added to the world frame"}
+                            world_shapes_list.push((cylinder_object.local_transform,cylinder_shape));       
                         }
                     }
                     shapes::Shape::Sphere(sphere_object) => {
+                        let sphere_shape = SharedShape::ball(sphere_object.radius);
                         if &sphere_object.frame == frame_name {
-                            let sphere_shape = SharedShape::ball(sphere_object.radius);
-                            collider_vec.push((sphere_object.local_transform, sphere_shape));
+                            robot_shapes_list.push((sphere_object.local_transform, sphere_shape));
                         } else if sphere_object.name == "world" {
-                            let sphere_shape = SharedShape::ball(sphere_object.radius);
-                            let sphere_collider = ColliderBuilder::new(sphere_shape)
-                                .position(sphere_object.local_transform)
-                                .active_events(ActiveEvents::COLLISION_EVENTS)
-                                .user_data(1)
-                                .build();
-                            let collider_handle = link_collider_set.insert(sphere_collider);
-                            shape_name_look_up
-                                .insert(collider_handle, sphere_object.name.to_string());
-                            //println! {"persistent shape(sphere) added to the world frame"}
+                            world_shapes_list.push((sphere_object.local_transform,sphere_shape));
                         }
                     }
                     shapes::Shape::Capsule(capsule_object) => {
-                        if &capsule_object.frame == frame_name {
-                            let point_a = Point::new(
-                                capsule_object.length * vector![0.0, 1.0, 0.0][0],
-                                capsule_object.length * vector![0.0, 1.0, 0.0][1],
-                                capsule_object.length * vector![0.0, 1.0, 0.0][2],
-                            );
-                            let point_b = Point::new(
-                                capsule_object.length * vector![0.0, -1.0, 0.0][0],
-                                capsule_object.length * vector![0.0, -1.0, 0.0][1],
-                                capsule_object.length * vector![0.0, -1.0, 0.0][2],
-                            );
-                            let capsule_shape =
-                                SharedShape::capsule(point_a, point_b, capsule_object.radius);
-                            collider_vec.push((capsule_object.local_transform, capsule_shape));
+                        let point_a = Point3::new(
+                            capsule_object.length * vector![0.0, 1.0, 0.0][0],
+                            capsule_object.length * vector![0.0, 1.0, 0.0][1],
+                            capsule_object.length * vector![0.0, 1.0, 0.0][2],
+                        );
+                        let point_b = Point3::new(
+                            capsule_object.length * vector![0.0, -1.0, 0.0][0],
+                            capsule_object.length * vector![0.0, -1.0, 0.0][1],
+                            capsule_object.length * vector![0.0, -1.0, 0.0][2],
+                        );
+                        let capsule_shape = SharedShape::capsule(point_a, point_b, capsule_object.radius);
+
+                        if &capsule_object.frame == frame_name {      
+                            robot_shapes_list.push((capsule_object.local_transform, capsule_shape));
                         } else if capsule_object.name == "world" {
-                            let point_a = Point::new(
-                                capsule_object.length * vector![0.0, 1.0, 0.0][0],
-                                capsule_object.length * vector![0.0, 1.0, 0.0][1],
-                                capsule_object.length * vector![0.0, 1.0, 0.0][2],
-                            );
-                            let point_b = Point::new(
-                                capsule_object.length * vector![0.0, -1.0, 0.0][0],
-                                capsule_object.length * vector![0.0, -1.0, 0.0][1],
-                                capsule_object.length * vector![0.0, -1.0, 0.0][2],
-                            );
-                            let capsule_shape =
-                                SharedShape::capsule(point_a, point_b, capsule_object.radius);
-                            let capsule_collider = ColliderBuilder::new(capsule_shape)
-                                .position(capsule_object.local_transform)
-                                .active_events(ActiveEvents::COLLISION_EVENTS)
-                                .user_data(1)
-                                .build();
-                            link_collider_set.insert(capsule_collider);
-                            //("persistent shape(capsule) added to the world frame");
+                            world_shapes_list.push((capsule_object.local_transform,capsule_shape));
+                           
                         }
                     }
                     shapes::Shape::Hull(hull_object) => {
+                        let hull_points: Vec<Point3<f64>> = hull_object
+                        .points
+                        .iter()
+                        .map(|p| Point3::new(p.x, p.y, p.z))
+                        .collect();
+                        let hull_shape = SharedShape::convex_hull(hull_points.as_slice());
                         if &hull_object.frame == frame_name {
-                            let hull_points: Vec<Point3<f64>> = hull_object
-                                .points
-                                .iter()
-                                .map(|p| Point3::new(p.x, p.y, p.z))
-                                .collect();
-                            let hull_shape = SharedShape::convex_hull(hull_points.as_slice());
                             match hull_shape {
                                 Some(valid_hull_shape) => {
-                                    collider_vec
-                                        .push((hull_object.local_transform, valid_hull_shape));
+                                    robot_shapes_list.push((hull_object.local_transform, valid_hull_shape));
                                 }
                                 None => {
                                     println!("the given points cannot form a valid hull shape");
                                 }
                             }
                         } else if hull_object.frame == "world" {
-                            if &hull_object.frame == frame_name {
-                                let hull_points: Vec<Point3<f64>> = hull_object
-                                    .points
-                                    .iter()
-                                    .map(|p| Point3::new(p.x, p.y, p.z))
-                                    .collect();
-                                let hull_shape = SharedShape::convex_hull(hull_points.as_slice());
-                                match hull_shape {
-                                    Some(valid_hull_shape) => {
-                                        let hull_collider = ColliderBuilder::new(valid_hull_shape)
-                                            .position(hull_object.local_transform)
-                                            .active_events(ActiveEvents::COLLISION_EVENTS)
-                                            .user_data(1)
-                                            .build();
-                                        let collider_handle =
-                                            link_collider_set.insert(hull_collider);
-                                        shape_name_look_up
-                                            .insert(collider_handle, hull_object.name.to_string());
-                                       // println!("persistent shape(hull) added to the world frame");
+                            match hull_shape {
+                                Some(valid_hull_shape) => {
+                                      world_shapes_list.push((hull_object.local_transform, valid_hull_shape));
                                     }
                                     None => {
                                         println!("the given points cannot form a valid hull shape");
@@ -229,27 +172,15 @@ impl CollisionManager {
                 }
             }
 
-            if collider_vec.len() != 0 {
-                let link_collider = ColliderBuilder::compound(collider_vec)
-                    .active_events(ActiveEvents::COLLISION_EVENTS)
-                    .user_data(0)
-                    .build();
-                let collider_handle = link_collider_set.insert(link_collider);
-                shape_name_look_up.insert(collider_handle, frame_name.to_string());
-                link_group.push((frame_name.to_string(), collider_handle));
+            if robot_shapes_list.len() != 0 {
+                let robot_compound_shapes_aabb = Compound::new(robot_shapes_list).compute_local_aabb();
+                scene_compound_shapes_aabb_list.push((frame_name,robot_compound_shapes_aabb));
+                scene_compound_shapes_aabb_list.push(("world",robot_compound_shapes_aabb));
             }
         }
 
         Self {
-            broad_phase,
-            narrow_phase,
-            link_group,
-            link_collider_set,
-            robot_rigid_body_set,
-            transient_group,
-            island_manager,
-            collider_changed,
-            shape_name_look_up,
+            scene_compound_shapes_aabb_list
         }
     }
 
@@ -309,12 +240,12 @@ impl CollisionManager {
                         shapes::Shape::Capsule(capsule_object) => {
                             let physical = if capsule_object.physical { 2 } else { 1 };
 
-                            let point_a = Point::new(
+                            let point_a = Point3::new(
                                 capsule_object.length * vector![0.0, 1.0, 0.0][0],
                                 capsule_object.length * vector![0.0, 1.0, 0.0][1],
                                 capsule_object.length * vector![0.0, 1.0, 0.0][2],
                             );
-                            let point_b = Point::new(
+                            let point_b = Point3::new(
                                 capsule_object.length * vector![0.0, -1.0, 0.0][0],
                                 capsule_object.length * vector![0.0, -1.0, 0.0][1],
                                 capsule_object.length * vector![0.0, -1.0, 0.0][2],
