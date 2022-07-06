@@ -24,7 +24,8 @@ const IGNORE_DISTANCE: f64 = 5.0;
 
 #[derive(Clone)]
 pub struct CollisionManager {
-    scene_compound_shapes_aabb_list : Vec<(String, AABB)>,
+    scene_compound_shapes_list : Vec<(String, Compound)>,
+    scene_transient_shapes_list : Vec<(String ,Compound)>
 
 
 }
@@ -41,7 +42,8 @@ impl CollisionManager {
         // info!("Creating CollisionManager");
         
       
-        let mut scene_compound_shapes_aabb_list : Vec<(String, AABB)> = vec![];
+        let mut scene_compound_shapes_list : Vec<(String, Compound)> = vec![];
+        let mut scene_transient_shapes_list : Vec<(String, Compound)> = vec![];
         let mut world_shapes_list : Vec<(Isometry3<f64>, SharedShape)> = vec![];
       
         //info!("length for link is {:?}" , links);
@@ -173,14 +175,17 @@ impl CollisionManager {
             }
 
             if robot_shapes_list.len() != 0 {
-                let robot_compound_shapes_aabb = Compound::new(robot_shapes_list).compute_local_aabb();
-                scene_compound_shapes_aabb_list.push((frame_name,robot_compound_shapes_aabb));
-                scene_compound_shapes_aabb_list.push(("world",robot_compound_shapes_aabb));
+                let robot_compound_shapes= Compound::new(robot_shapes_list);
+                let world_compound_shapes = Compound::new(world_shapes_list);
+                scene_compound_shapes_list.push((frame_name,robot_compound_shapes));
+                scene_transient_shapes_list.push((frame_name,world_compound_shapes));
+                //scene_compound_shapes_aabb_list.push(("world",robot_compound_shapes));
             }
         }
 
         Self {
-            scene_compound_shapes_aabb_list
+            scene_compound_shapes_list,
+            scene_transient_shapes_list
         }
     }
 
@@ -195,50 +200,32 @@ impl CollisionManager {
                 ShapeUpdate::Add { id, shape } => {
                     match shape {
                         shapes::Shape::Box(box_object) => {
-                            let physical = if box_object.physical { 2 } else { 1 };
-
-                            let box_collider = ColliderBuilder::new(SharedShape::cuboid(
+                            let box_collider = SharedShape::cuboid(
                                 box_object.y,
                                 box_object.x,
                                 box_object.z,
-                            ))
-                            .position(box_object.local_transform)
-                            .active_events(ActiveEvents::COLLISION_EVENTS)
-                            .user_data(physical)
-                            .build();
-                            let handle = self.link_collider_set.insert(box_collider);
-                            self.transient_group.push((id.to_string(), handle));
+                            );
+                            self.scene_transient_shapes_aabb_list.push((id.to_string(), box_collider.compute_local_aabb()));
                         }
                         shapes::Shape::Cylinder(cylinder_object) => {
-                            let physical = if cylinder_object.physical { 2 } else { 1 };
+                            //let physical = if cylinder_object.physical { 2 } else { 1 };
 
                             let new_length = cylinder_object.length / 2.0;
                             let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
-                            let cylinder_collider = ColliderBuilder::new(SharedShape::cylinder(
+                            let cylinder_collider = SharedShape::cylinder(
                                 new_length,
                                 cylinder_object.radius,
-                            ))
-                            .position(cylinder_object.local_transform * transform_offset)
-                            .active_events(ActiveEvents::COLLISION_EVENTS)
-                            .user_data(physical)
-                            .build();
-                            let handle = self.link_collider_set.insert(cylinder_collider);
-                            self.transient_group.push((id.to_string(), handle));
+                            )
+                            self.scene_transient_shapes_aabb_list.push((id.to_string(), cylinder_collider.compute_local_aabb()));
                         }
                         shapes::Shape::Sphere(sphere_object) => {
-                            let physical = if sphere_object.physical { 2 } else { 1 };
+                            //let physical = if sphere_object.physical { 2 } else { 1 };
 
-                            let sphere_collider =
-                                ColliderBuilder::new(SharedShape::ball(sphere_object.radius))
-                                    .position(sphere_object.local_transform)
-                                    .active_events(ActiveEvents::COLLISION_EVENTS)
-                                    .user_data(physical)
-                                    .build();
-                            let handle = self.link_collider_set.insert(sphere_collider);
-                            self.transient_group.push((id.to_string(), handle));
+                            let sphere_collider = SharedShape::ball(sphere_object.radius);
+                            self.scene_transient_shapes_aabb_list.push((id.to_string(), sphere_collider.compute_local_aabb()));
                         }
                         shapes::Shape::Capsule(capsule_object) => {
-                            let physical = if capsule_object.physical { 2 } else { 1 };
+                            //let physical = if capsule_object.physical { 2 } else { 1 };
 
                             let point_a = Point3::new(
                                 capsule_object.length * vector![0.0, 1.0, 0.0][0],
@@ -250,20 +237,18 @@ impl CollisionManager {
                                 capsule_object.length * vector![0.0, -1.0, 0.0][1],
                                 capsule_object.length * vector![0.0, -1.0, 0.0][2],
                             );
-                            let capsule_collider = ColliderBuilder::new(SharedShape::capsule(
+                            let capsule_collider = SharedShape::capsule(
                                 point_a,
                                 point_b,
                                 capsule_object.radius,
-                            ))
-                            .position(capsule_object.local_transform)
-                            .active_events(ActiveEvents::COLLISION_EVENTS)
-                            .user_data(physical)
-                            .build();
-                            let handle = self.link_collider_set.insert(capsule_collider);
-                            self.transient_group.push((id.to_string(), handle));
+                            )
+
+                            self.scene_transient_shapes_aabb_list.push((id.to_string(), capsule_collider.compute_local_aabb()));
+                            
+                           
                         }
                         shapes::Shape::Hull(hull_object) => {
-                            let physical = if hull_object.physical { 2 } else { 1 };
+                            //let physical = if hull_object.physical { 2 } else { 1 };
 
                             let hull_points: Vec<Point3<f64>> = hull_object
                                 .points
@@ -274,13 +259,7 @@ impl CollisionManager {
                             let hull_shape = SharedShape::convex_hull(hull_points.as_slice());
                             match hull_shape {
                                 Some(valid_hull_shape) => {
-                                    let hull_collider = ColliderBuilder::new(valid_hull_shape)
-                                        .position(hull_object.local_transform)
-                                        .active_events(ActiveEvents::COLLISION_EVENTS)
-                                        .user_data(physical)
-                                        .build();
-                                    let handle = self.link_collider_set.insert(hull_collider);
-                                    self.transient_group.push((id.to_string(), handle));
+                                    self.scene_transient_shapes_aabb_list.push((id.to_string(), valid_hull_shape.compute_local_aabb()));
                                 }
                                 None => {
                                     println!("The given points of hull_object cannot be used to form a hull object");
