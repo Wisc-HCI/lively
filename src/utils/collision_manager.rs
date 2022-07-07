@@ -19,7 +19,7 @@ use std::f64::consts::PI;
 use std::fmt;
 use profiling::scope;
 
-const IGNORE_DISTANCE: f64 = 0.3;
+const IGNORE_DISTANCE: f64 = 1.0;
 
 // use log::info;
 
