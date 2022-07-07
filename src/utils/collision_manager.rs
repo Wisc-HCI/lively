@@ -19,7 +19,7 @@ use std::f64::consts::PI;
 use std::fmt;
 use profiling::scope;
 
-const IGNORE_DISTANCE: f64 = 5.0;
+const IGNORE_DISTANCE: f64 = 0.3;
 
 // use log::info;
 
@@ -304,7 +304,6 @@ impl CollisionManager {
                     let mut counter = 0;
                     for (transient_id, transient_handle) in &mut self.scene_transient_shapes_list {
                         if transient_id == id {
-                    
                             break;
                         }
                         counter += 1;
@@ -324,25 +323,87 @@ impl CollisionManager {
 
   
 
-    #[profiling::function]
-        pub fn create_compound_shapes_grid(&self) -> Array2D<(String,Compound)>{
-           // let mut result_grid : Array2D<(String,Compound)> = Array2D
-           //let mut scene_compound_shapes_list : Vec<(String, Compound)> = vec![];
-           let size = self.scene_compound_shapes_list.len();
-           let mut temp_vec : Vec<Vec<(String,Compound)>> = vec![];
-           for n in 1..=size{
-               temp_vec.push(self.scene_compound_shapes_list.clone());
-           }
-           let result_grid = Array2D::from_rows(&temp_vec);
-           return result_grid;
+    // #[profiling::function]
+    //     pub fn create_compound_shapes_grid(&self) -> Array2D<(String,Compound)>{
+    //        // let mut result_grid : Array2D<(String,Compound)> = Array2D
+    //        //let mut scene_compound_shapes_list : Vec<(String, Compound)> = vec![];
+    //        let size = self.scene_compound_shapes_list.len();
+    //        let mut temp_vec : Vec<Vec<(String,Compound)>> = vec![];
+    //        for n in 1..=size{
+    //            temp_vec.push(self.scene_compound_shapes_list.clone());
+    //        }
+    //        let result_grid = Array2D::from_rows(&temp_vec);
+    //        return result_grid;
     
-        }
+    //     }
 
     #[profiling::function]
     pub fn get_proximity(&self, frames: &HashMap<String, Isometry3<f64>>) -> Vec<ProximityInfo> {
-        
+        //-------------------------------------------------------------------------------setFrames()
+       
+
+        let size = self.scene_compound_shapes_list.len();
         let mut result_vector: Vec<ProximityInfo> = vec![];
-        let compound_shapes_grid = self.clone().clear_all_transient_shapes();
+        //let compound_shapes_grid = self.clone().create_compound_shapes_grid();
+        for i in 0..= size-1{
+            for j in (i+1)..= size-1{
+                let (shape1_frame,shape1) = self.scene_compound_shapes_list.get(i).unwrap();
+                let (shape2_frame,shape2) = self.scene_compound_shapes_list.get(j).unwrap();
+                let shape1_transform = frames.get(shape1_frame);
+                    match shape1_transform {
+                        Some(shape1_transform) => {
+                            let shape2_transform = frames.get(shape2_frame);
+                                match shape2_transform {
+                                    Some(shape2_transform) => {
+                                        match parry3d_f64::query::closest_points(
+                                            &shape1_transform,
+                                            shape1,
+                                            &shape2_transform,
+                                            shape2,
+                                            IGNORE_DISTANCE,
+                                        ){
+                                            Ok(valid_closest_points) => {
+                                                match valid_closest_points {
+                                                    ClosestPoints::Intersecting => {
+                                                        result_vector.push(ProximityInfo::new(
+                                                            shape1_frame.to_string(),
+                                                            shape2_frame.to_string(),
+                                                            0.0,
+                                                            None,
+                                                            true,
+                                                        ));
+                                                    }
+                                                    ClosestPoints::WithinMargin(point1, point2) =>{
+                                                        let dist = ((point1.x - point2.x) * (point1.x - point2.x)
+                                                                + (point1.y - point2.y) * (point1.y - point2.y)
+                                                                 + (point1.z - point2.z) * (point1.z - point2.z) as f64).sqrt();
+                                                        result_vector.push(ProximityInfo::new(
+                                                            shape1_frame.to_string(),
+                                                            shape2_frame.to_string(),
+                                                            dist,
+                                                            Some((point1, point2)),
+                                                            true,
+                                                        ));
+                                                    }
+                                                    ClosestPoints::Disjoint => {
+
+                                                    }
+                                                }
+                                            },
+                                            Err(_) => {println!()}
+                                        }
+                                 }
+                                    None => {} 
+                            }
+                        }
+                        None => {} 
+                    }
+                   
+                
+
+                
+            }
+        }
 
         
 
