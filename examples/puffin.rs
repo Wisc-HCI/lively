@@ -6,6 +6,8 @@ use lively_tk_lib::objectives::objective::Objective;
 use lively_tk_lib::utils::goals::Goal::ScalarRange;
 use lively_tk_lib::utils::shapes::BoxShape;
 use nalgebra::geometry::Isometry3;
+use nalgebra::geometry::Translation3;
+use nalgebra::geometry::UnitQuaternion;
 
 use std::fs;
 
@@ -187,14 +189,16 @@ fn solver_function() {
     let pos_match_obj = PositionMatchObjective::new("EE Position".to_string() , 20.0, "wrist_3_link".to_string());
     let col_avoid_obj = CollisionAvoidanceObjective::new("Collision Avoidance".to_string(), 10.0);
     let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 10.0);
-    let scalar_range_1 = ScalarRange{value : 0.0 , delta : 0.0};
-    let scalar_range_2 = ScalarRange{value : -0.15, delta : 0.0};
-    let scalar_range_3 = ScalarRange{value : 0.0 , delta : 0.0};
-    let scalar_range_4 = ScalarRange{value : 0.0, delta : 0.0};
-    let scalar_range_5 = ScalarRange{value : 0.0 , delta : 0.0};
-    let scalar_range_6 = ScalarRange{value : 0.0 , delta : 0.0};
-    let scalar_range_vec : Vec<lively_tk_lib::utils::goals::Goal> = vec![scalar_range_1,scalar_range_2,scalar_range_3,scalar_range_4,scalar_range_5,scalar_range_6];
-    let iso_1 = Isometry3::new(vec![1.7497281999999998,-0.24972819999999987,0.050000000000000044], vec![0.0,0.0,-0.7069999677447771,0.7072135784958345]);
+    let scalar_range_1 = (0.0 , 0.0);
+    let scalar_range_2 = (-0.15, 0.0);
+    let scalar_range_3 = (0.0 , 0.0);
+    let scalar_range_4 = (0.0 , 0.0);
+    let scalar_range_5 = (0.0 , 0.0);
+    let scalar_range_6 = (0.0 , 0.0);
+    let scalar_range_vec : Vec<(f64,f64)> = vec![scalar_range_1,scalar_range_2,scalar_range_3,scalar_range_4,scalar_range_5,scalar_range_6];
+
+
+    let iso_1 = Isometry3::from_parts(Translation3::new(1.7497281999999998,-0.24972819999999987,0.050000000000000044), UnitQuaternion::new(vec![0.0,0.0,-0.7069999677447771,0.7072135784958345]));
     let box_1 = BoxShape::new("conveyorCollisionShapeBase".to_string(), "world".to_string(), true, 1.0, 1.1, 1.7, iso_1 );
 
     let iso_2 = Isometry3::new(vec![ 0.9499698,-0.2499698,0.050000000000000044], vec![0.0,0.0,-0.7069999677447772,0.7072135784958345]);
@@ -230,8 +234,26 @@ fn solver_function() {
     let iso_12 = Isometry3::new(vec![-0.585,0.6499999999999999,-0.585], vec![0.0,0.0,0.0,1.0]);
     let box_12 = BoxShape::new("tableCollisionShapeRearLeftLeg".to_string(), "world".to_string(), true, 0.05, 0.05,0.75 ,iso_12 );
 
-    let iso_12 = Isometry3::new(vec![-0.585,0.6499999999999999,-0.585], vec![0.0,0.0,0.0,1.0]);
-    let box_12 = BoxShape::new("tableCollisionShapeRearLeftLeg".to_string(), "world".to_string(), true, 0.05, 0.05,0.75 ,iso_12 );
+    let iso_13 = Isometry3::new(vec![0.585,0.7,-0.395], vec![0.0,0.0,0.0,1.0]);
+    let box_13 = BoxShape::new("tableCollisionShapeRearRightLeg".to_string(), "world".to_string(), true, 0.05, 0.05,0.75 ,iso_13 );
+
+    let iso_14 = Isometry3::new(vec![0.0,-0.15,-0.7150000000000001], vec![0.0,0.0,0.0,1.0]);
+    let box_14 = BoxShape::new("pedestalCollisionShapeBase".to_string(), "world".to_string(), true, 0.65, 0.65,0.15 ,iso_14 );
+
+    let iso_15 = Isometry3::new(vec![0.0,-0.15,-0.33], vec![0.0,0.0,0.0,1.0]);
+    let box_15 = BoxShape::new("pedestalCollisionShapeTower".to_string(), "world".to_string(), true, 0.1, 0.1,0.7 ,iso_15 );
+
+    let iso_16 = Isometry3::new(vec![-0.46,0.42000000000000004,0.22500000000000003], vec![0.0,0.0,0.0,1.0]);
+    let box_16 = BoxShape::new("mk2CollisionShapeLeftVertical".to_string(), "world".to_string(), true, 0.125, 0.185,0.4 ,iso_16 );
+
+    let iso_17 = Isometry3::new(vec![-0.10000000000000003,0.445,0.22500000000000003], vec![0.0,0.0,0.0,1.0]);
+    let box_17 = BoxShape::new("mk2CollisionShapeRightVertical".to_string(), "world".to_string(), true, 0.125, 0.225,0.4 ,iso_17 );
+
+    let iso_18 = Isometry3::new(vec![-0.28,0.32,0.050000000000000044], vec![0.0,0.0,0.0,1.0]);
+    let box_18 = BoxShape::new("mk2CollisionShapeBase".to_string(), "world".to_string(), true, 0.4,0.4,0.1 , iso_18 );
+
+    let iso_19 = Isometry3::new(vec![ -0.28, 0.445,0.48000000000000004], vec![0.0,0.0,0.0,1.0]);
+    let box_19 = BoxShape::new("mk2CollisionShapeSpool".to_string(), "world".to_string(), true, 0.4,0.25,0.25 , iso_19 );
 
 
 
@@ -248,8 +270,9 @@ fn solver_function() {
     let objective_vec : Vec<Objective> = vec![lively_tk_lib::objectives::objective::Objective::PositionMatch(pos_match_obj),
     lively_tk_lib::objectives::objective::Objective::CollisionAvoidance(col_avoid_obj),
     lively_tk_lib::objectives::objective::Objective::SmoothnessMacro(smooth_macro_obj)];
+    let box_shapes_vec: Vec<BoxShape> = vec![box_1,box_2,box_3,box_4,box_5,box_6,box_7,box_8,box_9,box_10,box_11,box_12,box_13,box_14,box_15,box_16,box_17,box_18,box_19];
    
-    let temp = Solver::new(data, objective_vec,None,None,None,None,None,None);
+    //let temp = Solver::new(data, None,Some(scalar_range_vec),Some(box_shapes_vec),None,None,None,None);
 
 }
 
