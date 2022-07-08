@@ -1,19 +1,12 @@
 use crate::utils::info::{LinkInfo, ProximityInfo, ShapeUpdate};
 use crate::utils::shapes;
-use grid::Grid;
-use array2d::Array2D;
 use nalgebra::base::Vector3;
 use nalgebra::geometry::Isometry3;
 use nalgebra::vector;
 use nalgebra::Point3;
 use parry3d_f64::query::closest_points::*;
 use parry3d_f64::shape::*;
-use parry3d_f64::bounding_volume::AABB;
-// use rapier3d_f64::dynamics::*;
-// use rapier3d_f64::geometry::*;
-// use rapier3d_f64::math::*;
-// use rapier3d_f64::pipeline::*;
-// use rapier3d_f64::prelude::SharedShape;
+//use parry3d_f64::bounding_volume::AABB;
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
@@ -26,7 +19,8 @@ const IGNORE_DISTANCE: f64 = 1.0;
 #[derive(Clone)]
 pub struct CollisionManager {
     scene_compound_shapes_list : Vec<(String, Compound)>,
-    scene_transient_shapes_list : Vec<(String ,SharedShape)>
+    scene_transient_shapes_list : Vec<(String ,SharedShape)>,
+    //scene_transient_shapes_look_up : HashMap<String, i32>,
 
 
 }
@@ -193,7 +187,8 @@ impl CollisionManager {
 
         Self {
             scene_compound_shapes_list,
-            scene_transient_shapes_list
+            scene_transient_shapes_list,
+            //scene_transient_shapes_look_up
         }
 }
     
@@ -349,6 +344,9 @@ impl CollisionManager {
             for j in (i+1)..= size-1{
                 let (shape1_frame,shape1) = self.scene_compound_shapes_list.get(i).unwrap();
                 let (shape2_frame,shape2) = self.scene_compound_shapes_list.get(j).unwrap();
+                if shape1_frame == "world" && shape2_frame == "world"{
+                    continue;
+                }
                 let shape1_transform = frames.get(shape1_frame);
                     match shape1_transform {
                         Some(shape1_transform) => {
