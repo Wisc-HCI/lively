@@ -20,7 +20,7 @@ const IGNORE_DISTANCE: f64 = 1.0;
 pub struct CollisionManager {
     scene_compound_shapes_list : Vec<(String, Compound)>,
     scene_transient_shapes_list : Vec<(String ,SharedShape)>,
-    //scene_transient_shapes_look_up : HashMap<String, i32>,
+    scene_transient_shapes_look_up : HashMap<String, usize>,
 
 
 }
@@ -39,6 +39,7 @@ impl CollisionManager {
       
         let mut scene_compound_shapes_list : Vec<(String, Compound)> = vec![];
         let mut scene_transient_shapes_list : Vec<(String, SharedShape)> = vec![];
+        let mut scene_transient_shapes_look_up = HashMap::new();
         //let mut world_shapes_list : Vec<(Isometry3<f64>, SharedShape)> = vec![];
       
         //info!("length for link is {:?}" , links);
@@ -188,7 +189,7 @@ impl CollisionManager {
         Self {
             scene_compound_shapes_list,
             scene_transient_shapes_list,
-            //scene_transient_shapes_look_up
+            scene_transient_shapes_look_up
         }
 }
     
@@ -200,6 +201,7 @@ impl CollisionManager {
     pub fn perform_updates(&mut self, shape_updates: &Vec<ShapeUpdate>) {
         //scope!("perform updates");
         for update in shape_updates {
+            let mut update_shapes_list: Vec<(Isometry3<f64>, SharedShape)> = Vec::new();
             match update {
                 ShapeUpdate::Add { id, shape } => {
                     match shape {
@@ -209,8 +211,11 @@ impl CollisionManager {
                                 box_object.x,
                                 box_object.z,
                             );
-                            
-                            self.scene_transient_shapes_list.push((id.to_string(), box_collider));
+                            update_shapes_list.push((box_object.local_transform, box_collider));
+                            self.scene_compound_shapes_list.push((box_object.frame.clone(),Compound::new(update_shapes_list)));
+                            let last_index = self.scene_compound_shapes_list.len() - 1;
+                            self.scene_transient_shapes_look_up.insert(id.to_string(), last_index);
+                            //self.scene_transient_shapes_list.push((id.to_string(), box_collider));
                         }
                         shapes::Shape::Cylinder(cylinder_object) => {
                             //let physical = if cylinder_object.physical { 2 } else { 1 };
@@ -221,13 +226,21 @@ impl CollisionManager {
                                 new_length,
                                 cylinder_object.radius,
                             );
-                            self.scene_transient_shapes_list.push((id.to_string(), cylinder_collider));
+                            update_shapes_list.push((cylinder_object.local_transform * transform_offset, cylinder_collider));
+                            self.scene_compound_shapes_list.push((cylinder_object.frame.clone(),Compound::new(update_shapes_list)));
+                            let last_index = self.scene_compound_shapes_list.len() - 1;
+                            self.scene_transient_shapes_look_up.insert(id.to_string(), last_index);
+                            //self.scene_transient_shapes_list.push((id.to_string(), cylinder_collider));
                         }
                         shapes::Shape::Sphere(sphere_object) => {
                             //let physical = if sphere_object.physical { 2 } else { 1 };
 
                             let sphere_collider = SharedShape::ball(sphere_object.radius);
-                            self.scene_transient_shapes_list.push((id.to_string(), sphere_collider));
+                           // self.scene_transient_shapes_list.push((id.to_string(), sphere_collider));
+                           update_shapes_list.push((sphere_object.local_transform , sphere_collider));
+                           self.scene_compound_shapes_list.push((sphere_object.frame.clone(),Compound::new(update_shapes_list)));
+                           let last_index = self.scene_compound_shapes_list.len() - 1;
+                           self.scene_transient_shapes_look_up.insert(id.to_string(), last_index);
                         }
                         shapes::Shape::Capsule(capsule_object) => {
                             //let physical = if capsule_object.physical { 2 } else { 1 };
@@ -248,7 +261,13 @@ impl CollisionManager {
                                 capsule_object.radius,
                             );
 
-                            self.scene_transient_shapes_list.push((id.to_string(), capsule_collider));
+
+                            update_shapes_list.push((capsule_object.local_transform , capsule_collider));
+                            self.scene_compound_shapes_list.push((capsule_object.frame.clone(),Compound::new(update_shapes_list)));
+                            let last_index = self.scene_compound_shapes_list.len() - 1;
+                            self.scene_transient_shapes_look_up.insert(id.to_string(), last_index);
+
+                            //self.scene_transient_shapes_list.push((id.to_string(), capsule_collider));
                             
                            
                         }
@@ -264,7 +283,11 @@ impl CollisionManager {
                             let hull_shape = SharedShape::convex_hull(hull_points.as_slice());
                             match hull_shape {
                                 Some(valid_hull_shape) => {
-                                    self.scene_transient_shapes_list.push((id.to_string(), valid_hull_shape));
+                                    //self.scene_transient_shapes_list.push((id.to_string(), valid_hull_shape));
+                                    update_shapes_list.push((hull_object.local_transform , valid_hull_shape));
+                                    self.scene_compound_shapes_list.push((hull_object.frame.clone(),Compound::new(update_shapes_list)));
+                                    let last_index = self.scene_compound_shapes_list.len() - 1;
+                                    self.scene_transient_shapes_look_up.insert(id.to_string(), last_index);
                                 }
                                 None => {
                                     println!("The given points of hull_object cannot be used to form a hull object");
