@@ -10,6 +10,7 @@ use crate::objectives::liveliness::forces::{*};
 use crate::objectives::liveliness::perlin::{*};
 use nalgebra::Translation3;
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 #[serde(tag = "type")]
 pub enum Objective {

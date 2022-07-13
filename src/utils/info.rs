@@ -6,6 +6,7 @@ use k::urdf::isometry_from;
 use crate::utils::shapes::{Shape, BoxShape, CylinderShape, SphereShape, CapsuleShape, MeshShape};
 // use std::fmt::Display;
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct MimicInfo {
     pub joint: String,
@@ -36,6 +37,7 @@ impl From<Mimic> for MimicInfo {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 #[serde(rename_all = "camelCase")]
 pub struct JointInfo {
@@ -57,6 +59,7 @@ impl JointInfo {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LinkInfo {
@@ -100,6 +103,7 @@ impl From<Link> for LinkInfo {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct ProximityInfo {
     pub shape1: String,
@@ -115,6 +119,7 @@ impl ProximityInfo {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub enum ShapeUpdate {
     Add{

@@ -5,6 +5,7 @@ use crate::objectives::objective::groove_loss;
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct PositionMatchObjective {
     pub name: String,
@@ -36,6 +37,7 @@ impl PositionMatchObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OrientationMatchObjective {
     pub name: String,
@@ -68,6 +70,7 @@ impl OrientationMatchObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointMatchObjective {
     // Sets a joint to a value given in scalar goal
@@ -96,6 +99,7 @@ impl JointMatchObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginPositionMatchObjective {
     // Adds position liveliness to the Origin node (first three entries in x are these values)
@@ -123,6 +127,7 @@ impl OriginPositionMatchObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginOrientationMatchObjective {
     // Adds Orientation liveliness to the Origin node (first three entries in x are these values)
@@ -150,6 +155,7 @@ impl OriginOrientationMatchObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct DistanceMatchObjective {
     // Specify that the cartesian distance between two links is maintained

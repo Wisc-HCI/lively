@@ -380,7 +380,7 @@ To build, download and `cd` to this directory. Then run:
 
 ```bash
 # Build the javascript bundle
-wasm-pack build --scope people_and_robots -- --features jsbindings
+wasm-pack build --scope people_and_robots --target web -- --features jsbindings
 
 # Pack
 wasm-pack pack

@@ -1,6 +1,6 @@
 [package]
 name = "lively_tk"
-version = "0.9.33"
+version = "0.9.36"
 description = "A real-time robot control framework with liveliness."
 repository = "https://github.com/Wisc-HCI/lively_tk"
 homepage = "https://wisc-hci.github.io/lively_tk/"
@@ -31,7 +31,7 @@ k = {git = "https://github.com/AndrewJSchoen/k"}
 # k = { version = "0.28.0" }
 urdf-rs = "0.6.2"
 serde = { version = "1.0", features = ["derive"]}
-wasm-bindgen = { version = "0.2", features = ["serde-serialize"], optional = true }
+wasm-bindgen = { version = "0.2.81", features = ["serde-serialize"], optional = true }
 getrandom = { version = "0.2", features = ["js"] }
 pyo3 = {version = "0.15.1", features = ["extension-module"], optional = true}
 pyo3-log = {version = "0.5.0", optional = true}
@@ -50,5 +50,4 @@ codegen-units = 1
 [lib]
 name = "lively_tk_lib"
 path = "src/lib.rs"
-# crate-type = ["rlib", "dylib", "cdylib"]
 crate-type = ["rlib", "cdylib"]

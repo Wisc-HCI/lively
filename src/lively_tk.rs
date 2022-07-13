@@ -11,6 +11,7 @@ use rand::{thread_rng, Rng};
 use rand::rngs::ThreadRng;
 use std::f64::consts::{PI};
 
+#[repr(C)]
 pub struct Solver {
     pub robot_model: RobotModel,
     pub joints: Vec<JointInfo>,

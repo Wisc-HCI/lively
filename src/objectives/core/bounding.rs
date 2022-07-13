@@ -13,6 +13,7 @@ fn get_default_rot_bound() -> (UnitQuaternion<f64>,f64) {
     return (UnitQuaternion::identity(),0.0)
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct PositionBoundingObjective {
     // Bounds the position within a region according to the input provided in goals.
@@ -46,6 +47,7 @@ impl PositionBoundingObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OrientationBoundingObjective {
     // Bounds the orientation within a region on the unit sphere according to the input provided in goals.
@@ -76,6 +78,7 @@ impl OrientationBoundingObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointBoundingObjective {
     // Bounds the position within a region according to the input provided in goals.

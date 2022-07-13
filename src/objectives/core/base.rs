@@ -5,7 +5,7 @@ use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use std::f64::consts::{E};
 
-
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct CollisionAvoidanceObjective {
     pub name: String,
@@ -34,6 +34,7 @@ impl CollisionAvoidanceObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointLimitsObjective {
     pub name: String,
@@ -77,6 +78,7 @@ impl JointLimitsObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct VelocityMinimizationObjective {
     pub name: String,
@@ -110,6 +112,7 @@ impl VelocityMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginVelocityMinimizationObjective {
     pub name: String,
@@ -140,6 +143,7 @@ impl OriginVelocityMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct AccelerationMinimizationObjective {
     pub name: String,
@@ -178,6 +182,7 @@ impl AccelerationMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginAccelerationMinimizationObjective {
     pub name: String,
@@ -211,6 +216,7 @@ impl OriginAccelerationMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JerkMinimizationObjective {
     pub name: String,
@@ -252,6 +258,7 @@ impl JerkMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginJerkMinimizationObjective {
     pub name: String,
@@ -289,6 +296,7 @@ impl OriginJerkMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct SmoothnessMacroObjective {
     pub name: String,

@@ -5,6 +5,7 @@ use crate::objectives::objective::groove_loss;
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct PositionMirroringObjective {
     // Matches the position between two joints, with a difference according to the Vector3 provided in goals.
@@ -36,6 +37,7 @@ impl PositionMirroringObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OrientationMirroringObjective {
     // Matches the orientation between two joints, with a difference according to the Quaternion provided in goals.
@@ -67,6 +69,7 @@ impl OrientationMirroringObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointMirroringObjective {
     // Match joint values according to the difference specified in goals
