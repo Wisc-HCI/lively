@@ -67,6 +67,7 @@ impl PositionLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0
@@ -128,6 +129,7 @@ impl OrientationLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0
@@ -183,6 +185,7 @@ impl JointLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0
@@ -235,6 +238,7 @@ impl RelativeMotionLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0
@@ -300,6 +304,7 @@ impl OriginPositionLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0
@@ -360,6 +365,7 @@ impl OriginOrientationLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0

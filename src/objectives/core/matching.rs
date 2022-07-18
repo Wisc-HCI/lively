@@ -27,6 +27,7 @@ impl PositionMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         // Get the link transform from frames
         let link_translation = state.get_link_transform(&self.link).translation.vector;
@@ -59,6 +60,7 @@ impl OrientationMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
 
         // Get the link transform from frames
@@ -93,6 +95,7 @@ impl JointMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let x_val = (self.goal - state.get_joint_position(&self.joint)).abs();
         return self.weight * groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2)
@@ -121,6 +124,7 @@ impl OriginPositionMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let x_val = (self.goal - state.origin.translation.vector).norm();
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
@@ -149,6 +153,7 @@ impl OriginOrientationMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let x_val = state.origin.rotation.angle_to(&self.goal);
         return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
@@ -179,6 +184,7 @@ impl DistanceMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let link1_translation = state.get_link_transform(&self.link1).translation.vector;
         let link2_translation = state.get_link_transform(&self.link2).translation.vector;
