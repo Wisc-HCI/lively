@@ -81,109 +81,241 @@ impl CollisionManager {
                     _ => {}
                 }
             }
-        
-            for shape in &persistent_shapes {
-                match shape {
-                    shapes::Shape::Box(box_object) => {
-                        let box_shape = SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
-                        if &box_object.frame == frame_name {
-                            robot_shapes_list.push((box_object.local_transform, box_shape));
-                        } else if box_object.frame == "world" {                         
-                            let temp_list : Vec<(Isometry3<f64>, SharedShape)> = vec![(box_object.local_transform, box_shape)];
-                            let temp_compound = Compound::new(temp_list);
-                            scene_compound_shapes_list.push(("world".to_string(), temp_compound));
-                            
-                        }
-                    }
-                    shapes::Shape::Cylinder(cylinder_object) => {
-                        let new_length = cylinder_object.length / 2.0;
-                        let cylinder_shape = SharedShape::cylinder(new_length, cylinder_object.radius);
-                        let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
-                        if &cylinder_object.frame == frame_name { 
-                            robot_shapes_list.push((
-                                cylinder_object.local_transform * transform_offset,
-                                cylinder_shape,
-                            ));
-                        } else if cylinder_object.frame == "world" {
-                            let temp_list : Vec<(Isometry3<f64>, SharedShape)> = vec![(cylinder_object.local_transform, cylinder_shape)];
-                            let temp_compound = Compound::new(temp_list);
-                            scene_compound_shapes_list.push(("world".to_string(), temp_compound));
-                        }
-                    }
-                    shapes::Shape::Sphere(sphere_object) => {
-                        let sphere_shape = SharedShape::ball(sphere_object.radius);
-                        if &sphere_object.frame == frame_name {
-                            robot_shapes_list.push((sphere_object.local_transform, sphere_shape));
-                        } else if sphere_object.name == "world" {
-                            let temp_list : Vec<(Isometry3<f64>, SharedShape)> = vec![(sphere_object.local_transform, sphere_shape)];
-                            let temp_compound = Compound::new(temp_list);
-                            scene_compound_shapes_list.push(("world".to_string(), temp_compound));
-                        }
-                    }
-                    shapes::Shape::Capsule(capsule_object) => {
-                        let point_a = Point3::new(
-                            capsule_object.length * vector![0.0, 1.0, 0.0][0],
-                            capsule_object.length * vector![0.0, 1.0, 0.0][1],
-                            capsule_object.length * vector![0.0, 1.0, 0.0][2],
-                        );
-                        let point_b = Point3::new(
-                            capsule_object.length * vector![0.0, -1.0, 0.0][0],
-                            capsule_object.length * vector![0.0, -1.0, 0.0][1],
-                            capsule_object.length * vector![0.0, -1.0, 0.0][2],
-                        );
-                        let capsule_shape = SharedShape::capsule(point_a, point_b, capsule_object.radius);
-
-                        if &capsule_object.frame == frame_name {      
-                            robot_shapes_list.push((capsule_object.local_transform, capsule_shape));
-                        } else if capsule_object.name == "world" {
-                            let temp_list : Vec<(Isometry3<f64>, SharedShape)> = vec![(capsule_object.local_transform, capsule_shape)];
-                            let temp_compound = Compound::new(temp_list);
-                            scene_compound_shapes_list.push(("world".to_string(), temp_compound));
-                           
-                        }
-                    }
-                    shapes::Shape::Hull(hull_object) => {
-                        let hull_points: Vec<Point3<f64>> = hull_object
-                        .points
-                        .iter()
-                        .map(|p| Point3::new(p.x, p.y, p.z))
-                        .collect();
-                        let hull_shape = SharedShape::convex_hull(hull_points.as_slice());
-                        if &hull_object.frame == frame_name {
-                            match hull_shape {
-                                Some(valid_hull_shape) => {
-                                    robot_shapes_list.push((hull_object.local_transform, valid_hull_shape));
-                                }
-                                None => {
-                                    println!("the given points cannot form a valid hull shape");
-                                }
-                            }
-                        } else if hull_object.frame == "world" {
-                            match hull_shape {
-                                Some(valid_hull_shape) => {
-                                    let temp_list : Vec<(Isometry3<f64>, SharedShape)> = vec![(hull_object.local_transform, valid_hull_shape)];
-                                    let temp_compound = Compound::new(temp_list);
-                                    scene_compound_shapes_list.push(("world".to_string(), temp_compound));
-                                    }
-                                    None => {
-                                        println!("the given points cannot form a valid hull shape");
-                                    }
-                                }
-                            }
-                        }
-                    shapes::Shape::Mesh(_mesh_object) => {
-                        /*
-                        Ignore Mesh Objects
-                        */
-                    }
-                }
-            }
 
             if robot_shapes_list.len() != 0 {
                 let robot_compound_shapes= Compound::new(robot_shapes_list);           
                 scene_compound_shapes_list.push((frame_name.to_string(),robot_compound_shapes));
             }
             
+        }
+
+        for shape in &persistent_shapes {
+            match shape {
+                shapes::Shape::Box(box_object) => {
+                    let box_shape = SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
+                    if box_object.frame == "world" {
+                        let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
+                            vec![(box_object.local_transform, box_shape)];
+                        let temp_compound = Compound::new(temp_list);
+                        scene_compound_shapes_list.push(("world".to_string(), temp_compound));
+                    } else {
+                        let index_element = scene_compound_shapes_list
+                            .iter()
+                            .position(|x| x.0 == box_object.frame);
+                        match index_element {
+                            Some(valid_index) => {
+                                let temp_scene_compound_shapes_list =
+                                    scene_compound_shapes_list.clone();
+                                let (frame_name, compound_shape) =
+                                    temp_scene_compound_shapes_list.get(valid_index).unwrap();
+                                let mut new_compound_shape = compound_shape.shapes().to_vec();
+                                new_compound_shape.push((box_object.local_transform, box_shape));
+                                scene_compound_shapes_list.remove(valid_index);
+                                scene_compound_shapes_list.push((
+                                    frame_name.to_string(),
+                                    Compound::new(new_compound_shape),
+                                ));
+                            }
+                            None => {
+                                let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
+                                    vec![(box_object.local_transform, box_shape)];
+                                let temp_compound = Compound::new(temp_list);
+                                scene_compound_shapes_list
+                                    .push((box_object.frame.to_string(), temp_compound));
+                            }
+                        }
+                    }
+                }
+                shapes::Shape::Cylinder(cylinder_object) => {
+                    let new_length = cylinder_object.length / 2.0;
+                    let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
+                    let cylinder_shape = SharedShape::cylinder(new_length, cylinder_object.radius);
+                    if cylinder_object.frame == "world" {
+                        let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
+                            vec![(cylinder_object.local_transform, cylinder_shape)];
+                        let temp_compound = Compound::new(temp_list);
+                        scene_compound_shapes_list.push(("world".to_string(), temp_compound));
+                    } else {
+                        let index_element = scene_compound_shapes_list
+                            .iter()
+                            .position(|x| x.0 == cylinder_object.frame);
+                        match index_element {
+                            Some(valid_index) => {
+                                let temp_scene_compound_shapes_list =
+                                    scene_compound_shapes_list.clone();
+                                let (frame_name, compound_shape) =
+                                    temp_scene_compound_shapes_list.get(valid_index).unwrap();
+                                let mut new_compound_shape = compound_shape.shapes().to_vec();
+                                new_compound_shape.push((
+                                    cylinder_object.local_transform * transform_offset,
+                                    cylinder_shape,
+                                ));
+                                scene_compound_shapes_list.remove(valid_index);
+                                scene_compound_shapes_list.push((
+                                    frame_name.to_string(),
+                                    Compound::new(new_compound_shape),
+                                ));
+                            }
+                            None => {
+                                let temp_list: Vec<(Isometry3<f64>, SharedShape)> = vec![(
+                                    cylinder_object.local_transform * transform_offset,
+                                    cylinder_shape,
+                                )];
+                                let temp_compound = Compound::new(temp_list);
+                                scene_compound_shapes_list
+                                    .push((cylinder_object.frame.to_string(), temp_compound));
+                            }
+                        }
+                    }
+                }
+                shapes::Shape::Sphere(sphere_object) => {
+                    let sphere_shape = SharedShape::ball(sphere_object.radius);
+                    if sphere_object.frame == "world" {
+                        let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
+                            vec![(sphere_object.local_transform, sphere_shape)];
+                        let temp_compound = Compound::new(temp_list);
+                        scene_compound_shapes_list.push(("world".to_string(), temp_compound));
+                    } else {
+                        let index_element = scene_compound_shapes_list
+                            .iter()
+                            .position(|x| x.0 == sphere_object.frame);
+                        match index_element {
+                            Some(valid_index) => {
+                                let temp_scene_compound_shapes_list =
+                                    scene_compound_shapes_list.clone();
+                                let (frame_name, compound_shape) =
+                                    temp_scene_compound_shapes_list.get(valid_index).unwrap();
+                                let mut new_compound_shape = compound_shape.shapes().to_vec();
+                                new_compound_shape
+                                    .push((sphere_object.local_transform, sphere_shape));
+                                scene_compound_shapes_list.remove(valid_index);
+                                scene_compound_shapes_list.push((
+                                    frame_name.to_string(),
+                                    Compound::new(new_compound_shape),
+                                ));
+                            }
+                            None => {
+                                let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
+                                    vec![(sphere_object.local_transform, sphere_shape)];
+                                let temp_compound = Compound::new(temp_list);
+                                scene_compound_shapes_list
+                                    .push((sphere_object.frame.to_string(), temp_compound));
+                            }
+                        }
+                    }
+                }
+                shapes::Shape::Capsule(capsule_object) => {
+                    let point_a = Point3::new(
+                        capsule_object.length * vector![0.0, 1.0, 0.0][0],
+                        capsule_object.length * vector![0.0, 1.0, 0.0][1],
+                        capsule_object.length * vector![0.0, 1.0, 0.0][2],
+                    );
+                    let point_b = Point3::new(
+                        capsule_object.length * vector![0.0, -1.0, 0.0][0],
+                        capsule_object.length * vector![0.0, -1.0, 0.0][1],
+                        capsule_object.length * vector![0.0, -1.0, 0.0][2],
+                    );
+                    let capsule_shape =
+                        SharedShape::capsule(point_a, point_b, capsule_object.radius);
+                    if capsule_object.frame == "world" {
+                        let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
+                            vec![(capsule_object.local_transform, capsule_shape)];
+                        let temp_compound = Compound::new(temp_list);
+                        scene_compound_shapes_list.push(("world".to_string(), temp_compound));
+                    } else {
+                        let index_element = scene_compound_shapes_list
+                            .iter()
+                            .position(|x| x.0 == capsule_object.frame);
+                        match index_element {
+                            Some(valid_index) => {
+                                let temp_scene_compound_shapes_list =
+                                    scene_compound_shapes_list.clone();
+                                let (frame_name, compound_shape) =
+                                    temp_scene_compound_shapes_list.get(valid_index).unwrap();
+                                let mut new_compound_shape = compound_shape.shapes().to_vec();
+                                new_compound_shape
+                                    .push((capsule_object.local_transform, capsule_shape));
+                                scene_compound_shapes_list.remove(valid_index);
+                                scene_compound_shapes_list.push((
+                                    frame_name.to_string(),
+                                    Compound::new(new_compound_shape),
+                                ));
+                            }
+                            None => {
+                                let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
+                                    vec![(capsule_object.local_transform, capsule_shape)];
+                                let temp_compound = Compound::new(temp_list);
+                                scene_compound_shapes_list
+                                    .push((capsule_object.frame.to_string(), temp_compound));
+                            }
+                        }
+                    }
+                }
+                shapes::Shape::Hull(hull_object) => {
+                    let hull_points: Vec<Point3<f64>> = hull_object
+                        .points
+                        .iter()
+                        .map(|p| Point3::new(p.x, p.y, p.z))
+                        .collect();
+                    let hull_shape = SharedShape::convex_hull(hull_points.as_slice());
+                    if hull_object.frame == "world" {
+                        match hull_shape {
+                            Some(valid_hull_shape) => {
+                                let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
+                                    vec![(hull_object.local_transform, valid_hull_shape)];
+                                let temp_compound = Compound::new(temp_list);
+                                scene_compound_shapes_list
+                                    .push(("world".to_string(), temp_compound));
+                            }
+                            None => {
+                                println!("the given points cannot form a valid hull shape");
+                            }
+                        }
+                    } else {
+                        match hull_shape {
+                            Some(valid_hull_shape) => {
+                                let index_element = scene_compound_shapes_list
+                                    .iter()
+                                    .position(|x| x.0 == hull_object.frame);
+                                match index_element {
+                                    Some(valid_index) => {
+                                        let temp_scene_compound_shapes_list =
+                                            scene_compound_shapes_list.clone();
+                                        let (frame_name, compound_shape) =
+                                            temp_scene_compound_shapes_list
+                                                .get(valid_index)
+                                                .unwrap();
+                                        let mut new_compound_shape =
+                                            compound_shape.shapes().to_vec();
+                                        new_compound_shape
+                                            .push((hull_object.local_transform, valid_hull_shape));
+                                        scene_compound_shapes_list.remove(valid_index);
+                                        scene_compound_shapes_list.push((
+                                            frame_name.to_string(),
+                                            Compound::new(new_compound_shape),
+                                        ));
+                                    }
+                                    None => {
+                                        let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
+                                            vec![(hull_object.local_transform, valid_hull_shape)];
+                                        let temp_compound = Compound::new(temp_list);
+                                        scene_compound_shapes_list
+                                            .push((hull_object.frame.to_string(), temp_compound));
+                                    }
+                                }
+                            }
+                            None => {
+                                println!("the given points cannot form a valid hull shape");
+                            }
+                        }
+                    }
+                }
+                shapes::Shape::Mesh(_mesh_object) => {
+                    /*
+                    Ignore Mesh Objects
+                    */
+                }
+            }
         }
 
         Self {
