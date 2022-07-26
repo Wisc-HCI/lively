@@ -491,12 +491,19 @@ impl CollisionManager {
     pub fn get_proximity(&self, frames: &HashMap<String, Isometry3<f64>>) -> Vec<ProximityInfo> {
         //-------------------------------------------------------------------------------setFrames()
        
+        // for (key, value) in frames.clone() {
+        //     println!("{}: {:?}", key, value);
+        // }
 
+        let mut count = 0;
         let size = self.scene_compound_shapes_list.len();
+        //println!("The size is {:?}" , size);
         let mut result_vector: Vec<ProximityInfo> = vec![];
         //let compound_shapes_grid = self.clone().create_compound_shapes_grid();
         for i in 0..= size-1{
             for j in (i+1)..= size-1{
+               
+
                 let (shape1_frame,shape1) = self.scene_compound_shapes_list.get(i).unwrap();
                 let (shape2_frame,shape2) = self.scene_compound_shapes_list.get(j).unwrap();
                 if shape1_frame == "world" && shape2_frame == "world"{
@@ -516,6 +523,10 @@ impl CollisionManager {
                                             IGNORE_DISTANCE,
                                         ){
                                             Ok(valid_closest_points) => {
+                                                count += 1;
+                                                println!("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                                                println!("The programe ran {:?} times" , count);
+                                                println!("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
                                                 match valid_closest_points {
                                                     ClosestPoints::Intersecting => {
                                                         result_vector.push(ProximityInfo::new(
