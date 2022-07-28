@@ -524,7 +524,7 @@ impl CollisionManager {
             &event_handler,
         );
 
-        println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );
+        // println!("number of contact_pairs: {:?}" , new_narrow_phase.contact_pairs().count()  );
 
         for pairs in new_narrow_phase.contact_pairs() {
             // info!("colliding pairs detected");
