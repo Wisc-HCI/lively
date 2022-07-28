@@ -524,9 +524,9 @@ impl CollisionManager {
                                         ){
                                             Ok(valid_closest_points) => {
                                                 count += 1;
-                                                println!("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                                                println!("The programe ran {:?} times" , count);
-                                                println!("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                                                // println!("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                                                // println!("The programe ran {:?} times" , count);
+                                                // println!("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
                                                 match valid_closest_points {
                                                     ClosestPoints::Intersecting => {
                                                         result_vector.push(ProximityInfo::new(

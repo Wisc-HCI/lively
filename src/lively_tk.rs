@@ -150,7 +150,8 @@ impl Solver {
 
         ()
     }
-
+    
+    #[profiling::function]
     pub fn solve(
         &mut self,
         goals: Option<Vec<Option<Goal>>>,
