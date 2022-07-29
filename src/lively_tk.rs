@@ -204,8 +204,8 @@ impl Solver {
         }
 
         // First, do xopt_core to develop a non-lively baseline
-        self.xopt_core = self.solve_with_retries(xopt_core,true,&mut rng);
-        self.vars.state_core = self.robot_model.get_state(&self.xopt_core);
+        self.xopt_core = self.solve_with_retries(xopt_core,true,self.only_core,&mut rng);
+        self.vars.state_core = self.robot_model.get_state(&self.xopt_core,self.only_core);
         self.vars.history_core.update(&self.vars.state_core);
 
 
@@ -213,8 +213,8 @@ impl Solver {
             self.vars.history.update(&self.vars.state_core);
             return self.vars.state_core.clone()
         } else {
-            self.xopt = self.solve_with_retries(xopt,false,&mut rng);
-            let state = self.robot_model.get_state(&self.xopt);
+            self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
+            let state = self.robot_model.get_state(&self.xopt,true);
             self.vars.history.update(&state);
             return state
         }
@@ -224,6 +224,7 @@ impl Solver {
         &mut self,
         x: Vec<f64>,
         is_core: bool,
+        is_last: bool,
         rng: &mut ThreadRng
     ) -> Vec<f64> {
         
@@ -254,7 +255,8 @@ impl Solver {
                 &self.lower_bounds, 
                 &self.upper_bounds, 
                 self.max_iterations, 
-                is_core
+                is_core,
+                is_last
             );
             if try_cost < best_cost {
                 best_x = xopt.clone();
@@ -306,9 +308,10 @@ pub fn optimize(
     upper_bounds: &Vec<f64>,
     max_iter: usize,
     is_core: bool,
+    is_last: bool
 ) -> f64 {
     let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
-        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u, is_core);
+        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u, is_core, is_last);
         for i in 0..my_grad.len() {
             grad[i] = my_grad[i];
         }
@@ -316,7 +319,7 @@ pub fn optimize(
     };
 
     let f = |u: &[f64], c: &mut f64| -> Result<(), SolverError> {
-        *c = objective_set.call(&robot_model, &vars, u, is_core);
+        *c = objective_set.call(&robot_model, &vars, u, is_core, is_last);
         Ok(())
     };
 

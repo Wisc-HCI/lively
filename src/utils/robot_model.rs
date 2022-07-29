@@ -154,7 +154,7 @@ impl RobotModel {
         Self { description, chain, collision_manager, child_map, joint_names, joints, links, joint_converters, dims, origin_link }
     }
 
-    pub fn get_state(&self, x: &Vec<f64>) -> State {
+    pub fn get_state(&self, x: &Vec<f64>,include_proximity: bool) -> State {
         let translation: Translation3<f64> = Translation3::new(x[0],x[1],x[2]);
         let rotation: UnitQuaternion<f64> = quaternion_exp(vector![x[3],x[4],x[5]]);
         let origin = Isometry3::from_parts(translation,rotation);
@@ -195,7 +195,12 @@ impl RobotModel {
             // frames.insert(self.child_map.get(&joint.name).unwrap().to_string(), transform);
         };
 
-        let proximity: Vec<ProximityInfo> = self.collision_manager.get_proximity(&frames);
+        let proximity: Vec<ProximityInfo>;
+        if include_proximity {
+            proximity = self.collision_manager.get_proximity(&frames)
+        } else {
+            proximity = vec![]
+        }
         let center_of_mass_vec = center_of_mass(&self.chain);
 
         // Return the current state.
@@ -215,7 +220,7 @@ impl RobotModel {
             }
         }
 
-        return self.get_state(&x)
+        return self.get_state(&x, true)
     }
     
     pub fn get_filled_state(&self, state: State) -> State {
@@ -225,7 +230,7 @@ impl RobotModel {
         */
 
         // Turn the state into a vector and then get the state from it.
-        return self.get_state(&self.get_x(state))
+        return self.get_state(&self.get_x(state),true)
     }
 
     pub fn get_x(&self, state: State) -> Vec<f64> {
