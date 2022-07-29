@@ -807,8 +807,16 @@ impl CollisionManager {
     pub fn ranking_maximum_loss_functions_error(
         &self,
         current_frame: &HashMap<String, Isometry3<f64>>,
-    ) -> Vec<(String, Compound, String, Compound, f64,usize,usize)> {
-        let mut loss_functions_error_vec: Vec<(String, Compound, String, Compound,f64,usize,usize)> = vec![];
+    ) -> Vec<(String, Compound, String, Compound, f64, usize, usize)> {
+        let mut loss_functions_error_vec: Vec<(
+            String,
+            Compound,
+            String,
+            Compound,
+            f64,
+            usize,
+            usize,
+        )> = vec![];
         let size = self.scene_compound_shapes_list.len();
         for i in 0..=size - 1 {
             for j in (i + 1)..=size - 1 {
@@ -836,7 +844,8 @@ impl CollisionManager {
                                     shape2_frame.to_string(),
                                     shape2.clone(),
                                     current_loss_function_error,
-                                    i,j
+                                    i,
+                                    j,
                                 ));
                             }
                             None => {}
@@ -862,12 +871,12 @@ impl CollisionManager {
         let size = self.scene_compound_shapes_list.len();
         let mut result_vector: Vec<ProximityInfo> = vec![];
 
-        let ranking_vector: Vec<(String, Compound, String, Compound, f64,usize,usize)> =
+        let ranking_vector: Vec<(String, Compound, String, Compound, f64, usize, usize)> =
             self.ranking_maximum_loss_functions_error(frames);
 
         if TIMED {
             let timed_timer = Instant::now();
-            for (shape1_frame, shape1, shape2_frame, shape2, _,i,j) in ranking_vector {
+            for (shape1_frame, shape1, shape2_frame, shape2, _, i, j) in ranking_vector {
                 if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
                     let shape1_transform = frames
                         .get(&shape1_frame)
@@ -893,20 +902,13 @@ impl CollisionManager {
                                     true,
                                 );
 
-                                
-
                                 self.scene_group_truth_distance_grid
-                                .set(
-                                    i,
-                                    j,
-                                    Some((
-                                        proximity,
-                                        *shape1_transform,
-                                        *shape2_transform,
-                                    )),
-                                )
-                                .unwrap();
-                               
+                                    .set(
+                                        i,
+                                        j,
+                                        Some((proximity, *shape1_transform, *shape2_transform)),
+                                    )
+                                    .unwrap();
                             }
                             None => {}
                         },
@@ -915,62 +917,61 @@ impl CollisionManager {
                 }
             }
         } else {
-            // let mut remaining_error_summation = 0.0;
-            // let mut index = 0;
+            let mut remaining_error_summation = 0.0;
+            let mut index = 0;
 
-            // for (_, _, _, _, loss_value) in ranking_vector.clone() {
-            //     remaining_error_summation += loss_value;
-            // }
+            for (_, _, _, _, loss_value, i, j) in ranking_vector.clone() {
+                remaining_error_summation += loss_value;
+            }
 
-            // while remaining_error_summation > ACCURACY_BUDGET
-            //     || index < ranking_vector.clone().len() - 1
-            // {
-            //     let (
-            //         current_shape1_frame,
-            //         current_shape1,
-            //         current_shape2_frame,
-            //         current_shape2,
-            //         current_loss_value,
-            //     ) = ranking_vector.get(index).unwrap();
-            //     let shape1_transform = current_state.get_link_transform(&current_shape1_frame);
-            //     let shape2_transform = current_state.get_link_transform(&current_shape2_frame);
-            //     match parry3d_f64::query::closest_points(
-            //         &shape1_transform,
-            //         current_shape1,
-            //         &shape2_transform,
-            //         current_shape2,
-            //         D_MAX,
-            //     ) {
-            //         Ok(valid_distance) => match valid_distance {
-            //             ClosestPoints::Intersecting => {
-            //                 result_vector.push(ProximityInfo::new(
-            //                     current_shape1_frame.to_string(),
-            //                     current_shape2_frame.to_string(),
-            //                     0.0,
-            //                     None,
-            //                     true,
-            //                 ));
-            //             }
-            //             ClosestPoints::WithinMargin(point1, point2) => {
-            //                 let dist = ((point1.x - point2.x) * (point1.x - point2.x)
-            //                     + (point1.y - point2.y) * (point1.y - point2.y)
-            //                     + (point1.z - point2.z) * (point1.z - point2.z) as f64)
-            //                     .sqrt();
-            //                 result_vector.push(ProximityInfo::new(
-            //                     current_shape1_frame.to_string(),
-            //                     current_shape2_frame.to_string(),
-            //                     dist,
-            //                     Some((point1, point2)),
-            //                     true,
-            //                 ));
-            //             }
-            //             ClosestPoints::Disjoint => {}
-            //         },
-            //         Err(_) => {}
-            //     }
-            //     remaining_error_summation -= current_loss_value;
-            //     index += 1;
-            // }
+            while remaining_error_summation > ACCURACY_BUDGET
+                || index < ranking_vector.clone().len() - 1
+            {
+                let (
+                    current_shape1_frame,
+                    current_shape1,
+                    current_shape2_frame,
+                    current_shape2,
+                    current_loss_value,
+                    i,
+                    j,
+                ) = ranking_vector.get(index).unwrap();
+
+                let shape1_transform = frames.get(current_shape1_frame).unwrap_or(&DEFAULT_FRAME_TRANSFORM);
+                let shape2_transform = frames.get(current_shape2_frame).unwrap_or(&DEFAULT_FRAME_TRANSFORM);
+                let contact = parry3d_f64::query::contact(
+                    shape1_transform,
+                    current_shape1,
+                    shape2_transform,
+                    current_shape2,
+                    D_MAX,
+                );
+                match contact {
+                    Ok(contact) => match contact {
+                        Some(valid_contact) => {
+                            let proximity = ProximityInfo::new(
+                                current_shape1_frame.clone(),
+                                current_shape2_frame.clone(),
+                                valid_contact.dist,
+                                Some((valid_contact.point1, valid_contact.point2)),
+                                true,
+                            );
+
+                            self.scene_group_truth_distance_grid
+                                .set(
+                                    *i,
+                                    *j,
+                                    Some((proximity, *shape1_transform, *shape2_transform)),
+                                )
+                                .unwrap();
+                        }
+                        None => {}
+                    },
+                    Err(_) => {}
+                }
+                remaining_error_summation -= current_loss_value;
+                index += 1;
+            }
         }
 
         return result_vector;
