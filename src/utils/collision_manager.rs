@@ -893,6 +893,8 @@ impl CollisionManager {
                                     true,
                                 );
 
+                                
+
                                 self.scene_group_truth_distance_grid
                                 .set(
                                     i,
