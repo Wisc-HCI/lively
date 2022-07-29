@@ -493,7 +493,7 @@ pub fn update_ground_truth_table(&mut self, current_state: &mut State) {
     //     }
 
     #[profiling::function]
-    pub fn get_proximity(&self, frames: &HashMap<String, Isometry3<f64>>) -> Vec<ProximityInfo> {
+    pub fn get_proximity(&mut self, frames: &HashMap<String, Isometry3<f64>>) -> Vec<ProximityInfo> {
         //-------------------------------------------------------------------------------setFrames()
        
         // for (key, value) in frames.clone() {

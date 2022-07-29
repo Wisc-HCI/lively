@@ -3,6 +3,7 @@ use nalgebra::geometry::{Isometry3, Translation3, UnitQuaternion};
 use urdf_rs::{Robot, read_from_string};
 use k::{Chain, JointType, center_of_mass};
 use std::collections::HashMap;
+use std::sync::Mutex;
 // use std::ops::Deref;
 use crate::utils::state::*;
 use crate::utils::shapes::*;
@@ -10,11 +11,11 @@ use crate::utils::info::*;
 use crate::utils::general::{quaternion_exp,quaternion_log};
 use crate::utils::collision_manager::CollisionManager;
 
-#[derive(Clone,Debug)]
+#[derive(Debug)]
 pub struct RobotModel {
     pub description: Robot,
     pub chain: Chain<f64>,
-    pub collision_manager: CollisionManager,
+    pub collision_manager: Mutex<CollisionManager>,
     pub child_map: HashMap<String, String>,
     pub joint_names: Vec<String>,
     pub joint_converters: Vec<(f64, f64, usize, String)>, // Multipler, Offset, Index, JointName\
@@ -113,8 +114,8 @@ impl RobotModel {
                 origin_link = link.name.clone();
             } 
         }
-        let collision_manager: CollisionManager = 
-            CollisionManager::new(links.clone(),collision_objects.clone());
+        let collision_manager: Mutex<CollisionManager> = 
+            Mutex::new(CollisionManager::new(links.clone(),collision_objects.clone()));
 
         let mut child_map: HashMap<String, String> = HashMap::new();
         let mut joint_names: Vec<String> = Vec::new();
@@ -197,7 +198,7 @@ impl RobotModel {
 
         let proximity: Vec<ProximityInfo>;
         if include_proximity {
-            proximity = self.collision_manager.get_proximity(&frames)
+            proximity = self.collision_manager.lock().unwrap().get_proximity(&frames)
         } else {
             proximity = vec![]
         }

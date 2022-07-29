@@ -100,7 +100,7 @@ impl Solver {
         let initial_x = robot_model.get_x(current_state);
         
         Self {
-            robot_model:robot_model.clone(),
+            robot_model,
             // Non-visible values
             vars,
             panoc_cache,
@@ -127,7 +127,7 @@ impl Solver {
         // Handle updating the values in vars
         self.vars.history.reset(&current_state);
         self.vars.history_core.reset(&current_state);
-        self.robot_model.collision_manager.clear_all_transient_shapes();
+        self.robot_model.collision_manager.lock().unwrap().clear_all_transient_shapes();
 
         // Handle updating weights
         match weights {
@@ -195,7 +195,7 @@ impl Solver {
 
         // Update the collision objects if provided
         match shape_updates {
-            Some(updates) => self.robot_model.collision_manager.perform_updates(&updates),
+            Some(updates) => self.robot_model.collision_manager.lock().unwrap().perform_updates(&updates),
             None => {}
         }
 
@@ -207,13 +207,13 @@ impl Solver {
 
         if self.only_core {
             self.vars.history.update(&self.vars.state_core);
-            self.robot_model.collision_manager.update_ground_truth_table(&mut self.vars.state_core);
+            self.robot_model.collision_manager.lock().unwrap().update_ground_truth_table(&mut self.vars.state_core);
             return self.vars.state_core.clone()
         } else {
             self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
             let mut state = self.robot_model.get_state(&self.xopt,true);
             self.vars.history.update(&state);
-            self.robot_model.collision_manager.update_ground_truth_table(&mut state);
+            self.robot_model.collision_manager.lock().unwrap().update_ground_truth_table(&mut state);
             
             
             return state
