@@ -11,7 +11,7 @@ pub struct Vars {
 }
 
 impl Vars {
-    pub fn new(initial_state:State, joints: Vec<JointInfo>, links: Vec<LinkInfo>) -> Self {
+    pub fn new(initial_state:&State, joints: Vec<JointInfo>, links: Vec<LinkInfo>) -> Self {
         Self {
             state_core: initial_state.clone(),
             history: History::new(&initial_state),

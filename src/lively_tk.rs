@@ -13,8 +13,6 @@ use std::f64::consts::{PI};
 
 pub struct Solver {
     pub robot_model: RobotModel,
-    pub joints: Vec<JointInfo>,
-    pub links: Vec<LinkInfo>,
 
     // Optimization utility
     pub vars: Vars,
@@ -53,7 +51,7 @@ impl Solver {
             None => current_state = robot_model.get_default_state()
         }
         // Vars contains the variables that are passed along to each objective each solve
-        let vars = Vars::new(current_state.clone(), robot_model.joints.clone(), robot_model.links.clone());
+        let vars = Vars::new(&current_state, robot_model.joints.clone(), robot_model.links.clone());
 
         // Panoc_Cache is a PANOCCache
         let panoc_cache = PANOCCache::new(robot_model.dims.clone(), 1e-14, 10);
@@ -103,8 +101,6 @@ impl Solver {
         
         Self {
             robot_model:robot_model.clone(),
-            joints:robot_model.joints.clone(),
-            links:robot_model.links.clone(),
             // Non-visible values
             vars,
             panoc_cache,

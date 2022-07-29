@@ -68,10 +68,10 @@ impl RobotModel {
                         upper_bound = 0.0;
                     }
             }
-            for joint_description in description.joints.clone() {
-                    if joint_description.name == joint.name {
-                        max_velocity = joint_description.limit.velocity;
-                        match joint_description.mimic {
+            for idx in 0..description.joints.len() {
+                    if description.joints[idx].name == joint.name {
+                        max_velocity = description.joints[idx].limit.velocity;
+                        match &description.joints[idx].mimic {
                             Some(mimic_info) => {
                                 mimic = Some(MimicInfo::from(mimic_info));
                             },

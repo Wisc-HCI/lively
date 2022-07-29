@@ -19,9 +19,9 @@ impl MimicInfo {
     }
 }
 
-impl From<Mimic> for MimicInfo {
-    fn from(mimic: Mimic) -> Self {
-        let joint: String = mimic.joint;
+impl From<&Mimic> for MimicInfo {
+    fn from(mimic: &Mimic) -> Self {
+        let joint: String = mimic.joint.clone();
         let multiplier: f64;
         let offset: f64;
         match mimic.multiplier {
