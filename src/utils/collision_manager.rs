@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
 use profiling::scope;
+use crate::utils::state::State;
 
 const IGNORE_DISTANCE: f64 = 1.0;
 
@@ -324,7 +325,11 @@ impl CollisionManager {
             scene_transient_shapes_look_up
         }
 }
-    
+#[profiling::function]
+pub fn update_ground_truth_table(&mut self, current_state: &mut State) {
+
+}
+
 
     // pub fn set_robot_frames(&mut self, _frames: &HashMap<String, Isometry3<f64>>) {
 
