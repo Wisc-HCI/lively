@@ -855,6 +855,8 @@ impl CollisionManager {
                 }
             }
         }
+       
+
         loss_functions_error_vec.sort_by(|a, b| a.4.partial_cmp(&b.4).unwrap());
 
         return loss_functions_error_vec;
@@ -874,10 +876,13 @@ impl CollisionManager {
         let ranking_vector: Vec<(String, Compound, String, Compound, f64, usize, usize)> =
             self.ranking_maximum_loss_functions_error(frames);
 
+           
+           
+
         if TIMED {
             let timed_timer = Instant::now();
             for (shape1_frame, shape1, shape2_frame, shape2, _, i, j) in ranking_vector {
-                //if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
+                if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
                     let shape1_transform = frames
                         .get(&shape1_frame)
                         .unwrap_or(&DEFAULT_FRAME_TRANSFORM);
@@ -914,7 +919,7 @@ impl CollisionManager {
                             None => {}
                         },
                         Err(_) => {}
-                   // }
+                    }
                 }
             }
         } else {
