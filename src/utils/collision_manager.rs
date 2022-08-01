@@ -25,7 +25,7 @@ const TIMED: bool = true;
 #[derive(Clone)]
 pub struct CollisionManager {
     scene_compound_shapes_list: Vec<(String, Compound, f64)>,
-    scene_transient_shapes_look_up: HashMap<String, (String,usize)>,
+    scene_transient_shapes_look_up: HashMap<String, (usize,usize)>,
     scene_group_truth_distance_grid:
         Array2D<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>>,
     scene_a_table: Array2D<f64>,
@@ -513,7 +513,7 @@ impl CollisionManager {
                                             compound_shape.shapes().to_vec();
                                         compound_shape_vec
                                             .push((box_object.local_transform, box_collider));
-                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        let new_compound_shape = Compound::new(compound_shape_vec.clone());
                                         let new_bounding_sphere_radius =
                                             new_compound_shape.local_bounding_sphere().radius;
                                         self.scene_compound_shapes_list[valid_index] = (
@@ -521,8 +521,9 @@ impl CollisionManager {
                                             new_compound_shape,
                                             new_bounding_sphere_radius,
                                         );
+                                       
                                         self.scene_transient_shapes_look_up
-                                            .insert(id.to_string(), (box_object.frame.to_string(),valid_index.clone()));
+                                            .insert(id.to_string(), (valid_index.clone(), compound_shape_vec.len() - 1));
                                         add_or_delete = "robot_add";
                                     }
                                     None => {
@@ -560,7 +561,7 @@ impl CollisionManager {
                                             cylinder_object.local_transform,
                                             cylinder_collider,
                                         ));
-                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        let new_compound_shape = Compound::new(compound_shape_vec.clone());
                                         let new_bounding_sphere_radius =
                                             new_compound_shape.local_bounding_sphere().radius;
                                         self.scene_compound_shapes_list[valid_index] = (
@@ -569,7 +570,7 @@ impl CollisionManager {
                                             new_bounding_sphere_radius,
                                         );
                                         self.scene_transient_shapes_look_up
-                                            .insert(id.to_string(), (cylinder_object.frame.to_string(),valid_index.clone()));
+                                            .insert(id.to_string(), (valid_index.clone(),compound_shape_vec.len()-1));
                                         add_or_delete = "robot_add";
                                     }
                                     None => {
@@ -602,7 +603,7 @@ impl CollisionManager {
                                             compound_shape.shapes().to_vec();
                                         compound_shape_vec
                                             .push((sphere_object.local_transform, sphere_collider));
-                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        let new_compound_shape = Compound::new(compound_shape_vec.clone());
                                         let new_bounding_sphere_radius =
                                             new_compound_shape.local_bounding_sphere().radius;
                                         self.scene_compound_shapes_list[valid_index] = (
@@ -611,7 +612,7 @@ impl CollisionManager {
                                             new_bounding_sphere_radius,
                                         );
                                         self.scene_transient_shapes_look_up
-                                            .insert(id.to_string(), (sphere_object.frame.to_string(),valid_index.clone()));
+                                            .insert(id.to_string(), (valid_index.clone(),compound_shape_vec.len()-1));
                                         add_or_delete = "robot_add";
                                     }
                                     None => {
@@ -658,7 +659,7 @@ impl CollisionManager {
                                             capsule_object.local_transform,
                                             capsule_collider,
                                         ));
-                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        let new_compound_shape = Compound::new(compound_shape_vec.clone());
                                         let new_bounding_sphere_radius =
                                             new_compound_shape.local_bounding_sphere().radius;
                                         self.scene_compound_shapes_list[valid_index] = (
@@ -667,7 +668,7 @@ impl CollisionManager {
                                             new_bounding_sphere_radius,
                                         );
                                         self.scene_transient_shapes_look_up
-                                            .insert(id.to_string(), (capsule_object.frame.to_string(),valid_index.clone()));
+                                            .insert(id.to_string(), (valid_index.clone(),compound_shape_vec.len()-1));
                                         add_or_delete = "robot_add";
                                     }
                                     None => {
@@ -711,7 +712,7 @@ impl CollisionManager {
                                                     valid_hull_collider,
                                                 ));
                                                 let new_compound_shape =
-                                                    Compound::new(compound_shape_vec);
+                                                    Compound::new(compound_shape_vec.clone());
                                                 let new_bounding_sphere_radius = new_compound_shape
                                                     .local_bounding_sphere()
                                                     .radius;
@@ -721,7 +722,7 @@ impl CollisionManager {
                                                     new_bounding_sphere_radius,
                                                 );
                                                 self.scene_transient_shapes_look_up
-                                                    .insert(id.to_string(), (hull_object.frame.to_string(),valid_index.clone()));
+                                                    .insert(id.to_string(), (valid_index.clone(),compound_shape_vec.len()-1));
                                                 add_or_delete ="robot_add";
                                             }
                                             None => {
@@ -743,7 +744,18 @@ impl CollisionManager {
                     }
                 }
                 ShapeUpdate::Move { id, pose } => {}
-                ShapeUpdate::Delete(id) => {}
+                ShapeUpdate::Delete(id) => {
+                    let delete_item = self.scene_transient_shapes_look_up.get(id);
+                    match delete_item {
+                        Some((valid_delete_item_frame_index, valid_delete_item_index)) => {
+                            let compound_shape_vec = self.scene_compound_shapes_list.get(*valid_delete_item_frame_index).unwrap();
+                            
+                        }
+                        None => {
+                            println!("this id does not exist");
+                        }
+                    }
+                }
             }
         }
 
