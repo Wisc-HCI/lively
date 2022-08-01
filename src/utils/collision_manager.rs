@@ -745,11 +745,18 @@ impl CollisionManager {
                 }
                 ShapeUpdate::Move { id, pose } => {}
                 ShapeUpdate::Delete(id) => {
-                    let delete_item = self.scene_transient_shapes_look_up.get(id);
+                    let delete_item_hashmap = self.scene_transient_shapes_look_up.clone();
+                    let delete_item = delete_item_hashmap.get(id);
                     match delete_item {
                         Some((valid_delete_item_frame_index, valid_delete_item_index)) => {
-                            let compound_shape_vec = self.scene_compound_shapes_list.get(*valid_delete_item_frame_index).unwrap();
-                            
+                            let (frame_name,compound_shape,_) = self.scene_compound_shapes_list.get(*valid_delete_item_frame_index).unwrap();
+                            let mut compound_shape_vec = compound_shape.shapes().to_vec();
+                            compound_shape_vec.remove(*valid_delete_item_index);
+                            let new_compound_shape = Compound::new(compound_shape_vec);
+                            let new_bounding_sphere_radius = new_compound_shape.local_bounding_sphere().radius;
+                            self.scene_transient_shapes_look_up.remove_entry(id);
+                            self.scene_compound_shapes_list[*valid_delete_item_frame_index] = (frame_name.to_string(),new_compound_shape,new_bounding_sphere_radius);
+
                         }
                         None => {
                             println!("this id does not exist");
