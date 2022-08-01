@@ -502,8 +502,11 @@ impl CollisionManager {
                                     self.scene_transient_shapes_look_up.contains_key(id);
                                 if already_exist_id {
                                     println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
-                                    let frame_index = self.scene_transient_shapes_look_up.get(id).unwrap();
+                                    let (frame_index,vec_index) = self.scene_transient_shapes_look_up.get(id).unwrap();
+                                    let (frame_name,compound_shape,bounding_sphere_radius) = self.scene_compound_shapes_list.get(*frame_index).unwrap();
                                     
+
+                                    //
                                 } else {
                                     let index = self
                                         .scene_compound_shapes_list
