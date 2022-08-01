@@ -877,7 +877,7 @@ impl CollisionManager {
         if TIMED {
             let timed_timer = Instant::now();
             for (shape1_frame, shape1, shape2_frame, shape2, _, i, j) in ranking_vector {
-                if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
+                //if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
                     let shape1_transform = frames
                         .get(&shape1_frame)
                         .unwrap_or(&DEFAULT_FRAME_TRANSFORM);
@@ -901,6 +901,7 @@ impl CollisionManager {
                                     Some((valid_contact.point1, valid_contact.point2)),
                                     true,
                                 );
+                                result_vector.push(proximity.clone());
 
                                 self.scene_group_truth_distance_grid
                                     .set(
@@ -913,7 +914,7 @@ impl CollisionManager {
                             None => {}
                         },
                         Err(_) => {}
-                    }
+                   // }
                 }
             }
         } else {
@@ -956,6 +957,7 @@ impl CollisionManager {
                                 Some((valid_contact.point1, valid_contact.point2)),
                                 true,
                             );
+                            result_vector.push(proximity.clone());
 
                             self.scene_group_truth_distance_grid
                                 .set(
