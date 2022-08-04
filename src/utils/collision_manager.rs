@@ -17,6 +17,7 @@ const A_MAX: f64 = 0.5;
 const TIME_BUDGET: Duration = Duration::from_micros(100);
 const ACCURACY_BUDGET: f64 = 0.1;
 const TIMED: bool = true;
+const A_VALUE : f64 = 1.0;
 
 // use log::info;
 
@@ -28,7 +29,7 @@ pub struct CollisionManager {
     scene_transient_shapes_look_up: HashMap<String, (usize, usize)>,
     scene_group_truth_distance_grid:
         Array2D<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>>,
-    scene_a_table: Array2D<f64>,
+    //scene_a_table: Array2D<f64>,
 }
 
 impl fmt::Debug for CollisionManager {
@@ -393,11 +394,7 @@ impl CollisionManager {
         }
 
         let scene_compound_shapes_list_size = scene_compound_shapes_list.len();
-        let scene_a_table = Array2D::filled_with(
-            1.0,
-            scene_compound_shapes_list_size,
-            scene_compound_shapes_list_size,
-        );
+    
 
         let scene_group_truth_distance_grid = Array2D::fill_with(
             None,
@@ -409,7 +406,7 @@ impl CollisionManager {
             scene_compound_shapes_list,
             scene_transient_shapes_look_up,
             scene_group_truth_distance_grid,
-            scene_a_table,
+           
         }
     }
 
@@ -1720,7 +1717,7 @@ impl CollisionManager {
             .iter()
             .position(|x| x.0 == *shape2_frame)
             .unwrap();
-        let a_value = self.scene_a_table[(i, j)];
+        let a_value = A_VALUE;
         let loss_value_distance = self.compute_loss_with_cutoff(&estimated_distance, &a_value);
         let loss_value_lower_bound = self.compute_loss_with_cutoff(&lower_bound, &a_value);
         let loss_value_upper_bound = self.compute_loss_with_cutoff(&upper_bound, &a_value);
