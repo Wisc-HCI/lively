@@ -17,7 +17,7 @@ const A_MAX: f64 = 0.5;
 const TIME_BUDGET: Duration = Duration::from_micros(100);
 const ACCURACY_BUDGET: f64 = 0.1;
 const TIMED: bool = true;
-const A_VALUE : f64 = 1.0;
+const A_VALUE: f64 = 1.0;
 
 // use log::info;
 
@@ -42,7 +42,7 @@ impl CollisionManager {
     #[profiling::function]
     pub fn new(links: Vec<LinkInfo>, persistent_shapes: Vec<shapes::Shape>) -> Self {
         let mut scene_compound_shapes_list: Vec<(String, Compound, f64)> = vec![];
-        let mut scene_transient_shapes_look_up = HashMap::new();
+        let scene_transient_shapes_look_up = HashMap::new();
         for link in &links {
             let mut robot_shapes_list: Vec<(Isometry3<f64>, SharedShape)> = Vec::new();
             let frame_name = &link.name;
@@ -394,9 +394,8 @@ impl CollisionManager {
         }
 
         let scene_compound_shapes_list_size = scene_compound_shapes_list.len();
-    
 
-        let scene_group_truth_distance_grid = Array2D::fill_with(
+        let scene_group_truth_distance_grid = Array2D::filled_with(
             None,
             scene_compound_shapes_list_size,
             scene_compound_shapes_list_size,
@@ -406,7 +405,6 @@ impl CollisionManager {
             scene_compound_shapes_list,
             scene_transient_shapes_look_up,
             scene_group_truth_distance_grid,
-           
         }
     }
 
@@ -583,11 +581,15 @@ impl CollisionManager {
                                         }
                                     }
 
-                                    let mut temp_vec: Vec<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>> = Vec::new();
+                                    let mut temp_vec: Vec<
+                                        Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>,
+                                    > = Vec::new();
                                     for _j in 0..=self.scene_compound_shapes_list.len() - 1 {
                                         temp_vec.push(None);
                                     }
-                                    self.scene_group_truth_distance_grid.as_rows().push(temp_vec);                                    
+                                    self.scene_group_truth_distance_grid
+                                        .as_rows()
+                                        .push(temp_vec);
                                 }
                             } else {
                                 let already_exist_id =
@@ -596,7 +598,7 @@ impl CollisionManager {
                                     println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
                                     let (frame_index, vec_index) =
                                         self.scene_transient_shapes_look_up.get(id).unwrap();
-                                    let (frame_name, compound_shape, bounding_sphere_radius) =
+                                    let (frame_name, compound_shape, _) =
                                         self.scene_compound_shapes_list.get(*frame_index).unwrap();
                                     let mut compound_shape_vec = compound_shape.shapes().to_vec();
                                     compound_shape_vec[*vec_index] =
@@ -604,6 +606,11 @@ impl CollisionManager {
                                     let new_compound_shape = Compound::new(compound_shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
+                                    self.scene_compound_shapes_list[*frame_index] = (
+                                        frame_name.to_string(),
+                                        new_compound_shape,
+                                        new_bounding_sphere_radius,
+                                    );
                                     add_or_delete = "robot_add";
 
                                     //
@@ -612,9 +619,9 @@ impl CollisionManager {
                                         .scene_compound_shapes_list
                                         .iter()
                                         .position(|x| x.0 == box_object.frame);
-                                    let index_modified = index;
                                     match index {
                                         Some(valid_index) => {
+                                            index_modified = valid_index;
                                             let (_, compound_shape, _) = self
                                                 .scene_compound_shapes_list
                                                 .get(valid_index)
@@ -660,7 +667,7 @@ impl CollisionManager {
                                     println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
                                     let (frame_index, vec_index) =
                                         self.scene_transient_shapes_look_up.get(id).unwrap();
-                                    let (frame_name, compound_shape, bounding_sphere_radius) =
+                                    let (frame_name, compound_shape, _) =
                                         self.scene_compound_shapes_list.get(*frame_index).unwrap();
                                     let mut compound_shape_vec = compound_shape.shapes().to_vec();
                                     compound_shape_vec[*vec_index] =
@@ -668,6 +675,11 @@ impl CollisionManager {
                                     let new_compound_shape = Compound::new(compound_shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
+                                    self.scene_compound_shapes_list[*frame_index] = (
+                                        frame_name.to_string(),
+                                        new_compound_shape,
+                                        new_bounding_sphere_radius,
+                                    );
                                     add_or_delete = "robot_add";
                                 } else {
                                     //Vec<(String, Compound, f64)>,
@@ -746,11 +758,15 @@ impl CollisionManager {
                                         }
                                     }
 
-                                    let mut temp_vec: Vec<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>> = Vec::new();
+                                    let mut temp_vec: Vec<
+                                        Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>,
+                                    > = Vec::new();
                                     for _j in 0..=self.scene_compound_shapes_list.len() - 1 {
                                         temp_vec.push(None);
                                     }
-                                    self.scene_group_truth_distance_grid.as_rows().push(temp_vec);                                    
+                                    self.scene_group_truth_distance_grid
+                                        .as_rows()
+                                        .push(temp_vec);
                                 }
                             } else {
                                 let already_exist_id =
@@ -759,7 +775,7 @@ impl CollisionManager {
                                     println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
                                     let (frame_index, vec_index) =
                                         self.scene_transient_shapes_look_up.get(id).unwrap();
-                                    let (frame_name, compound_shape, bounding_sphere_radius) =
+                                    let (frame_name, compound_shape, _) =
                                         self.scene_compound_shapes_list.get(*frame_index).unwrap();
                                     let mut compound_shape_vec = compound_shape.shapes().to_vec();
                                     compound_shape_vec[*vec_index] =
@@ -767,6 +783,11 @@ impl CollisionManager {
                                     let new_compound_shape = Compound::new(compound_shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
+                                    self.scene_compound_shapes_list[*frame_index] = (
+                                        frame_name.to_string(),
+                                        new_compound_shape,
+                                        new_bounding_sphere_radius,
+                                    );
                                     add_or_delete = "robot_add";
 
                                     //
@@ -775,9 +796,9 @@ impl CollisionManager {
                                         .scene_compound_shapes_list
                                         .iter()
                                         .position(|x| x.0 == cylinder_object.frame);
-                                    let index_modified = index;
                                     match index {
                                         Some(valid_index) => {
+                                            index_modified = valid_index;
                                             let (_, compound_shape, _) = self
                                                 .scene_compound_shapes_list
                                                 .get(valid_index)
@@ -821,7 +842,7 @@ impl CollisionManager {
                                     println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
                                     let (frame_index, vec_index) =
                                         self.scene_transient_shapes_look_up.get(id).unwrap();
-                                    let (frame_name, compound_shape, bounding_sphere_radius) =
+                                    let (frame_name, compound_shape, _) =
                                         self.scene_compound_shapes_list.get(*frame_index).unwrap();
                                     let mut compound_shape_vec = compound_shape.shapes().to_vec();
                                     compound_shape_vec[*vec_index] =
@@ -829,6 +850,11 @@ impl CollisionManager {
                                     let new_compound_shape = Compound::new(compound_shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
+                                    self.scene_compound_shapes_list[*frame_index] = (
+                                        frame_name.to_string(),
+                                        new_compound_shape,
+                                        new_bounding_sphere_radius,
+                                    );
                                     add_or_delete = "robot_add";
                                 } else {
                                     //Vec<(String, Compound, f64)>,
@@ -907,11 +933,15 @@ impl CollisionManager {
                                         }
                                     }
 
-                                    let mut temp_vec: Vec<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>> = Vec::new();
+                                    let mut temp_vec: Vec<
+                                        Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>,
+                                    > = Vec::new();
                                     for _j in 0..=self.scene_compound_shapes_list.len() - 1 {
                                         temp_vec.push(None);
                                     }
-                                    self.scene_group_truth_distance_grid.as_rows().push(temp_vec);                                    
+                                    self.scene_group_truth_distance_grid
+                                        .as_rows()
+                                        .push(temp_vec);
                                 }
                             } else {
                                 let already_exist_id =
@@ -920,7 +950,7 @@ impl CollisionManager {
                                     println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
                                     let (frame_index, vec_index) =
                                         self.scene_transient_shapes_look_up.get(id).unwrap();
-                                    let (frame_name, compound_shape, bounding_sphere_radius) =
+                                    let (frame_name, compound_shape, _) =
                                         self.scene_compound_shapes_list.get(*frame_index).unwrap();
                                     let mut compound_shape_vec = compound_shape.shapes().to_vec();
                                     compound_shape_vec[*vec_index] =
@@ -928,6 +958,11 @@ impl CollisionManager {
                                     let new_compound_shape = Compound::new(compound_shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
+                                    self.scene_compound_shapes_list[*frame_index] = (
+                                        frame_name.to_string(),
+                                        new_compound_shape,
+                                        new_bounding_sphere_radius,
+                                    );
                                     add_or_delete = "robot_add";
 
                                     //
@@ -936,9 +971,9 @@ impl CollisionManager {
                                         .scene_compound_shapes_list
                                         .iter()
                                         .position(|x| x.0 == sphere_object.frame);
-                                    let index_modified = index;
                                     match index {
                                         Some(valid_index) => {
+                                            index_modified = valid_index;
                                             let (_, compound_shape, _) = self
                                                 .scene_compound_shapes_list
                                                 .get(valid_index)
@@ -994,7 +1029,7 @@ impl CollisionManager {
                                     println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
                                     let (frame_index, vec_index) =
                                         self.scene_transient_shapes_look_up.get(id).unwrap();
-                                    let (frame_name, compound_shape, bounding_sphere_radius) =
+                                    let (frame_name, compound_shape, _) =
                                         self.scene_compound_shapes_list.get(*frame_index).unwrap();
                                     let mut compound_shape_vec = compound_shape.shapes().to_vec();
                                     compound_shape_vec[*vec_index] =
@@ -1002,6 +1037,11 @@ impl CollisionManager {
                                     let new_compound_shape = Compound::new(compound_shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
+                                    self.scene_compound_shapes_list[*frame_index] = (
+                                        frame_name.to_string(),
+                                        new_compound_shape,
+                                        new_bounding_sphere_radius,
+                                    );
                                     add_or_delete = "robot_add";
                                 } else {
                                     //Vec<(String, Compound, f64)>,
@@ -1080,11 +1120,15 @@ impl CollisionManager {
                                         }
                                     }
 
-                                    let mut temp_vec: Vec<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>> = Vec::new();
+                                    let mut temp_vec: Vec<
+                                        Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>,
+                                    > = Vec::new();
                                     for _j in 0..=self.scene_compound_shapes_list.len() - 1 {
                                         temp_vec.push(None);
                                     }
-                                    self.scene_group_truth_distance_grid.as_rows().push(temp_vec);                                    
+                                    self.scene_group_truth_distance_grid
+                                        .as_rows()
+                                        .push(temp_vec);
                                 }
                             } else {
                                 let already_exist_id =
@@ -1093,7 +1137,7 @@ impl CollisionManager {
                                     println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
                                     let (frame_index, vec_index) =
                                         self.scene_transient_shapes_look_up.get(id).unwrap();
-                                    let (frame_name, compound_shape, bounding_sphere_radius) =
+                                    let (frame_name, compound_shape, _) =
                                         self.scene_compound_shapes_list.get(*frame_index).unwrap();
                                     let mut compound_shape_vec = compound_shape.shapes().to_vec();
                                     compound_shape_vec[*vec_index] =
@@ -1101,6 +1145,7 @@ impl CollisionManager {
                                     let new_compound_shape = Compound::new(compound_shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
+                                    self.scene_compound_shapes_list[*frame_index] = (frame_name.to_string(),new_compound_shape,new_bounding_sphere_radius);
                                     add_or_delete = "robot_add";
 
                                     //
@@ -1109,9 +1154,10 @@ impl CollisionManager {
                                         .scene_compound_shapes_list
                                         .iter()
                                         .position(|x| x.0 == capsule_object.frame);
-                                    let index_modified = index;
+                                   
                                     match index {
                                         Some(valid_index) => {
+                                            index_modified = valid_index;
                                             let (_, compound_shape, _) = self
                                                 .scene_compound_shapes_list
                                                 .get(valid_index)
@@ -1158,105 +1204,6 @@ impl CollisionManager {
                                 Some(valid_hull_collider) => {
                                     if hull_object.frame == "world" {
                                         let already_exist_id =
-                                    self.scene_transient_shapes_look_up.contains_key(id);
-                                if already_exist_id {
-                                    println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
-                                    let (frame_index, vec_index) =
-                                        self.scene_transient_shapes_look_up.get(id).unwrap();
-                                    let (frame_name, compound_shape, bounding_sphere_radius) =
-                                        self.scene_compound_shapes_list.get(*frame_index).unwrap();
-                                    let mut compound_shape_vec = compound_shape.shapes().to_vec();
-                                    compound_shape_vec[*vec_index] =
-                                        (hull_object.local_transform, valid_hull_collider);
-                                    let new_compound_shape = Compound::new(compound_shape_vec);
-                                    let new_bounding_sphere_radius =
-                                        new_compound_shape.local_bounding_sphere().radius;
-                                    add_or_delete = "robot_add";
-                                } else {
-                                    //Vec<(String, Compound, f64)>,
-                                    let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
-                                        vec![(hull_object.local_transform, valid_hull_collider)];
-                                    let compound_shape = Compound::new(shape_vec);
-                                    let new_bounding_sphere_radius =
-                                        compound_shape.local_bounding_sphere().radius;
-                                    self.scene_compound_shapes_list.push((
-                                        hull_object.frame.to_string(),
-                                        compound_shape.clone(),
-                                        new_bounding_sphere_radius,
-                                    ));
-                                    self.scene_transient_shapes_look_up.insert(
-                                        id.to_string(),
-                                        (self.scene_compound_shapes_list.len() - 1, 0),
-                                    );
-
-                                    let mut compound_shape_as_rows =
-                                        self.scene_group_truth_distance_grid.as_rows();
-                                    //self.scene_group_truth_distance_grid = Array2D::from_rows(&compound_shape_as_rows);
-                                    for i in 0..=self.scene_compound_shapes_list.len() - 1 {
-                                        if self.scene_compound_shapes_list.get(i).unwrap().0
-                                            == "world"
-                                        {
-                                            break;
-                                        } else {
-                                            let (shape1_frame, shape1, _) =
-                                                self.scene_compound_shapes_list.get(i).unwrap();
-                                            let shape2_frame = &hull_object.frame;
-                                            let shape2_transform = hull_object.local_transform;
-                                            match self
-                                                .scene_group_truth_distance_grid
-                                                .get(i, self.scene_compound_shapes_list.len() - 2)
-                                                .unwrap()
-                                            {
-                                                Some((_, shape1_transform, _)) => {
-                                                    let contact = parry3d_f64::query::contact(
-                                                        shape1_transform,
-                                                        shape1,
-                                                        &shape2_transform,
-                                                        &compound_shape,
-                                                        D_MAX,
-                                                    );
-                                                    match contact {
-                                                        Ok(contact) => match contact {
-                                                            Some(valid_contact) => {
-                                                                let proximity = ProximityInfo::new(
-                                                                    shape1_frame.to_string(),
-                                                                    shape2_frame.to_string(),
-                                                                    valid_contact.dist,
-                                                                    Some((
-                                                                        valid_contact.point1,
-                                                                        valid_contact.point2,
-                                                                    )),
-                                                                    true,
-                                                                );
-                                                                let temp = compound_shape_as_rows
-                                                                    .get_mut(i)
-                                                                    .unwrap();
-                                                                temp.push(Some((
-                                                                    proximity,
-                                                                    *shape1_transform,
-                                                                    shape2_transform,
-                                                                )));
-                                                            }
-
-                                                            None => {}
-                                                        },
-
-                                                        Err(_) => {}
-                                                    }
-                                                }
-                                                None => {}
-                                            }
-                                        }
-                                    }
-
-                                    let mut temp_vec: Vec<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>> = Vec::new();
-                                    for _j in 0..=self.scene_compound_shapes_list.len() - 1 {
-                                        temp_vec.push(None);
-                                    }
-                                    self.scene_group_truth_distance_grid.as_rows().push(temp_vec);                                    
-                                }
-                                    } else {
-                                        let already_exist_id =
                                             self.scene_transient_shapes_look_up.contains_key(id);
                                         if already_exist_id {
                                             println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
@@ -1267,7 +1214,7 @@ impl CollisionManager {
                                             let (
                                                 frame_name,
                                                 compound_shape,
-                                                bounding_sphere_radius,
+                                                _,
                                             ) = self
                                                 .scene_compound_shapes_list
                                                 .get(*frame_index)
@@ -1280,6 +1227,139 @@ impl CollisionManager {
                                                 Compound::new(compound_shape_vec);
                                             let new_bounding_sphere_radius =
                                                 new_compound_shape.local_bounding_sphere().radius;
+                                            self.scene_compound_shapes_list[*frame_index] = (frame_name.to_string(),new_compound_shape,new_bounding_sphere_radius);
+                                            add_or_delete = "robot_add";
+                                        } else {
+                                            //Vec<(String, Compound, f64)>,
+                                            let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
+                                                vec![(
+                                                    hull_object.local_transform,
+                                                    valid_hull_collider,
+                                                )];
+                                            let compound_shape = Compound::new(shape_vec);
+                                            let new_bounding_sphere_radius =
+                                                compound_shape.local_bounding_sphere().radius;
+                                            self.scene_compound_shapes_list.push((
+                                                hull_object.frame.to_string(),
+                                                compound_shape.clone(),
+                                                new_bounding_sphere_radius,
+                                            ));
+                                            self.scene_transient_shapes_look_up.insert(
+                                                id.to_string(),
+                                                (self.scene_compound_shapes_list.len() - 1, 0),
+                                            );
+
+                                            let mut compound_shape_as_rows =
+                                                self.scene_group_truth_distance_grid.as_rows();
+                                            //self.scene_group_truth_distance_grid = Array2D::from_rows(&compound_shape_as_rows);
+                                            for i in 0..=self.scene_compound_shapes_list.len() - 1 {
+                                                if self.scene_compound_shapes_list.get(i).unwrap().0
+                                                    == "world"
+                                                {
+                                                    break;
+                                                } else {
+                                                    let (shape1_frame, shape1, _) = self
+                                                        .scene_compound_shapes_list
+                                                        .get(i)
+                                                        .unwrap();
+                                                    let shape2_frame = &hull_object.frame;
+                                                    let shape2_transform =
+                                                        hull_object.local_transform;
+                                                    match self
+                                                        .scene_group_truth_distance_grid
+                                                        .get(
+                                                            i,
+                                                            self.scene_compound_shapes_list.len()
+                                                                - 2,
+                                                        )
+                                                        .unwrap()
+                                                    {
+                                                        Some((_, shape1_transform, _)) => {
+                                                            let contact =
+                                                                parry3d_f64::query::contact(
+                                                                    shape1_transform,
+                                                                    shape1,
+                                                                    &shape2_transform,
+                                                                    &compound_shape,
+                                                                    D_MAX,
+                                                                );
+                                                            match contact {
+                                                                Ok(contact) => {
+                                                                    match contact {
+                                                                        Some(valid_contact) => {
+                                                                            let proximity = ProximityInfo::new(
+                                                                    shape1_frame.to_string(),
+                                                                    shape2_frame.to_string(),
+                                                                    valid_contact.dist,
+                                                                    Some((
+                                                                        valid_contact.point1,
+                                                                        valid_contact.point2,
+                                                                    )),
+                                                                    true,
+                                                                );
+                                                                            let temp = compound_shape_as_rows
+                                                                    .get_mut(i)
+                                                                    .unwrap();
+                                                                            temp.push(Some((
+                                                                                proximity,
+                                                                                *shape1_transform,
+                                                                                shape2_transform,
+                                                                            )));
+                                                                        }
+
+                                                                        None => {}
+                                                                    }
+                                                                }
+
+                                                                Err(_) => {}
+                                                            }
+                                                        }
+                                                        None => {}
+                                                    }
+                                                }
+                                            }
+
+                                            let mut temp_vec: Vec<
+                                                Option<(
+                                                    ProximityInfo,
+                                                    Isometry3<f64>,
+                                                    Isometry3<f64>,
+                                                )>,
+                                            > = Vec::new();
+                                            for _j in 0..=self.scene_compound_shapes_list.len() - 1
+                                            {
+                                                temp_vec.push(None);
+                                            }
+                                            self.scene_group_truth_distance_grid
+                                                .as_rows()
+                                                .push(temp_vec);
+                                        }
+                                    } else {
+                                        let already_exist_id =
+                                            self.scene_transient_shapes_look_up.contains_key(id);
+                                        if already_exist_id {
+                                            println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                            let (frame_index, vec_index) = self
+                                                .scene_transient_shapes_look_up
+                                                .get(id)
+                                                .unwrap();
+                                            let (
+                                                frame_name,
+                                                compound_shape,
+                                                _,
+                                            ) = self
+                                                .scene_compound_shapes_list
+                                                .get(*frame_index)
+                                                .unwrap();
+                                            let mut compound_shape_vec =
+                                                compound_shape.shapes().to_vec();
+                                            compound_shape_vec[*vec_index] =
+                                                (hull_object.local_transform, valid_hull_collider);
+                                            let new_compound_shape =
+                                                Compound::new(compound_shape_vec);
+                                            let new_bounding_sphere_radius =
+                                                new_compound_shape.local_bounding_sphere().radius;
+                                            self.scene_compound_shapes_list[*frame_index] = (frame_name.to_string(),new_compound_shape,new_bounding_sphere_radius);
                                             add_or_delete = "robot_add";
 
                                             //
@@ -1288,9 +1368,10 @@ impl CollisionManager {
                                                 .scene_compound_shapes_list
                                                 .iter()
                                                 .position(|x| x.0 == hull_object.frame);
-                                            let index_modified = index;
+                                            
                                             match index {
                                                 Some(valid_index) => {
+                                                    index_modified = valid_index;
                                                     let (_, compound_shape, _) = self
                                                         .scene_compound_shapes_list
                                                         .get(valid_index)
@@ -1508,28 +1589,28 @@ impl CollisionManager {
         shape1_j_transform: &Isometry3<f64>,
         shape2_j_transform: &Isometry3<f64>,
     ) -> Option<(f64, f64)> {
-        let DEFAULT_FRAME_TRANSFORM: Isometry3<f64> = Isometry3::<f64>::identity();
+        let default_frame_transform: Isometry3<f64> = Isometry3::<f64>::identity();
         let shape1_j_translation = shape1_j_transform.translation;
         let shape1_j_rotation = shape1_j_transform.rotation;
 
         let shape1_k_translation = current_frame
             .get(shape1_current_frame)
-            .unwrap_or(&DEFAULT_FRAME_TRANSFORM)
+            .unwrap_or(&default_frame_transform)
             .translation;
         let shape1_current_rotation = current_frame
             .get(shape1_current_frame)
-            .unwrap_or(&DEFAULT_FRAME_TRANSFORM)
+            .unwrap_or(&default_frame_transform)
             .rotation;
 
         let shape2_j_translation = shape2_j_transform.translation;
         let shape2_j_rotation = shape2_j_transform.rotation;
         let shape2_current_translation = current_frame
             .get(shape2_current_frame)
-            .unwrap_or(&DEFAULT_FRAME_TRANSFORM)
+            .unwrap_or(&default_frame_transform)
             .translation;
         let shape2_current_rotation = current_frame
             .get(shape2_current_frame)
-            .unwrap_or(&DEFAULT_FRAME_TRANSFORM)
+            .unwrap_or(&default_frame_transform)
             .rotation;
 
         let change_in_relative_translation =
@@ -1581,7 +1662,7 @@ impl CollisionManager {
             Some((change_in_translation, change_in_rotation)) => {
                 let shape1_bounding_sphere_radius = self.compute_bounding_spheres(shape1);
                 let shape2_bounding_sphere_radius = self.compute_bounding_spheres(shape2);
-                let mut max_bounding_sphere = 0.0;
+                let max_bounding_sphere;
                 if shape1_bounding_sphere_radius > shape2_bounding_sphere_radius {
                     max_bounding_sphere = shape1_bounding_sphere_radius;
                 } else if shape1_bounding_sphere_radius < shape2_bounding_sphere_radius {
@@ -1610,26 +1691,26 @@ impl CollisionManager {
         current_state: &HashMap<String, Isometry3<f64>>,
         j_state: &(ProximityInfo, Isometry3<f64>, Isometry3<f64>),
     ) -> f64 {
-        let DEFAULT_FRAME_TRANSFORM: Isometry3<f64> = Isometry3::<f64>::identity();
+        let default_frame_transform: Isometry3<f64> = Isometry3::<f64>::identity();
         let shape1_current_state_rotation = current_state
             .get(shape1_frame)
-            .unwrap_or(&DEFAULT_FRAME_TRANSFORM)
+            .unwrap_or(&default_frame_transform)
             .rotation;
         let shape1_past_state_rotation = j_state.1.rotation;
         let shape2_current_state_rotation = current_state
             .get(shape2_frame)
-            .unwrap_or(&DEFAULT_FRAME_TRANSFORM)
+            .unwrap_or(&default_frame_transform)
             .rotation;
         let shape2_past_state_rotation = j_state.2.rotation;
 
         let shape1_current_state_translation = current_state
             .get(shape1_frame)
-            .unwrap_or(&DEFAULT_FRAME_TRANSFORM)
+            .unwrap_or(&default_frame_transform)
             .translation;
         let shape1_past_state_translation = j_state.1.translation;
         let shape2_current_state_translation = current_state
             .get(shape2_frame)
-            .unwrap_or(&DEFAULT_FRAME_TRANSFORM)
+            .unwrap_or(&default_frame_transform)
             .translation;
         let shape2_past_state_translation = j_state.2.translation;
 
@@ -1655,7 +1736,7 @@ impl CollisionManager {
 
     #[profiling::function]
     pub fn compute_loss_function(&self, x: &f64) -> f64 {
-        let mut result = 0.0;
+        let result ;
         if *x <= 0.0 {
             result = -*x + 1.0;
         } else {
@@ -1689,7 +1770,7 @@ impl CollisionManager {
         current_frame: &HashMap<String, Isometry3<f64>>,
         j_state: &(ProximityInfo, Isometry3<f64>, Isometry3<f64>),
     ) -> f64 {
-        let mut result = 0.0;
+        let result;
 
         let lower_bound = self.compute_lower_signed_distance_bound(
             shape1,
