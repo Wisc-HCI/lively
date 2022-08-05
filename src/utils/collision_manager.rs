@@ -2276,7 +2276,104 @@ impl CollisionManager {
     #[profiling::function]
     pub fn clear_all_transient_shapes(&mut self) {
         if self.optima_version {
-            for (id, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {}
+            for (id, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
+           
+                    let (shape_modified_frame, shape_modified, _) =
+                        self.scene_compound_shapes_list.get(*frame_idx).unwrap();
+                    for i in 0..= *frame_idx {
+                        // Array2D<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>>,
+
+                        let temp_element = self
+                            .scene_group_truth_distance_grid
+                            .get(i, *frame_idx)
+                            .unwrap();
+                        match temp_element {
+                            Some((_, shape1_transform, shape2_transform)) => {
+                                let (other_shape_frame, other_shape, _) =
+                                    self.scene_compound_shapes_list.get(i).unwrap();
+                                let contact = parry3d_f64::query::contact(
+                                    shape1_transform,
+                                    shape_modified,
+                                    shape2_transform,
+                                    other_shape,
+                                    D_MAX,
+                                );
+                                match contact {
+                                    Ok(contact) => match contact {
+                                        Some(valid_contact) => {
+                                            let new_proximity_info = ProximityInfo::new(
+                                                shape_modified_frame.to_string(),
+                                                other_shape_frame.to_string(),
+                                                valid_contact.dist,
+                                                Some((valid_contact.point1, valid_contact.point2)),
+                                                true,
+                                            );
+                                            self.scene_group_truth_distance_grid.set(
+                                                i,
+                                                *frame_idx,
+                                                Some((
+                                                    new_proximity_info,
+                                                    *shape1_transform,
+                                                    *shape2_transform,
+                                                )),
+                                            );
+                                        }
+                                        None => {}
+                                    },
+                                    Err(_) => {}
+                                }
+                            }
+                            None => {}
+                        }
+                    }
+
+                    for j in (*frame_idx + 1)..=self.scene_compound_shapes_list.len() {
+                        let temp_element = self
+                            .scene_group_truth_distance_grid
+                            .get(*frame_idx, j)
+                            .unwrap();
+                        match temp_element {
+                            Some((_, shape1_transform, shape2_transform)) => {
+                                let (other_shape_frame, other_shape, _) =
+                                    self.scene_compound_shapes_list.get(j).unwrap();
+                                let contact = parry3d_f64::query::contact(
+                                    shape1_transform,
+                                    shape_modified,
+                                    shape2_transform,
+                                    other_shape,
+                                    D_MAX,
+                                );
+                                match contact {
+                                    Ok(contact) => match contact {
+                                        Some(valid_contact) => {
+                                            let new_proximity_info = ProximityInfo::new(
+                                                shape_modified_frame.to_string(),
+                                                other_shape_frame.to_string(),
+                                                valid_contact.dist,
+                                                Some((valid_contact.point1, valid_contact.point2)),
+                                                true,
+                                            );
+                                            self.scene_group_truth_distance_grid.set(
+                                                *frame_idx,
+                                                j,
+                                                Some((
+                                                    new_proximity_info,
+                                                    *shape1_transform,
+                                                    *shape2_transform,
+                                                )),
+                                            );
+                                        }
+                                        None => {}
+                                    },
+                                    Err(_) => {}
+                                }
+                            }
+                            None => {}
+                        }
+                    }
+                
+                
+            }
         } else {
             for (id, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
                 let (frame_name, compound_shape, _) =
