@@ -1708,31 +1708,507 @@ impl CollisionManager {
                                         println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
                                         let (frame_index, vec_index) =
                                             self.scene_transient_shapes_look_up.get(id).unwrap();
-                                        let (frame_name, compound_shape, _) =
-                                            self.scene_compound_shapes_list
-                                                .get(*frame_index)
-                                                .unwrap();
+                                        let (frame_name, compound_shape, _) = self
+                                            .scene_compound_shapes_list
+                                            .get(*frame_index)
+                                            .unwrap();
                                         let mut compound_shape_vec =
                                             compound_shape.shapes().to_vec();
                                         compound_shape_vec[*vec_index] =
                                             (box_object.local_transform, box_collider);
                                         let new_compound_shape = Compound::new(compound_shape_vec);
-                                        self.scene_compound_shapes_list[*frame_index] = (
-                                                frame_name.to_string(),
-                                                new_compound_shape,
-                                                0.0,
-                                            );
-                                    }else{
-                                        
+                                        self.scene_compound_shapes_list[*frame_index] =
+                                            (frame_name.to_string(), new_compound_shape, 0.0);
+                                    } else {
+                                        let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
+                                            vec![(box_object.local_transform, box_collider)];
+                                        let compound_shape = Compound::new(shape_vec);
+                                        self.scene_compound_shapes_list.push((
+                                            box_object.frame.to_string(),
+                                            compound_shape,
+                                            0.0,
+                                        ));
+                                        self.scene_transient_shapes_look_up.insert(
+                                            id.to_string(),
+                                            (self.scene_compound_shapes_list.len() - 1, 0),
+                                        );
                                     }
-                                }else{}
+                                } else {
+                                    if self.scene_transient_shapes_look_up.contains_key(id) {
+                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        let (frame_index, vec_index) =
+                                            self.scene_transient_shapes_look_up.get(id).unwrap();
+                                        let (frame_name, compound_shape, _) = self
+                                            .scene_compound_shapes_list
+                                            .get(*frame_index)
+                                            .unwrap();
+                                        let mut compound_shape_vec =
+                                            compound_shape.shapes().to_vec();
+                                        compound_shape_vec[*vec_index] =
+                                            (box_object.local_transform, box_collider);
+                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        self.scene_compound_shapes_list[*frame_index] =
+                                            (frame_name.to_string(), new_compound_shape, 0.0);
+                                    } else {
+                                        let index = self
+                                            .scene_compound_shapes_list
+                                            .iter()
+                                            .position(|x| x.0 == box_object.frame);
+                                        match index {
+                                            Some(valid_index) => {
+                                                let (_, compound_shape, _) = self
+                                                    .scene_compound_shapes_list
+                                                    .get(valid_index)
+                                                    .unwrap();
+                                                let mut compound_shape_vec =
+                                                    compound_shape.shapes().to_vec();
+                                                compound_shape_vec.push((
+                                                    box_object.local_transform,
+                                                    box_collider,
+                                                ));
+                                                let new_compound_shape =
+                                                    Compound::new(compound_shape_vec.clone());
+                                                self.scene_compound_shapes_list[valid_index] = (
+                                                    box_object.frame.to_string(),
+                                                    new_compound_shape,
+                                                    0.0,
+                                                );
+
+                                                self.scene_transient_shapes_look_up.insert(
+                                                    id.to_string(),
+                                                    (
+                                                        valid_index.clone(),
+                                                        compound_shape_vec.len() - 1,
+                                                    ),
+                                                );
+                                            }
+                                            None => {
+                                                println!(
+                                                "The frame does not exist for this transient shape"
+                                            );
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             shapes::Shape::Cylinder(cylinder_object) => {
+                                let new_length = cylinder_object.length / 2.0;
+                                let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
+                                let cylinder_collider =
+                                    SharedShape::cylinder(new_length, cylinder_object.radius);
+                                if cylinder_object.frame == "world" {
+                                    if self.scene_transient_shapes_look_up.contains_key(id) {
+                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        let (frame_index, vec_index) =
+                                            self.scene_transient_shapes_look_up.get(id).unwrap();
+                                        let (frame_name, compound_shape, _) = self
+                                            .scene_compound_shapes_list
+                                            .get(*frame_index)
+                                            .unwrap();
+                                        let mut compound_shape_vec =
+                                            compound_shape.shapes().to_vec();
+                                        compound_shape_vec[*vec_index] = (
+                                            cylinder_object.local_transform * transform_offset,
+                                            cylinder_collider,
+                                        );
+                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        self.scene_compound_shapes_list[*frame_index] =
+                                            (frame_name.to_string(), new_compound_shape, 0.0);
+                                    } else {
+                                        let shape_vec: Vec<(Isometry3<f64>, SharedShape)> = vec![(
+                                            cylinder_object.local_transform * transform_offset,
+                                            cylinder_collider,
+                                        )];
+                                        let compound_shape = Compound::new(shape_vec);
+                                        self.scene_compound_shapes_list.push((
+                                            cylinder_object.frame.to_string(),
+                                            compound_shape,
+                                            0.0,
+                                        ));
+                                        self.scene_transient_shapes_look_up.insert(
+                                            id.to_string(),
+                                            (self.scene_compound_shapes_list.len() - 1, 0),
+                                        );
+                                    }
+                                } else {
+                                    if self.scene_transient_shapes_look_up.contains_key(id) {
+                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        let (frame_index, vec_index) =
+                                            self.scene_transient_shapes_look_up.get(id).unwrap();
+                                        let (frame_name, compound_shape, _) = self
+                                            .scene_compound_shapes_list
+                                            .get(*frame_index)
+                                            .unwrap();
+                                        let mut compound_shape_vec =
+                                            compound_shape.shapes().to_vec();
+                                        compound_shape_vec[*vec_index] = (
+                                            cylinder_object.local_transform * transform_offset,
+                                            cylinder_collider,
+                                        );
+                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        self.scene_compound_shapes_list[*frame_index] =
+                                            (frame_name.to_string(), new_compound_shape, 0.0);
+                                    } else {
+                                        let index = self
+                                            .scene_compound_shapes_list
+                                            .iter()
+                                            .position(|x| x.0 == cylinder_object.frame);
+                                        match index {
+                                            Some(valid_index) => {
+                                                let (_, compound_shape, _) = self
+                                                    .scene_compound_shapes_list
+                                                    .get(valid_index)
+                                                    .unwrap();
+                                                let mut compound_shape_vec =
+                                                    compound_shape.shapes().to_vec();
+                                                compound_shape_vec.push((
+                                                    cylinder_object.local_transform
+                                                        * transform_offset,
+                                                    cylinder_collider,
+                                                ));
+                                                let new_compound_shape =
+                                                    Compound::new(compound_shape_vec.clone());
+                                                self.scene_compound_shapes_list[valid_index] = (
+                                                    cylinder_object.frame.to_string(),
+                                                    new_compound_shape,
+                                                    0.0,
+                                                );
 
+                                                self.scene_transient_shapes_look_up.insert(
+                                                    id.to_string(),
+                                                    (
+                                                        valid_index.clone(),
+                                                        compound_shape_vec.len() - 1,
+                                                    ),
+                                                );
+                                            }
+                                            None => {
+                                                println!(
+                                                "The frame does not exist for this transient shape"
+                                            );
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            shapes::Shape::Sphere(sphere_object) => {}
-                            shapes::Shape::Capsule(capsule_object) => {}
-                            shapes::Shape::Hull(hull_object) => {}
+                            shapes::Shape::Sphere(sphere_object) => {
+                                let sphere_collider = SharedShape::ball(sphere_object.radius);
+                                if sphere_object.frame == "world" {
+                                    if self.scene_transient_shapes_look_up.contains_key(id) {
+                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        let (frame_index, vec_index) =
+                                            self.scene_transient_shapes_look_up.get(id).unwrap();
+                                        let (frame_name, compound_shape, _) = self
+                                            .scene_compound_shapes_list
+                                            .get(*frame_index)
+                                            .unwrap();
+                                        let mut compound_shape_vec =
+                                            compound_shape.shapes().to_vec();
+                                        compound_shape_vec[*vec_index] =
+                                            (sphere_object.local_transform, sphere_collider);
+                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        self.scene_compound_shapes_list[*frame_index] =
+                                            (frame_name.to_string(), new_compound_shape, 0.0);
+                                    } else {
+                                        let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
+                                            vec![(sphere_object.local_transform, sphere_collider)];
+                                        let compound_shape = Compound::new(shape_vec);
+                                        self.scene_compound_shapes_list.push((
+                                            sphere_object.frame.to_string(),
+                                            compound_shape,
+                                            0.0,
+                                        ));
+                                        self.scene_transient_shapes_look_up.insert(
+                                            id.to_string(),
+                                            (self.scene_compound_shapes_list.len() - 1, 0),
+                                        );
+                                    }
+                                } else {
+                                    if self.scene_transient_shapes_look_up.contains_key(id) {
+                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        let (frame_index, vec_index) =
+                                            self.scene_transient_shapes_look_up.get(id).unwrap();
+                                        let (frame_name, compound_shape, _) = self
+                                            .scene_compound_shapes_list
+                                            .get(*frame_index)
+                                            .unwrap();
+                                        let mut compound_shape_vec =
+                                            compound_shape.shapes().to_vec();
+                                        compound_shape_vec[*vec_index] =
+                                            (sphere_object.local_transform, sphere_collider);
+                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        self.scene_compound_shapes_list[*frame_index] =
+                                            (frame_name.to_string(), new_compound_shape, 0.0);
+                                    } else {
+                                        let index = self
+                                            .scene_compound_shapes_list
+                                            .iter()
+                                            .position(|x| x.0 == sphere_object.frame);
+                                        match index {
+                                            Some(valid_index) => {
+                                                let (_, compound_shape, _) = self
+                                                    .scene_compound_shapes_list
+                                                    .get(valid_index)
+                                                    .unwrap();
+                                                let mut compound_shape_vec =
+                                                    compound_shape.shapes().to_vec();
+                                                compound_shape_vec.push((
+                                                    sphere_object.local_transform,
+                                                    sphere_collider,
+                                                ));
+                                                let new_compound_shape =
+                                                    Compound::new(compound_shape_vec.clone());
+                                                self.scene_compound_shapes_list[valid_index] = (
+                                                    sphere_object.frame.to_string(),
+                                                    new_compound_shape,
+                                                    0.0,
+                                                );
+
+                                                self.scene_transient_shapes_look_up.insert(
+                                                    id.to_string(),
+                                                    (
+                                                        valid_index.clone(),
+                                                        compound_shape_vec.len() - 1,
+                                                    ),
+                                                );
+                                            }
+                                            None => {
+                                                println!(
+                                                "The frame does not exist for this transient shape"
+                                            );
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            shapes::Shape::Capsule(capsule_object) => {
+                                let point_a = Point3::new(
+                                    capsule_object.length * vector![0.0, 1.0, 0.0][0],
+                                    capsule_object.length * vector![0.0, 1.0, 0.0][1],
+                                    capsule_object.length * vector![0.0, 1.0, 0.0][2],
+                                );
+                                let point_b = Point3::new(
+                                    capsule_object.length * vector![0.0, -1.0, 0.0][0],
+                                    capsule_object.length * vector![0.0, -1.0, 0.0][1],
+                                    capsule_object.length * vector![0.0, -1.0, 0.0][2],
+                                );
+                                let capsule_collider =
+                                    SharedShape::capsule(point_a, point_b, capsule_object.radius);
+                                if capsule_object.frame == "world" {
+                                    if self.scene_transient_shapes_look_up.contains_key(id) {
+                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        let (frame_index, vec_index) =
+                                            self.scene_transient_shapes_look_up.get(id).unwrap();
+                                        let (frame_name, compound_shape, _) = self
+                                            .scene_compound_shapes_list
+                                            .get(*frame_index)
+                                            .unwrap();
+                                        let mut compound_shape_vec =
+                                            compound_shape.shapes().to_vec();
+                                        compound_shape_vec[*vec_index] =
+                                            (capsule_object.local_transform, capsule_collider);
+                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        self.scene_compound_shapes_list[*frame_index] =
+                                            (frame_name.to_string(), new_compound_shape, 0.0);
+                                    } else {
+                                        let shape_vec: Vec<(Isometry3<f64>, SharedShape)> = vec![(
+                                            capsule_object.local_transform,
+                                            capsule_collider,
+                                        )];
+                                        let compound_shape = Compound::new(shape_vec);
+                                        self.scene_compound_shapes_list.push((
+                                            capsule_object.frame.to_string(),
+                                            compound_shape,
+                                            0.0,
+                                        ));
+                                        self.scene_transient_shapes_look_up.insert(
+                                            id.to_string(),
+                                            (self.scene_compound_shapes_list.len() - 1, 0),
+                                        );
+                                    }
+                                } else {
+                                    if self.scene_transient_shapes_look_up.contains_key(id) {
+                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        let (frame_index, vec_index) =
+                                            self.scene_transient_shapes_look_up.get(id).unwrap();
+                                        let (frame_name, compound_shape, _) = self
+                                            .scene_compound_shapes_list
+                                            .get(*frame_index)
+                                            .unwrap();
+                                        let mut compound_shape_vec =
+                                            compound_shape.shapes().to_vec();
+                                        compound_shape_vec[*vec_index] =
+                                            (capsule_object.local_transform, capsule_collider);
+                                        let new_compound_shape = Compound::new(compound_shape_vec);
+                                        self.scene_compound_shapes_list[*frame_index] =
+                                            (frame_name.to_string(), new_compound_shape, 0.0);
+                                    } else {
+                                        let index = self
+                                            .scene_compound_shapes_list
+                                            .iter()
+                                            .position(|x| x.0 == capsule_object.frame);
+                                        match index {
+                                            Some(valid_index) => {
+                                                let (_, compound_shape, _) = self
+                                                    .scene_compound_shapes_list
+                                                    .get(valid_index)
+                                                    .unwrap();
+                                                let mut compound_shape_vec =
+                                                    compound_shape.shapes().to_vec();
+                                                compound_shape_vec.push((
+                                                    capsule_object.local_transform,
+                                                    capsule_collider,
+                                                ));
+                                                let new_compound_shape =
+                                                    Compound::new(compound_shape_vec.clone());
+                                                self.scene_compound_shapes_list[valid_index] = (
+                                                    capsule_object.frame.to_string(),
+                                                    new_compound_shape,
+                                                    0.0,
+                                                );
+
+                                                self.scene_transient_shapes_look_up.insert(
+                                                    id.to_string(),
+                                                    (
+                                                        valid_index.clone(),
+                                                        compound_shape_vec.len() - 1,
+                                                    ),
+                                                );
+                                            }
+                                            None => {
+                                                println!(
+                                                    "The frame does not exist for this transient shape"
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            shapes::Shape::Hull(hull_object) => {
+                                let hull_points: Vec<Point3<f64>> = hull_object
+                                    .points
+                                    .iter()
+                                    .map(|p| Point3::new(p.x, p.y, p.z))
+                                    .collect();
+
+                                let hull_collider =
+                                    SharedShape::convex_hull(hull_points.as_slice());
+                                match hull_collider {
+                                    Some(valid_hull_collider) => {
+                                        if hull_object.frame == "world" {
+                                            if self.scene_transient_shapes_look_up.contains_key(id)
+                                            {
+                                                println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                                let (frame_index, vec_index) = self
+                                                    .scene_transient_shapes_look_up
+                                                    .get(id)
+                                                    .unwrap();
+                                                let (frame_name, compound_shape, _) = self
+                                                    .scene_compound_shapes_list
+                                                    .get(*frame_index)
+                                                    .unwrap();
+                                                let mut compound_shape_vec =
+                                                    compound_shape.shapes().to_vec();
+                                                compound_shape_vec[*vec_index] = (
+                                                    hull_object.local_transform,
+                                                    valid_hull_collider,
+                                                );
+                                                let new_compound_shape =
+                                                    Compound::new(compound_shape_vec);
+                                                self.scene_compound_shapes_list[*frame_index] = (
+                                                    frame_name.to_string(),
+                                                    new_compound_shape,
+                                                    0.0,
+                                                );
+                                            } else {
+                                                let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
+                                                    vec![(
+                                                        hull_object.local_transform,
+                                                        valid_hull_collider,
+                                                    )];
+                                                let compound_shape = Compound::new(shape_vec);
+                                                self.scene_compound_shapes_list.push((
+                                                    hull_object.frame.to_string(),
+                                                    compound_shape,
+                                                    0.0,
+                                                ));
+                                                self.scene_transient_shapes_look_up.insert(
+                                                    id.to_string(),
+                                                    (self.scene_compound_shapes_list.len() - 1, 0),
+                                                );
+                                            }
+                                        } else {
+                                            if self.scene_transient_shapes_look_up.contains_key(id)
+                                            {
+                                                println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                                let (frame_index, vec_index) = self
+                                                    .scene_transient_shapes_look_up
+                                                    .get(id)
+                                                    .unwrap();
+                                                let (frame_name, compound_shape, _) = self
+                                                    .scene_compound_shapes_list
+                                                    .get(*frame_index)
+                                                    .unwrap();
+                                                let mut compound_shape_vec =
+                                                    compound_shape.shapes().to_vec();
+                                                compound_shape_vec[*vec_index] = (
+                                                    hull_object.local_transform,
+                                                    valid_hull_collider,
+                                                );
+                                                let new_compound_shape =
+                                                    Compound::new(compound_shape_vec);
+                                                self.scene_compound_shapes_list[*frame_index] = (
+                                                    frame_name.to_string(),
+                                                    new_compound_shape,
+                                                    0.0,
+                                                );
+                                            } else {
+                                                let index = self
+                                                    .scene_compound_shapes_list
+                                                    .iter()
+                                                    .position(|x| x.0 == hull_object.frame);
+                                                match index {
+                                                    Some(valid_index) => {
+                                                        let (_, compound_shape, _) = self
+                                                            .scene_compound_shapes_list
+                                                            .get(valid_index)
+                                                            .unwrap();
+                                                        let mut compound_shape_vec =
+                                                            compound_shape.shapes().to_vec();
+                                                        compound_shape_vec.push((
+                                                            hull_object.local_transform,
+                                                            valid_hull_collider,
+                                                        ));
+                                                        let new_compound_shape = Compound::new(
+                                                            compound_shape_vec.clone(),
+                                                        );
+                                                        self.scene_compound_shapes_list
+                                                            [valid_index] = (
+                                                            hull_object.frame.to_string(),
+                                                            new_compound_shape,
+                                                            0.0,
+                                                        );
+
+                                                        self.scene_transient_shapes_look_up.insert(
+                                                            id.to_string(),
+                                                            (
+                                                                valid_index.clone(),
+                                                                compound_shape_vec.len() - 1,
+                                                            ),
+                                                        );
+                                                    }
+                                                    None => {
+                                                        println!(
+                                                    "The frame does not exist for this transient shape"
+                                                );
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    None => {}
+                                }
+                            }
                             shapes::Shape::Mesh(_mesh_object) => {
                                 /*
                                 Ignore Mesh Objects
@@ -1740,8 +2216,36 @@ impl CollisionManager {
                             }
                         }
                     }
-                    ShapeUpdate::Move { id, pose } => {}
-                    ShapeUpdate::Delete(id) => {}
+                    ShapeUpdate::Move { id, pose } => {
+
+                    }
+                    ShapeUpdate::Delete(id) => {
+                        let delete_item_hashmap = self.scene_transient_shapes_look_up.clone();
+                    let delete_item = delete_item_hashmap.get(id);
+                    match delete_item {
+                        Some((valid_delete_item_frame_index, valid_delete_item_index)) => {
+                            let (frame_name, compound_shape, _) = self
+                                .scene_compound_shapes_list
+                                .get(*valid_delete_item_frame_index)
+                                .unwrap();
+                            let mut compound_shape_vec = compound_shape.shapes().to_vec();
+                            compound_shape_vec.remove(*valid_delete_item_index);
+                            let new_compound_shape = Compound::new(compound_shape_vec);
+                            let new_bounding_sphere_radius =
+                                new_compound_shape.local_bounding_sphere().radius;
+                            self.scene_transient_shapes_look_up.remove_entry(id);
+                            self.scene_compound_shapes_list[*valid_delete_item_frame_index] = (
+                                frame_name.to_string(),
+                                new_compound_shape,
+                                new_bounding_sphere_radius,
+                            );
+                        }
+                        None => {
+                            println!("this id does not exist");
+                        }
+                    }
+
+                    }
                 }
             }
         }
