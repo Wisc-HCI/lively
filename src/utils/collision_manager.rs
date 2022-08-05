@@ -1750,7 +1750,7 @@ impl CollisionManager {
     //compute loss with cutoff
     #[profiling::function]
     pub fn compute_loss_with_cutoff(&self, x: &f64, a_value: &f64) -> f64 {
-        let mut result = 0.0;
+        let result;
 
         if *x >= D_MAX || *x / *a_value >= A_MAX {
             result = 0.0;
