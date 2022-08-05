@@ -2217,44 +2217,68 @@ impl CollisionManager {
                         }
                     }
                     ShapeUpdate::Move { id, pose } => {
+                        match self.scene_transient_shapes_look_up.get(id) {
+                            Some((valid_move_item_frame_idx, valid_move_item_vec_idx)) => {
+                                let (frame_name, compound_shape, _) = self
+                                    .scene_compound_shapes_list
+                                    .get(*valid_move_item_frame_idx)
+                                    .unwrap();
+                                let mut compound_shape_vec = compound_shape.shapes().to_vec();
+                                let (_, primitive_shape) =
+                                    compound_shape_vec.get(*valid_move_item_vec_idx).unwrap();
+                                compound_shape_vec[*valid_move_item_vec_idx] =
+                                    (*pose, primitive_shape.clone());
+                                let new_compound_shape = Compound::new(compound_shape_vec);
+                                let new_bounding_sphere_radius =
+                                    new_compound_shape.local_bounding_sphere().radius;
+                                self.scene_compound_shapes_list[*valid_move_item_frame_idx] = (
+                                    frame_name.to_string(),
+                                    new_compound_shape,
+                                    new_bounding_sphere_radius,
+                                );
+                                
+                            }
+                            None => {
+                                println!("this id does not exist");
+                            }
+                        }
 
                     }
                     ShapeUpdate::Delete(id) => {
                         let delete_item_hashmap = self.scene_transient_shapes_look_up.clone();
-                    let delete_item = delete_item_hashmap.get(id);
-                    match delete_item {
-                        Some((valid_delete_item_frame_index, valid_delete_item_index)) => {
-                            let (frame_name, compound_shape, _) = self
-                                .scene_compound_shapes_list
-                                .get(*valid_delete_item_frame_index)
-                                .unwrap();
-                            let mut compound_shape_vec = compound_shape.shapes().to_vec();
-                            compound_shape_vec.remove(*valid_delete_item_index);
-                            let new_compound_shape = Compound::new(compound_shape_vec);
-                            let new_bounding_sphere_radius =
-                                new_compound_shape.local_bounding_sphere().radius;
-                            self.scene_transient_shapes_look_up.remove_entry(id);
-                            self.scene_compound_shapes_list[*valid_delete_item_frame_index] = (
-                                frame_name.to_string(),
-                                new_compound_shape,
-                                new_bounding_sphere_radius,
-                            );
+                        let delete_item = delete_item_hashmap.get(id);
+                        match delete_item {
+                            Some((valid_delete_item_frame_index, valid_delete_item_index)) => {
+                                let (frame_name, compound_shape, _) = self
+                                    .scene_compound_shapes_list
+                                    .get(*valid_delete_item_frame_index)
+                                    .unwrap();
+                                let mut compound_shape_vec = compound_shape.shapes().to_vec();
+                                compound_shape_vec.remove(*valid_delete_item_index);
+                                let new_compound_shape = Compound::new(compound_shape_vec);
+                                let new_bounding_sphere_radius =
+                                    new_compound_shape.local_bounding_sphere().radius;
+                                self.scene_transient_shapes_look_up.remove_entry(id);
+                                self.scene_compound_shapes_list[*valid_delete_item_frame_index] = (
+                                    frame_name.to_string(),
+                                    new_compound_shape,
+                                    new_bounding_sphere_radius,
+                                );
+                            }
+                            None => {
+                                println!("this id does not exist");
+                            }
                         }
-                        None => {
-                            println!("this id does not exist");
-                        }
-                    }
-
                     }
                 }
             }
         }
     }
 
-    #[profiling::function]
-    pub fn clear_all_transient_shapes(&mut self) {
-        //  self.scene_transient_shapes_list.clear();
-    }
+    // #[profiling::function]
+    // pub fn clear_all_transient_shapes(&mut self) {
+    //     //  self.scene_transient_shapes_list.clear();
+    // }
 
     #[profiling::function]
     pub fn compute_relative_change_in_transform(
