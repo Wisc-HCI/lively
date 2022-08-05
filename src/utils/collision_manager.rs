@@ -671,7 +671,7 @@ impl CollisionManager {
                                         self.scene_compound_shapes_list.get(*frame_index).unwrap();
                                     let mut compound_shape_vec = compound_shape.shapes().to_vec();
                                     compound_shape_vec[*vec_index] =
-                                        (cylinder_object.local_transform, cylinder_collider);
+                                        (cylinder_object.local_transform * transform_offset, cylinder_collider);
                                     let new_compound_shape = Compound::new(compound_shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
@@ -1788,16 +1788,7 @@ impl CollisionManager {
         );
 
         let estimated_distance = (1.0 - R) * lower_bound + R * upper_bound;
-        let i = self
-            .scene_compound_shapes_list
-            .iter()
-            .position(|x| x.0 == *shape1_frame)
-            .unwrap();
-        let j = self
-            .scene_compound_shapes_list
-            .iter()
-            .position(|x| x.0 == *shape2_frame)
-            .unwrap();
+        
         let a_value = A_VALUE;
         let loss_value_distance = self.compute_loss_with_cutoff(&estimated_distance, &a_value);
         let loss_value_lower_bound = self.compute_loss_with_cutoff(&lower_bound, &a_value);
@@ -1880,7 +1871,7 @@ impl CollisionManager {
         &mut self,
         frames: &HashMap<String, Isometry3<f64>>,
     ) -> Vec<ProximityInfo> {
-        let DEFAULT_FRAME_TRANSFORM: Isometry3<f64> = Isometry3::<f64>::identity();
+        let default_frame_transform: Isometry3<f64> = Isometry3::<f64>::identity();
         let mut result_vector: Vec<ProximityInfo> = vec![];
 
         let ranking_vector: Vec<(String, Compound, String, Compound, f64, usize, usize)> =
@@ -1892,10 +1883,10 @@ impl CollisionManager {
                 if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
                     let shape1_transform = frames
                         .get(&shape1_frame)
-                        .unwrap_or(&DEFAULT_FRAME_TRANSFORM);
+                        .unwrap_or(&default_frame_transform);
                     let shape2_transform = frames
                         .get(&shape2_frame)
-                        .unwrap_or(&DEFAULT_FRAME_TRANSFORM);
+                        .unwrap_or(&default_frame_transform);
                     let contact = parry3d_f64::query::contact(
                         shape1_transform,
                         &shape1,
@@ -1933,7 +1924,7 @@ impl CollisionManager {
             let mut remaining_error_summation = 0.0;
             let mut index = 0;
 
-            for (_, _, _, _, loss_value, i, j) in ranking_vector.clone() {
+            for (_, _, _, _, loss_value, _ , _) in ranking_vector.clone() {
                 remaining_error_summation += loss_value;
             }
 
@@ -1952,10 +1943,10 @@ impl CollisionManager {
 
                 let shape1_transform = frames
                     .get(current_shape1_frame)
-                    .unwrap_or(&DEFAULT_FRAME_TRANSFORM);
+                    .unwrap_or(&default_frame_transform);
                 let shape2_transform = frames
                     .get(current_shape2_frame)
-                    .unwrap_or(&DEFAULT_FRAME_TRANSFORM);
+                    .unwrap_or(&default_frame_transform);
                 let contact = parry3d_f64::query::contact(
                     shape1_transform,
                     current_shape1,
