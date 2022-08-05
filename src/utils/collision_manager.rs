@@ -2236,13 +2236,11 @@ impl CollisionManager {
                                     new_compound_shape,
                                     new_bounding_sphere_radius,
                                 );
-                                
                             }
                             None => {
                                 println!("this id does not exist");
                             }
                         }
-
                     }
                     ShapeUpdate::Delete(id) => {
                         let delete_item_hashmap = self.scene_transient_shapes_look_up.clone();
@@ -2275,10 +2273,28 @@ impl CollisionManager {
         }
     }
 
-    // #[profiling::function]
-    // pub fn clear_all_transient_shapes(&mut self) {
-    //     //  self.scene_transient_shapes_list.clear();
-    // }
+    #[profiling::function]
+    pub fn clear_all_transient_shapes(&mut self) {
+        if self.optima_version {
+            for (id, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {}
+        } else {
+            for (id, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
+                let (frame_name, compound_shape, _) =
+                    self.scene_compound_shapes_list.get(*frame_idx).unwrap();
+                let mut compound_shape_vec = compound_shape.shapes().to_vec();
+                compound_shape_vec.remove(*vec_idx);
+                let new_compound_shape = Compound::new(compound_shape_vec);
+                let new_bounding_sphere_radius = new_compound_shape.local_bounding_sphere().radius;
+
+                self.scene_compound_shapes_list[*frame_idx] = (
+                    frame_name.to_string(),
+                    new_compound_shape,
+                    new_bounding_sphere_radius,
+                );
+            }
+            self.scene_transient_shapes_look_up.clear();
+        }
+    }
 
     #[profiling::function]
     pub fn compute_relative_change_in_transform(
