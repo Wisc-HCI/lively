@@ -303,7 +303,12 @@ impl ProximityInfo {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+// #[derive(Default)]
+// pub struct CollisionSettingInfo {
+
+// }
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CollisionSettingInfo {
     pub d_max: f64,
@@ -313,6 +318,8 @@ pub struct CollisionSettingInfo {
     pub timed: bool,
     pub a_value: f64,
 }
+
+
 
 impl CollisionSettingInfo {
     pub fn new(
