@@ -19,7 +19,7 @@ const TIME_BUDGET: Duration = Duration::from_micros(100);
 const ACCURACY_BUDGET: f64 = 0.1;
 const TIMED: bool = true;
 const A_VALUE: f64 = 1.0;
-const OPTIMA_NUMBER: usize = 100;
+const OPTIMA_NUMBER: usize = 500;
 
 // use log::info;
 
@@ -125,7 +125,7 @@ impl CollisionManager {
                                 let bounding_sphere_radius =
                                     new_compound_shape.local_bounding_sphere().radius;
                                 scene_compound_shapes_list.remove(valid_index);
-                                scene_compound_shapes_list.push((
+                                scene_compound_shapes_list.insert(valid_index,(
                                     frame_name.to_string(),
                                     new_compound_shape,
                                     bounding_sphere_radius,
@@ -180,7 +180,7 @@ impl CollisionManager {
                                     new_compound_shape.local_bounding_sphere().radius;
 
                                 scene_compound_shapes_list.remove(valid_index);
-                                scene_compound_shapes_list.push((
+                                scene_compound_shapes_list.insert(valid_index,(
                                     frame_name.to_string(),
                                     new_compound_shape,
                                     bounding_sphere_radius,
@@ -232,7 +232,7 @@ impl CollisionManager {
                                 let bounding_sphere_radius =
                                     new_compound_shape.local_bounding_sphere().radius;
                                 scene_compound_shapes_list.remove(valid_index);
-                                scene_compound_shapes_list.push((
+                                scene_compound_shapes_list.insert(valid_index,(
                                     frame_name.to_string(),
                                     new_compound_shape,
                                     bounding_sphere_radius,
@@ -293,7 +293,7 @@ impl CollisionManager {
                                 let bounding_sphere_radius =
                                     new_compound_shape.local_bounding_sphere().radius;
                                 scene_compound_shapes_list.remove(valid_index);
-                                scene_compound_shapes_list.push((
+                                scene_compound_shapes_list.insert(valid_index,(
                                     frame_name.to_string(),
                                     new_compound_shape,
                                     bounding_sphere_radius,
@@ -362,7 +362,7 @@ impl CollisionManager {
                                         let bounding_sphere_radius =
                                             new_compound_shape.local_bounding_sphere().radius;
                                         scene_compound_shapes_list.remove(valid_index);
-                                        scene_compound_shapes_list.push((
+                                        scene_compound_shapes_list.insert(valid_index,(
                                             frame_name.to_string(),
                                             new_compound_shape,
                                             bounding_sphere_radius,
@@ -1604,9 +1604,8 @@ impl CollisionManager {
                         self.scene_compound_shapes_list.get(index_modified).unwrap();
                     for i in 0..=index_modified {
                         // Array2D<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>>,
-
-                        let temp_element = self
-                            .scene_group_truth_distance_grid
+                        let temp_scene_group_truth_distance_grid = self.scene_group_truth_distance_grid.clone();
+                        let temp_element = temp_scene_group_truth_distance_grid 
                             .get(i, index_modified)
                             .unwrap();
                         match temp_element {
@@ -1638,7 +1637,7 @@ impl CollisionManager {
                                                     *shape1_transform,
                                                     *shape2_transform,
                                                 )),
-                                            );
+                                            ).unwrap();
                                         }
                                         None => {}
                                     },
@@ -1650,8 +1649,9 @@ impl CollisionManager {
                     }
 
                     for j in (index_modified + 1)..=self.scene_compound_shapes_list.len() {
-                        let temp_element = self
-                            .scene_group_truth_distance_grid
+                        let temp_scene_group_truth_distance_grid = self.scene_group_truth_distance_grid.clone();
+                        let temp_element =
+                             temp_scene_group_truth_distance_grid
                             .get(index_modified, j)
                             .unwrap();
                         match temp_element {
@@ -1683,7 +1683,7 @@ impl CollisionManager {
                                                     *shape1_transform,
                                                     *shape2_transform,
                                                 )),
-                                            );
+                                            ).unwrap();
                                         }
                                         None => {}
                                     },
@@ -2276,14 +2276,24 @@ impl CollisionManager {
     // #[profiling::function]
     pub fn clear_all_transient_shapes(&mut self) {
         if self.optima_version {
-            for (id, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
+            for (_, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
+                let temp_scene_compound_shapes_list = self.scene_compound_shapes_list.clone();
                 let (shape_modified_frame, shape_modified, _) =
-                    self.scene_compound_shapes_list.get(*frame_idx).unwrap();
-                for i in 0..=*frame_idx {
-                    // Array2D<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>>,
+                    temp_scene_compound_shapes_list.get(*frame_idx).unwrap();
+                    let mut compound_shape_vec = shape_modified.shapes().to_vec();
+                    compound_shape_vec.remove(*vec_idx);
+                    let new_compound_shape = Compound::new(compound_shape_vec);
+                    let new_bounding_sphere_radius = new_compound_shape.local_bounding_sphere().radius;
+                    self.scene_compound_shapes_list[*frame_idx] = (
+                        shape_modified_frame.to_string(),
+                        new_compound_shape,
+                        new_bounding_sphere_radius,
+                    );
 
-                    let temp_element = self
-                        .scene_group_truth_distance_grid
+               
+                for i in 0..=*frame_idx {
+                    let temp_scene_group_truth_distance_grid = self.scene_group_truth_distance_grid.clone();
+                    let temp_element = temp_scene_group_truth_distance_grid
                         .get(i, *frame_idx)
                         .unwrap();
                     match temp_element {
@@ -2315,7 +2325,8 @@ impl CollisionManager {
                                                 *shape1_transform,
                                                 *shape2_transform,
                                             )),
-                                        );
+                                        ).unwrap();
+                                       
                                     }
                                     None => {}
                                 },
@@ -2327,8 +2338,8 @@ impl CollisionManager {
                 }
 
                 for j in (*frame_idx + 1)..=self.scene_compound_shapes_list.len() {
-                    let temp_element = self
-                        .scene_group_truth_distance_grid
+                    let temp_scene_group_truth_distance_grid = self.scene_group_truth_distance_grid.clone();
+                    let temp_element = temp_scene_group_truth_distance_grid
                         .get(*frame_idx, j)
                         .unwrap();
                     match temp_element {
@@ -2360,7 +2371,7 @@ impl CollisionManager {
                                                 *shape1_transform,
                                                 *shape2_transform,
                                             )),
-                                        );
+                                        ).unwrap();
                                     }
                                     None => {}
                                 },
@@ -2372,18 +2383,18 @@ impl CollisionManager {
                 }
             }
         } else {
-            for (id, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
+            for (_, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
                 let (frame_name, compound_shape, _) =
                     self.scene_compound_shapes_list.get(*frame_idx).unwrap();
                 let mut compound_shape_vec = compound_shape.shapes().to_vec();
                 compound_shape_vec.remove(*vec_idx);
                 let new_compound_shape = Compound::new(compound_shape_vec);
-                let new_bounding_sphere_radius = new_compound_shape.local_bounding_sphere().radius;
+               
 
                 self.scene_compound_shapes_list[*frame_idx] = (
                     frame_name.to_string(),
                     new_compound_shape,
-                    new_bounding_sphere_radius,
+                    0.0,
                 );
             }
             self.scene_transient_shapes_look_up.clear();
@@ -2435,6 +2446,7 @@ impl CollisionManager {
             .rotation_to(&shape2_j_rotation)
             .rotation_to(&shape1_current_rotation.rotation_to(&shape2_current_rotation)))
         .angle();
+
 
         return Some((change_in_relative_translation, change_in_relative_rotation));
     }
@@ -2640,42 +2652,46 @@ impl CollisionManager {
             usize,
         )> = vec![];
         let size = self.scene_compound_shapes_list.len();
+        let timed_timer = Instant::now();
         for i in 0..=size - 1 {
             for j in (i + 1)..=size - 1 {
-                let (shape1_frame, shape1, _) = self.scene_compound_shapes_list.get(i).unwrap();
-                let (shape2_frame, shape2, _) = self.scene_compound_shapes_list.get(j).unwrap();
-                if shape1_frame == "world" && shape2_frame == "world" {
-                    continue;
-                } else {
-                    match self.scene_group_truth_distance_grid.get(i, j) {
-                        Some(element) => match element {
-                            Some(valid_element) => {
-                                let current_loss_function_error = self
-                                    .compute_maximum_loss_functions_error(
-                                        shape1,
-                                        shape1_frame,
-                                        shape2,
-                                        shape2_frame,
-                                        current_frame,
-                                        valid_element,
-                                    );
-
-                                loss_functions_error_vec.push((
-                                    shape1_frame.to_string(),
-                                    shape1.clone(),
-                                    shape2_frame.to_string(),
-                                    shape2.clone(),
-                                    current_loss_function_error,
-                                    i,
-                                    j,
-                                ));
-                            }
+                if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
+                    let (shape1_frame, shape1, _) = self.scene_compound_shapes_list.get(i).unwrap();
+                    let (shape2_frame, shape2, _) = self.scene_compound_shapes_list.get(j).unwrap();
+                    if shape1_frame == "world" && shape2_frame == "world" {
+                        continue;
+                    } else {
+                        match self.scene_group_truth_distance_grid.get(i, j) {
+                            Some(element) => match element {
+                                Some(valid_element) => {
+                                    let current_loss_function_error = self
+                                        .compute_maximum_loss_functions_error(
+                                            shape1,
+                                            shape1_frame,
+                                            shape2,
+                                            shape2_frame,
+                                            current_frame,
+                                            valid_element,
+                                        );
+    
+                                    loss_functions_error_vec.push((
+                                        shape1_frame.to_string(),
+                                        shape1.clone(),
+                                        shape2_frame.to_string(),
+                                        shape2.clone(),
+                                        current_loss_function_error,
+                                        i,
+                                        j,
+                                    ));
+                                }
+                                None => {}
+                            },
                             None => {}
-                        },
-                        None => {}
+                        }
                     }
+                }else{break;}
                 }
-            }
+               
         }
 
         loss_functions_error_vec.sort_by(|a, b| a.4.partial_cmp(&b.4).unwrap());
@@ -2735,6 +2751,8 @@ impl CollisionManager {
                             },
                             Err(_) => {}
                         }
+                    }else{
+                        break;
                     }
                 }
             } else {
