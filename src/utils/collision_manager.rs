@@ -19,7 +19,7 @@ const TIME_BUDGET: Duration = Duration::from_micros(100);
 const ACCURACY_BUDGET: f64 = 0.1;
 const TIMED: bool = true;
 const A_VALUE: f64 = 1.0;
-const OPTIMA_NUMBER: usize = 500;
+const OPTIMA_NUMBER: usize = 100;
 
 // use log::info;
 
@@ -2252,16 +2252,17 @@ impl CollisionManager {
                                     .get(*valid_delete_item_frame_index)
                                     .unwrap();
                                 let mut compound_shape_vec = compound_shape.shapes().to_vec();
-                                compound_shape_vec.remove(*valid_delete_item_index);
-                                let new_compound_shape = Compound::new(compound_shape_vec);
-                                let new_bounding_sphere_radius =
-                                    new_compound_shape.local_bounding_sphere().radius;
+                                if compound_shape_vec.len() >= 2 {
+                                    compound_shape_vec.remove(*valid_delete_item_index);
+                                    let new_compound_shape = Compound::new(compound_shape_vec);                              
+                                    self.scene_compound_shapes_list[*valid_delete_item_frame_index] = (
+                                        frame_name.to_string(),
+                                        new_compound_shape,
+                                        0.0,
+                                    );
+                                }
                                 self.scene_transient_shapes_look_up.remove_entry(id);
-                                self.scene_compound_shapes_list[*valid_delete_item_frame_index] = (
-                                    frame_name.to_string(),
-                                    new_compound_shape,
-                                    new_bounding_sphere_radius,
-                                );
+                               
                             }
                             None => {
                                 println!("this id does not exist");
@@ -2387,15 +2388,15 @@ impl CollisionManager {
                 let (frame_name, compound_shape, _) =
                     self.scene_compound_shapes_list.get(*frame_idx).unwrap();
                 let mut compound_shape_vec = compound_shape.shapes().to_vec();
-                compound_shape_vec.remove(*vec_idx);
-                let new_compound_shape = Compound::new(compound_shape_vec);
-               
-
-                self.scene_compound_shapes_list[*frame_idx] = (
-                    frame_name.to_string(),
-                    new_compound_shape,
-                    0.0,
-                );
+                if compound_shape_vec.len() >= 2 {
+                    compound_shape_vec.remove(*vec_idx);
+                    let new_compound_shape = Compound::new(compound_shape_vec);                              
+                    self.scene_compound_shapes_list[*frame_idx] = (
+                        frame_name.to_string(),
+                        new_compound_shape,
+                        0.0,
+                    );
+                }            
             }
             self.scene_transient_shapes_look_up.clear();
         }

@@ -5,6 +5,7 @@ use lively_tk_lib::objectives::core::matching::PositionMatchObjective;
 use lively_tk_lib::objectives::objective::Objective;
 use lively_tk_lib::utils::goals::Goal::ScalarRange;
 use lively_tk_lib::utils::shapes::*;
+use lively_tk_lib::utils::info::{*};
 use lively_tk_lib::utils::shapes::Shape;
 use nalgebra::base::Vector4;
 use nalgebra::base::Vector3;
@@ -506,7 +507,7 @@ fn solver_function() {
 
     let mut box_shapes_vec: Vec<Shape> = vec![
         box_1, box_2, box_3, box_4, box_5, box_6, box_7, box_8, box_9, box_10, box_11, box_12,
-        box_13, box_14, box_15, box_16, box_17, box_18, box_19,box_20
+        box_13, box_14, box_15, box_16, box_17, box_18, box_19.clone(),box_20.clone()
     ];
 
     for i in 1..= 200 {
@@ -603,7 +604,32 @@ fn solver_function() {
     );
 
 
+    let shape_update : Vec<ShapeUpdate> = vec![
+        ShapeUpdate::Add{
+            id : "1".to_string(),
+            shape : box_19.clone() //"world"
+        },
+        ShapeUpdate::Move{
+            id : "1".to_string(),
+            pose : iso_18.clone()
+        },
+        ShapeUpdate::Add{
+            id : "2".to_string(),
+            shape : box_20.clone() //"existing_frame"
+        },
+        ShapeUpdate::Move{
+            id : "2".to_string(),
+            pose : iso_19.clone()
+        },
+        // ShapeUpdate::Delete ("1".to_string()),
+        // ShapeUpdate::Delete ("2".to_string()),
 
-    let temp_sovle = temp.solve(None, None, 0.0, None);
+
+
+    ];
+
+    let temp_solve = temp.solve(None, None, 0.0, Some(shape_update));
+    temp.reset(temp_solve,None);
+    //temp.dele
     //temp.perform_updates();
 }
