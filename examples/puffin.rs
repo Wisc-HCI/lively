@@ -150,35 +150,6 @@ fn main() {
     });
 }
 
-// staticData,
-//     [],
-//     [ScalarRange(value = 0, delta = 0),
-//      ScalarRange(value = -0.15, delta = 0),
-//      ScalarRange(value = 0, delta = 0),
-//      ScalarRange(value = 0, delta = 0),
-//      ScalarRange(value = 0, delta = 0),
-//      ScalarRange(value = 0, delta = 0),
-//      ],
-//      [
-//
-//       BoxShape(name = "conveyorCollisionShapeBelt", frame="world", physical = True, x = 0.75, y = 0.65, z = 0.25, local_transform = Transform(translation = Translation( 0.9499698,-0.2499698,0.050000000000000044), rotation = Rotation(0,0,-0.7069999677447772,0.7072135784958345))),
-//       BoxShape(name = "conveyorRecieverCollisionShapeBase", frame="world", physical = True, x = 0.75, y = 0.25, z = 0.7, local_transform = Transform(translation = Translation( -0.5500906000000001,-0.25009060000000005, -0.45), rotation = Rotation(0,0,0.7069999677447771,0.7072135784958345))),
-//       BoxShape(name = "conveyorRecieverCollisionShapeLeftSplit", frame="world", physical = True, x = 0.3, y = 0.155, z = 0.165, local_transform = Transform(translation = Translation(  -0.59013137,-0.42502567,-0.025000000000000022), rotation = Rotation(0,0,0.7069999677447772,0.7072135784958345))),
-//       BoxShape(name = "conveyorRecieverCollisionShapeRightSplit", frame="world", physical = True, x = 0.3, y = 0.155, z = 0.165, local_transform = Transform(translation = Translation(-0.59002567,-0.07513137000000006,-0.025000000000000022), rotation = Rotation(0,0,0.7069999677447772,0.7072135784958345))),
-//       BoxShape(name ="conveyorDispatcherCollisionShapeBase", frame="world", physical = True, x = 0.75, y = 0.35, z = 0.9, local_transform = Transform(translation = Translation(0.6000755,-0.2500755,-0.3), rotation = Rotation(0,0,-0.7069999677447771,0.7072135784958345))),
-//       BoxShape(name ="conveyorDispatcherCollisionShapeLeftSplit", frame="world", physical = True, x = 0.255, y = 0.275, z = 0.175, local_transform = Transform(translation = Translation(0.65000755,-0.07511325000000005,0.22499999999999998), rotation = Rotation(0,0,-0.7069999677447771,0.7072135784958345))),
-//       BoxShape(name ="conveyorDispatcherCollisionShapeRightSplit", frame="world", physical = True, x = 0.29, y = 0.275, z = 0.175, local_transform = Transform(translation = Translation(0.65011325,-0.42500755,0.22499999999999998), rotation = Rotation(0,0,-0.7069999677447771,0.7072135784958345))),
-//       BoxShape(name ="tableCollisionShapeTop", frame="world", physical = True, x = 0.1225, y = 0.625, z = 0.05, local_transform = Transform(translation = Translation(0,0.36,-0.010000000000000009), rotation = Rotation(0,0,0,1))),
-//       BoxShape(name ="tableCollisionShapeFrontLeftLeg", frame="world", physical = True, x = 0.05, y = 0.05, z = 0.75, local_transform = Transform(translation = Translation(-0.585,0.07,-0.395), rotation = Rotation(0,0,0,1))),
-//       BoxShape(name ="tableCollisionShapeRearLeftLeg", frame="world", physical = True, x = 0.05, y = 0.05, z = 0.75, local_transform = Transform(translation = Translation(-0.585,0.6499999999999999,-0.585), rotation = Rotation(0,0,0,1))),
-//       BoxShape(name ="tableCollisionShapeRearRightLeg", frame="world", physical = True, x = 0.05, y = 0.05, z = 0.75, local_transform = Transform(translation = Translation(0.585,0.7,-0.395), rotation = Rotation(0,0,0,1))),
-//       BoxShape(name ="pedestalCollisionShapeBase", frame="world", physical = True, x = 0.65, y = 0.65, z = 0.15, local_transform = Transform(translation = Translation(0,-0.15,-0.7150000000000001), rotation = Rotation(0,0,0,1))),
-//       BoxShape(name ="pedestalCollisionShapeTower", frame="world", physical = True, x = 0.1, y = 0.1, z = 0.7, local_transform = Transform(translation = Translation(0,-0.15,-0.33), rotation = Rotation(0,0,0,1))),
-//       BoxShape(name ="mk2CollisionShapeLeftVertical", frame="world", physical = True, x = 0.125, y = 0.185, z = 0.4, local_transform = Transform(translation = Translation(-0.46,0.42000000000000004,0.22500000000000003), rotation = Rotation(0,0,0,1))),
-//       BoxShape(name ="mk2CollisionShapeRightVertical", frame="world", physical = True, x = 0.125, y = 0.225, z = 0.4, local_transform = Transform(translation = Translation(-0.10000000000000003,0.445,0.22500000000000003), rotation = Rotation(0,0,0,1))),
-//       BoxShape(name ="mk2CollisionShapeBase", frame="world", physical = True, x = 0.4, y = 0.4, z = 0.1, local_transform = Transform(translation = Translation( -0.28,0.32,0.050000000000000044), rotation = Rotation(0,0,0,1))),
-//       BoxShape(name ="mk2CollisionShapeSpool", frame="world", physical = True, x = 0.4, y = 0.25, z = 0.25, local_transform = Transform(translation = Translation( -0.28, 0.445,0.48000000000000004), rotation = Rotation(0,0,0,1))),
-//      ],
 
 fn solver_function() {
     let data =
@@ -524,7 +495,7 @@ fn solver_function() {
     );
     let box_20 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeSpool".to_string(),
-        "world".to_string(),
+        "shoulder_link".to_string(),
         true,
         0.4,
         0.25,
@@ -537,7 +508,7 @@ fn solver_function() {
         box_13, box_14, box_15, box_16, box_17, box_18, box_19,box_20
     ];
 
-    for i in 1..= 900 {
+    for i in 1..= 200 {
         
         let mut rng = rand::thread_rng();
         let n : f64 = rng.gen_range(-2.0..2.0);
@@ -630,4 +601,5 @@ fn solver_function() {
         None,
     );
     let temp_sovle = temp.solve(None, None, 0.0, None);
+    //temp.perform_updates();
 }

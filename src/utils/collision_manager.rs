@@ -19,7 +19,7 @@ const TIME_BUDGET: Duration = Duration::from_micros(100);
 const ACCURACY_BUDGET: f64 = 0.1;
 const TIMED: bool = true;
 const A_VALUE: f64 = 1.0;
-const OPTIMA_NUMBER: usize = 100;
+const OPTIMA_NUMBER: usize = 500;
 
 // use log::info;
 
@@ -125,7 +125,7 @@ impl CollisionManager {
                                 let bounding_sphere_radius =
                                     new_compound_shape.local_bounding_sphere().radius;
                                 scene_compound_shapes_list.remove(valid_index);
-                                scene_compound_shapes_list.push((
+                                scene_compound_shapes_list.insert(valid_index,(
                                     frame_name.to_string(),
                                     new_compound_shape,
                                     bounding_sphere_radius,
@@ -180,7 +180,7 @@ impl CollisionManager {
                                     new_compound_shape.local_bounding_sphere().radius;
 
                                 scene_compound_shapes_list.remove(valid_index);
-                                scene_compound_shapes_list.push((
+                                scene_compound_shapes_list.insert(valid_index,(
                                     frame_name.to_string(),
                                     new_compound_shape,
                                     bounding_sphere_radius,
@@ -232,7 +232,7 @@ impl CollisionManager {
                                 let bounding_sphere_radius =
                                     new_compound_shape.local_bounding_sphere().radius;
                                 scene_compound_shapes_list.remove(valid_index);
-                                scene_compound_shapes_list.push((
+                                scene_compound_shapes_list.insert(valid_index,(
                                     frame_name.to_string(),
                                     new_compound_shape,
                                     bounding_sphere_radius,
@@ -293,7 +293,7 @@ impl CollisionManager {
                                 let bounding_sphere_radius =
                                     new_compound_shape.local_bounding_sphere().radius;
                                 scene_compound_shapes_list.remove(valid_index);
-                                scene_compound_shapes_list.push((
+                                scene_compound_shapes_list.insert(valid_index,(
                                     frame_name.to_string(),
                                     new_compound_shape,
                                     bounding_sphere_radius,
@@ -362,7 +362,7 @@ impl CollisionManager {
                                         let bounding_sphere_radius =
                                             new_compound_shape.local_bounding_sphere().radius;
                                         scene_compound_shapes_list.remove(valid_index);
-                                        scene_compound_shapes_list.push((
+                                        scene_compound_shapes_list.insert(valid_index,(
                                             frame_name.to_string(),
                                             new_compound_shape,
                                             bounding_sphere_radius,
@@ -2432,6 +2432,7 @@ impl CollisionManager {
             .rotation_to(&shape1_current_rotation.rotation_to(&shape2_current_rotation)))
         .angle();
 
+
         return Some((change_in_relative_translation, change_in_relative_rotation));
     }
     #[profiling::function]
@@ -2632,42 +2633,46 @@ impl CollisionManager {
             usize,
         )> = vec![];
         let size = self.scene_compound_shapes_list.len();
+        let timed_timer = Instant::now();
         for i in 0..=size - 1 {
             for j in (i + 1)..=size - 1 {
-                let (shape1_frame, shape1, _) = self.scene_compound_shapes_list.get(i).unwrap();
-                let (shape2_frame, shape2, _) = self.scene_compound_shapes_list.get(j).unwrap();
-                if shape1_frame == "world" && shape2_frame == "world" {
-                    continue;
-                } else {
-                    match self.scene_group_truth_distance_grid.get(i, j) {
-                        Some(element) => match element {
-                            Some(valid_element) => {
-                                let current_loss_function_error = self
-                                    .compute_maximum_loss_functions_error(
-                                        shape1,
-                                        shape1_frame,
-                                        shape2,
-                                        shape2_frame,
-                                        current_frame,
-                                        valid_element,
-                                    );
-
-                                loss_functions_error_vec.push((
-                                    shape1_frame.to_string(),
-                                    shape1.clone(),
-                                    shape2_frame.to_string(),
-                                    shape2.clone(),
-                                    current_loss_function_error,
-                                    i,
-                                    j,
-                                ));
-                            }
+                if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
+                    let (shape1_frame, shape1, _) = self.scene_compound_shapes_list.get(i).unwrap();
+                    let (shape2_frame, shape2, _) = self.scene_compound_shapes_list.get(j).unwrap();
+                    if shape1_frame == "world" && shape2_frame == "world" {
+                        continue;
+                    } else {
+                        match self.scene_group_truth_distance_grid.get(i, j) {
+                            Some(element) => match element {
+                                Some(valid_element) => {
+                                    let current_loss_function_error = self
+                                        .compute_maximum_loss_functions_error(
+                                            shape1,
+                                            shape1_frame,
+                                            shape2,
+                                            shape2_frame,
+                                            current_frame,
+                                            valid_element,
+                                        );
+    
+                                    loss_functions_error_vec.push((
+                                        shape1_frame.to_string(),
+                                        shape1.clone(),
+                                        shape2_frame.to_string(),
+                                        shape2.clone(),
+                                        current_loss_function_error,
+                                        i,
+                                        j,
+                                    ));
+                                }
+                                None => {}
+                            },
                             None => {}
-                        },
-                        None => {}
+                        }
                     }
+                }else{break;}
                 }
-            }
+               
         }
 
         loss_functions_error_vec.sort_by(|a, b| a.4.partial_cmp(&b.4).unwrap());
@@ -2725,6 +2730,8 @@ impl CollisionManager {
                             },
                             Err(_) => {}
                         }
+                    }else{
+                        break;
                     }
                 }
             } else {
