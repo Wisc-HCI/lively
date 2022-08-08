@@ -51,7 +51,7 @@ impl Solver {
             Some(state) => current_state = robot_model.get_filled_state(state),
             None => current_state = robot_model.get_default_state()
         }
-        robot_model.collision_manager.lock().unwrap().compute_ground_truth_distance_grid(&current_state.frames);
+        robot_model.collision_manager.lock().unwrap().compute_ground_truth_distance_hashmap(&current_state.frames);
         // Vars contains the variables that are passed along to each objective each solve
         let vars = Vars::new(&current_state, robot_model.joints.clone(), robot_model.links.clone());
 
