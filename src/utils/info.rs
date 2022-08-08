@@ -6,6 +6,20 @@ use serde::{Deserialize, Serialize};
 use urdf_rs::{Geometry, Link, Mimic};
 // use std::fmt::Display;
 
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
+pub struct TransformInfo {
+    #[serde(skip,default="Isometry3::identity")]
+    pub world: Isometry3<f64>,
+    #[serde(skip,default="Isometry3::identity")]
+    pub local: Isometry3<f64>
+}
+
+impl TransformInfo {
+    pub fn new(world: Isometry3<f64>, local: Isometry3<f64>) -> Self {
+        Self { world, local }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct MimicInfo {
     pub joint: String,
@@ -290,6 +304,7 @@ impl ProximityInfo {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct CollisionSettingInfo {
     pub d_max: f64,
     pub r: f64,

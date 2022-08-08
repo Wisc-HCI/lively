@@ -41,13 +41,15 @@ impl PySolver {
         initial_state: Option<PyState>,
         only_core: Option<bool>,
         max_retries: Option<usize>,
-        max_iterations: Option<usize>
+        max_iterations: Option<usize>,
+        collision_settings: Option<PyCollisionSettingInfo>
     ) -> Self {
             let inner_objectives = objectives.iter().map(|o| Objective::from(o.clone())).collect();
             let inner_shapes = shapes.map(|cs| cs.iter().map(|s| Shape::from(s.clone())).collect());
             let inner_bounds = root_bounds.map(|bs| bs.iter().map(|b| (b.value,b.delta)).collect());
             let inner_state = initial_state.map(|s| State::from(s));
-            PySolver(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, only_core, max_retries, max_iterations))
+            let inner_collision_settings = collision_settings.map(|cs| CollisionSettingInfo::from(cs));
+            PySolver(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, only_core, max_retries, max_iterations, inner_collision_settings))
     }
 
     #[getter]

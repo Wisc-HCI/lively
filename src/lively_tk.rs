@@ -40,11 +40,12 @@ impl Solver {
         initial_state: Option<State>,
         only_core: Option<bool>,
         max_retries: Option<usize>,
-        max_iterations: Option<usize>
+        max_iterations: Option<usize>,
+        collision_settings: Option<CollisionSettingInfo>
     ) -> Self {
         
         // Define the robot model, which is used for kinematics and handling collisions
-        let robot_model = RobotModel::new(urdf, shapes.unwrap_or(vec![]));
+        let robot_model = RobotModel::new(urdf, shapes.unwrap_or(vec![]),&collision_settings);
         let current_state: State;
         match initial_state {
             Some(state) => current_state = robot_model.get_filled_state(state),
@@ -148,7 +149,7 @@ impl Solver {
         ()
     }
     
-    #[profiling::function]
+    // #[profiling::function]
     pub fn solve(
         &mut self,
         goals: Option<Vec<Option<Goal>>>,

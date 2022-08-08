@@ -27,7 +27,7 @@ pub struct RobotModel {
 
 impl RobotModel {
     
-    pub fn new(urdf: String, collision_objects: Vec<Shape>) -> Self {
+    pub fn new(urdf: String, collision_objects: Vec<Shape>, collision_settings: &Option<CollisionSettingInfo>) -> Self {
         
         let description: Robot = read_from_string(&urdf.as_str()).unwrap();
         let chain: Chain<f64> = Chain::from(description.clone());
@@ -115,7 +115,7 @@ impl RobotModel {
             } 
         }
         let collision_manager: Mutex<CollisionManager> = 
-            Mutex::new(CollisionManager::new(links.clone(),collision_objects.clone()));
+            Mutex::new(CollisionManager::new(links.clone(),collision_objects.clone(),collision_settings));
 
         let mut child_map: HashMap<String, String> = HashMap::new();
         let mut joint_names: Vec<String> = Vec::new();
@@ -160,7 +160,7 @@ impl RobotModel {
         let rotation: UnitQuaternion<f64> = quaternion_exp(vector![x[3],x[4],x[5]]);
         let origin = Isometry3::from_parts(translation,rotation);
         let mut joints: HashMap<String,f64> = HashMap::new();
-        let mut frames: HashMap<String,Isometry3<f64>> = HashMap::new();
+        let mut frames: HashMap<String,TransformInfo> = HashMap::new();
         
         // Create a new joint_positions set
         let mut joint_positions: Vec<f64> = Vec::new();
@@ -182,14 +182,15 @@ impl RobotModel {
         // Update the stored joint transforms
         // println!("Getting state!")
 
-        frames.insert(self.origin_link.clone(),origin);
+        frames.insert(self.origin_link.clone(),TransformInfo::new(origin,origin));
         for node in self.chain.iter() {
             let joint = node.joint();
             // println!("Joint Name {:?}",joint.name);
-            let transform = joint.world_transform().unwrap_or(Isometry3::identity());
+            let world_transform = joint.world_transform().unwrap_or(Isometry3::identity());
+            let local_transform = joint.local_transform();
             match self.child_map.get(&joint.name) {
                 Some(child_rel) => {
-                    frames.insert(child_rel.to_string(), transform);
+                    frames.insert(child_rel.to_string(), TransformInfo::new(world_transform,local_transform));
                 },
                 None => {}
             };

@@ -3,13 +3,23 @@ use pyo3::prelude::*;
 #[cfg(feature = "pybindings")]
 use nalgebra::Isometry3;
 #[cfg(feature = "pybindings")]
-use crate::utils::info::{MimicInfo,LinkInfo,JointInfo,ProximityInfo,ShapeUpdate};
+use crate::utils::info::{CollisionSettingInfo,TransformInfo,MimicInfo,LinkInfo,JointInfo,ProximityInfo,ShapeUpdate};
 #[cfg(feature = "pybindings")]
 use crate::utils::shapes::Shape;
 #[cfg(feature = "pybindings")]
 use crate::wrappers::python::shapes::{PyShape};
 #[cfg(feature = "pybindings")]
-use crate::wrappers::python::geometry::{Translation,Rotation};
+use crate::wrappers::python::geometry::{Translation,Rotation,Transform};
+
+#[cfg(feature = "pybindings")]
+#[pyclass(name="TransformInfo")]
+#[derive(Clone,Debug)]
+pub struct PyTransformInfo(TransformInfo);
+
+#[cfg(feature = "pybindings")]
+#[pyclass(name="CollisionSettingInfo")]
+#[derive(Clone,Debug)]
+pub struct PyCollisionSettingInfo(CollisionSettingInfo);
 
 #[cfg(feature = "pybindings")]
 #[pyclass(name="MimicInfo")]
@@ -46,6 +56,20 @@ impl From<LinkInfo> for PyLinkInfo {
 }
 
 #[cfg(feature = "pybindings")]
+impl From<TransformInfo> for PyTransformInfo {
+    fn from(transforminfo:TransformInfo) -> PyTransformInfo {
+        PyTransformInfo(transforminfo)
+    }
+}
+
+#[cfg(feature = "pybindings")]
+impl From<CollisionSettingInfo> for PyCollisionSettingInfo {
+    fn from(collisionsettinginfo:CollisionSettingInfo) -> PyCollisionSettingInfo {
+        PyCollisionSettingInfo(collisionsettinginfo)
+    }
+}
+
+#[cfg(feature = "pybindings")]
 impl From<JointInfo> for PyJointInfo {
     fn from(jointinfo:JointInfo) -> PyJointInfo {
         PyJointInfo(jointinfo)
@@ -63,6 +87,33 @@ impl From<ProximityInfo> for PyProximityInfo {
 impl From<PyProximityInfo> for ProximityInfo {
     fn from(pyproxinfo: PyProximityInfo) -> ProximityInfo {
         pyproxinfo.0
+    }
+}
+
+#[cfg(feature = "pybindings")]
+impl From<PyTransformInfo> for TransformInfo {
+    fn from(pytransforminfo: PyTransformInfo) -> TransformInfo {
+        pytransforminfo.0
+    }
+}
+
+#[cfg(feature = "pybindings")]
+impl From<PyCollisionSettingInfo> for CollisionSettingInfo {
+    fn from(pycollisionsettinginfo: PyCollisionSettingInfo) -> CollisionSettingInfo {
+        pycollisionsettinginfo.0
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl PyTransformInfo {
+    #[getter]
+    pub fn get_world(&self, py: Python) -> PyResult<Transform> {
+        Ok(Transform { translation: Py::new(py, Translation{value:self.0.world.translation})?, rotation: Py::new(py, Rotation{value:self.0.world.rotation})?})
+    }
+    #[getter]
+    pub fn get_local(&self, py: Python) -> PyResult<Transform> {
+        Ok(Transform { translation: Py::new(py, Translation{value:self.0.local.translation})?, rotation: Py::new(py, Rotation{value:self.0.local.rotation})?})
     }
 }
 

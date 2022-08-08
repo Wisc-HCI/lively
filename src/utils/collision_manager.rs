@@ -1,4 +1,4 @@
-use crate::utils::info::{LinkInfo, ProximityInfo, ShapeUpdate};
+use crate::utils::info::{LinkInfo, ProximityInfo, ShapeUpdate, TransformInfo, CollisionSettingInfo};
 use crate::utils::shapes;
 use array2d::Array2D;
 use nalgebra::base::Vector3;
@@ -41,8 +41,8 @@ impl fmt::Debug for CollisionManager {
 }
 
 impl CollisionManager {
-    #[profiling::function]
-    pub fn new(links: Vec<LinkInfo>, persistent_shapes: Vec<shapes::Shape>) -> Self {
+    // #[profiling::function]
+    pub fn new(links: Vec<LinkInfo>, persistent_shapes: Vec<shapes::Shape>, collision_settings: &Option<CollisionSettingInfo>) -> Self {
         let mut optima_version = false;
         let mut scene_compound_shapes_list: Vec<(String, Compound, f64)> = vec![];
         let scene_transient_shapes_look_up = HashMap::new();
@@ -416,10 +416,10 @@ impl CollisionManager {
         }
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn compute_ground_truth_distance_grid(
         &mut self,
-        initial_frames: &HashMap<String, Isometry3<f64>>,
+        initial_frames: &HashMap<String, TransformInfo>,
     ) {
         let size = self.scene_compound_shapes_list.len();
         for i in 0..=size - 1 {
@@ -436,9 +436,9 @@ impl CollisionManager {
                             match shape2_transform {
                                 Some(shape2_transform) => {
                                     let contact = parry3d_f64::query::contact(
-                                        shape1_transform,
+                                        &shape1_transform.world,
                                         shape1,
-                                        shape2_transform,
+                                        &shape2_transform.world,
                                         shape2,
                                         D_MAX,
                                     );
@@ -461,8 +461,8 @@ impl CollisionManager {
                                                         j,
                                                         Some((
                                                             proximity,
-                                                            *shape1_transform,
-                                                            *shape2_transform,
+                                                            shape1_transform.world,
+                                                            shape2_transform.world,
                                                         )),
                                                     )
                                                     .unwrap();
@@ -482,10 +482,10 @@ impl CollisionManager {
         }
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn update_ground_truth_distance_grid(&mut self) {}
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn perform_updates(&mut self, shape_updates: &Vec<ShapeUpdate>) {
         if self.optima_version {
             let mut add_or_delete = "";
@@ -2273,7 +2273,7 @@ impl CollisionManager {
         }
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn clear_all_transient_shapes(&mut self) {
         if self.optima_version {
             for (id, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
@@ -2390,26 +2390,28 @@ impl CollisionManager {
         }
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn compute_relative_change_in_transform(
         &self,
         shape1_current_frame: &String,
         shape2_current_frame: &String,
-        current_frame: &HashMap<String, Isometry3<f64>>,
+        current_frame: &HashMap<String, TransformInfo>,
         shape1_j_transform: &Isometry3<f64>,
         shape2_j_transform: &Isometry3<f64>,
     ) -> Option<(f64, f64)> {
-        let default_frame_transform: Isometry3<f64> = Isometry3::<f64>::identity();
+        let default_frame_transform: TransformInfo = TransformInfo::default();
         let shape1_j_translation = shape1_j_transform.translation;
         let shape1_j_rotation = shape1_j_transform.rotation;
 
         let shape1_k_translation = current_frame
             .get(shape1_current_frame)
             .unwrap_or(&default_frame_transform)
+            .world
             .translation;
         let shape1_current_rotation = current_frame
             .get(shape1_current_frame)
             .unwrap_or(&default_frame_transform)
+            .world
             .rotation;
 
         let shape2_j_translation = shape2_j_transform.translation;
@@ -2417,10 +2419,12 @@ impl CollisionManager {
         let shape2_current_translation = current_frame
             .get(shape2_current_frame)
             .unwrap_or(&default_frame_transform)
+            .world
             .translation;
         let shape2_current_rotation = current_frame
             .get(shape2_current_frame)
             .unwrap_or(&default_frame_transform)
+            .world
             .rotation;
 
         let change_in_relative_translation =
@@ -2434,12 +2438,12 @@ impl CollisionManager {
 
         return Some((change_in_relative_translation, change_in_relative_rotation));
     }
-    #[profiling::function]
+    // #[profiling::function]
     pub fn compute_bounding_spheres(&self, compound_shape: &Compound) -> f64 {
         return compound_shape.local_bounding_sphere().radius;
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn compute_translation_of_a_point_induced_by_rotation(
         &self,
         distance: f64,
@@ -2449,14 +2453,14 @@ impl CollisionManager {
         return result;
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn compute_lower_signed_distance_bound(
         &self,
         shape1: &Compound,
         shape1_frame: &String,
         shape2: &Compound,
         shape2_frame: &String,
-        current_frame: &HashMap<String, Isometry3<f64>>,
+        current_frame: &HashMap<String, TransformInfo>,
         j_state: &(ProximityInfo, Isometry3<f64>, Isometry3<f64>),
     ) -> f64 {
         // let distance_between_shapes = self.
@@ -2493,34 +2497,38 @@ impl CollisionManager {
         return lower_bound;
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn compute_upper_signed_distance_bound(
         &self,
         shape1_frame: &String,
         shape2_frame: &String,
-        current_state: &HashMap<String, Isometry3<f64>>,
+        current_state: &HashMap<String, TransformInfo>,
         j_state: &(ProximityInfo, Isometry3<f64>, Isometry3<f64>),
     ) -> f64 {
-        let default_frame_transform: Isometry3<f64> = Isometry3::<f64>::identity();
+        let default_frame_transform: TransformInfo = TransformInfo::default();
         let shape1_current_state_rotation = current_state
             .get(shape1_frame)
             .unwrap_or(&default_frame_transform)
+            .world
             .rotation;
         let shape1_past_state_rotation = j_state.1.rotation;
         let shape2_current_state_rotation = current_state
             .get(shape2_frame)
             .unwrap_or(&default_frame_transform)
+            .world
             .rotation;
         let shape2_past_state_rotation = j_state.2.rotation;
 
         let shape1_current_state_translation = current_state
             .get(shape1_frame)
             .unwrap_or(&default_frame_transform)
+            .world
             .translation;
         let shape1_past_state_translation = j_state.1.translation;
         let shape2_current_state_translation = current_state
             .get(shape2_frame)
             .unwrap_or(&default_frame_transform)
+            .world
             .translation;
         let shape2_past_state_translation = j_state.2.translation;
 
@@ -2544,7 +2552,7 @@ impl CollisionManager {
         return final_result;
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn compute_loss_function(&self, x: &f64) -> f64 {
         let result;
         if *x <= 0.0 {
@@ -2558,7 +2566,7 @@ impl CollisionManager {
     }
 
     //compute loss with cutoff
-    #[profiling::function]
+    // #[profiling::function]
     pub fn compute_loss_with_cutoff(&self, x: &f64, a_value: &f64) -> f64 {
         let result;
 
@@ -2570,14 +2578,14 @@ impl CollisionManager {
         return result;
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn compute_maximum_loss_functions_error(
         &self,
         shape1: &Compound,
         shape1_frame: &String,
         shape2: &Compound,
         shape2_frame: &String,
-        current_frame: &HashMap<String, Isometry3<f64>>,
+        current_frame: &HashMap<String, TransformInfo>,
         j_state: &(ProximityInfo, Isometry3<f64>, Isometry3<f64>),
     ) -> f64 {
         let result;
@@ -2617,10 +2625,10 @@ impl CollisionManager {
         return result;
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn ranking_maximum_loss_functions_error(
         &self,
-        current_frame: &HashMap<String, Isometry3<f64>>,
+        current_frame: &HashMap<String, TransformInfo>,
     ) -> Vec<(String, Compound, String, Compound, f64, usize, usize)> {
         let mut loss_functions_error_vec: Vec<(
             String,
@@ -2675,13 +2683,13 @@ impl CollisionManager {
         return loss_functions_error_vec;
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn get_proximity(
         &mut self,
-        frames: &HashMap<String, Isometry3<f64>>, // <String, (Iso, Iso)>// frame, world, local
+        frames: &HashMap<String, TransformInfo>, // <String, (Iso, Iso)>// frame, world, local
     ) -> Vec<ProximityInfo> {
         if self.optima_version {
-            let default_frame_transform: Isometry3<f64> = Isometry3::<f64>::identity();
+            let default_frame_transform: TransformInfo = TransformInfo::default();
             let mut result_vector: Vec<ProximityInfo> = vec![];
             let ranking_vector: Vec<(String, Compound, String, Compound, f64, usize, usize)> =
                 self.ranking_maximum_loss_functions_error(frames);
@@ -2691,14 +2699,16 @@ impl CollisionManager {
                     if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
                         let shape1_transform = frames
                             .get(&shape1_frame)
-                            .unwrap_or(&default_frame_transform);
+                            .unwrap_or(&default_frame_transform)
+                            .world;
                         let shape2_transform = frames
                             .get(&shape2_frame)
-                            .unwrap_or(&default_frame_transform);
+                            .unwrap_or(&default_frame_transform)
+                            .world;
                         let contact = parry3d_f64::query::contact(
-                            shape1_transform,
+                            &shape1_transform,
                             &shape1,
-                            shape2_transform,
+                            &shape2_transform,
                             &shape2,
                             D_MAX,
                         );
@@ -2717,7 +2727,7 @@ impl CollisionManager {
                                         .set(
                                             i,
                                             j,
-                                            Some((proximity, *shape1_transform, *shape2_transform)),
+                                            Some((proximity, shape1_transform, shape2_transform)),
                                         )
                                         .unwrap();
                                 }
@@ -2748,14 +2758,16 @@ impl CollisionManager {
                     ) = ranking_vector.get(index).unwrap();
                     let shape1_transform = frames
                         .get(current_shape1_frame)
-                        .unwrap_or(&default_frame_transform);
+                        .unwrap_or(&default_frame_transform)
+                        .world;
                     let shape2_transform = frames
                         .get(current_shape2_frame)
-                        .unwrap_or(&default_frame_transform);
+                        .unwrap_or(&default_frame_transform)
+                        .world;
                     let contact = parry3d_f64::query::contact(
-                        shape1_transform,
+                        &shape1_transform,
                         current_shape1,
-                        shape2_transform,
+                        &shape2_transform,
                         current_shape2,
                         D_MAX,
                     );
@@ -2774,7 +2786,7 @@ impl CollisionManager {
                                     .set(
                                         *i,
                                         *j,
-                                        Some((proximity, *shape1_transform, *shape2_transform)),
+                                        Some((proximity, shape1_transform, shape2_transform)),
                                     )
                                     .unwrap();
                             }
@@ -2807,9 +2819,9 @@ impl CollisionManager {
                             match shape2_transform {
                                 Some(shape2_transform) => {
                                     match parry3d_f64::query::closest_points(
-                                        &shape1_transform,
+                                        &shape1_transform.world,
                                         shape1,
-                                        &shape2_transform,
+                                        &shape2_transform.world,
                                         shape2,
                                         D_MAX,
                                     ) {

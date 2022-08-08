@@ -54,6 +54,8 @@ fn lively_tk(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyJointInfo>()?;
     m.add_class::<PyLinkInfo>()?;
     m.add_class::<PyProximityInfo>()?;
+    m.add_class::<PyTransformInfo>()?;
+    m.add_class::<PyCollisionSettingInfo>()?;
     // Shapes
     m.add_class::<PyBoxShape>()?;
     m.add_class::<PySphereShape>()?;
@@ -128,7 +130,8 @@ impl JsSolver {
         initial_state: &JsValue,
         only_core: Option<bool>,
         max_retries: Option<usize>,
-        max_iterations: Option<usize>
+        max_iterations: Option<usize>,
+        collision_settings: &JsValue
     ) -> Self {
             console_error_panic_hook::set_once();
             let inner_objectives:Vec<Objective> = objectives.into_serde().unwrap();
@@ -136,10 +139,11 @@ impl JsSolver {
             let inner_bounds:Option<Vec<(f64,f64)>> = temp_bounds.map(|bs| bs.iter().map(|b| (b.value,b.delta)).collect());
             let inner_shapes:Option<Vec<Shape>> = shapes.into_serde().unwrap();
             let inner_state:Option<State> = initial_state.into_serde().unwrap();
+            let inner_collision_settings:Option<CollisionSettingInfo> = collision_settings.into_serde().unwrap();
             // let inner_retries: Option<u64> = max_retries.into_serde().unwrap();
             // let inner_iterations: Option<usize> = max_iterations.into_serde().unwrap();
             // let inner_core: Option<bool> = only_core.into_serde().unwrap();
-            Self(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, only_core, max_retries, max_iterations))
+            Self(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, only_core, max_retries, max_iterations, inner_collision_settings))
     }
 
     #[wasm_bindgen(getter)]
