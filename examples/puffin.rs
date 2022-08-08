@@ -12,6 +12,7 @@ use nalgebra::geometry::Isometry3;
 use nalgebra::geometry::Quaternion;
 use nalgebra::geometry::Translation3;
 use nalgebra::geometry::UnitQuaternion;
+
 use rand::Rng;
 
 use std::fs;
@@ -600,6 +601,9 @@ fn solver_function() {
         None,
         None,
     );
+
+
+
     let temp_sovle = temp.solve(None, None, 0.0, None);
     //temp.perform_updates();
 }

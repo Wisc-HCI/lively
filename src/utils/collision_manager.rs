@@ -1604,9 +1604,8 @@ impl CollisionManager {
                         self.scene_compound_shapes_list.get(index_modified).unwrap();
                     for i in 0..=index_modified {
                         // Array2D<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>>,
-
-                        let temp_element = self
-                            .scene_group_truth_distance_grid
+                        let temp_scene_group_truth_distance_grid = self.scene_group_truth_distance_grid.clone();
+                        let temp_element = temp_scene_group_truth_distance_grid 
                             .get(i, index_modified)
                             .unwrap();
                         match temp_element {
@@ -1638,7 +1637,7 @@ impl CollisionManager {
                                                     *shape1_transform,
                                                     *shape2_transform,
                                                 )),
-                                            );
+                                            ).unwrap();
                                         }
                                         None => {}
                                     },
@@ -1650,8 +1649,9 @@ impl CollisionManager {
                     }
 
                     for j in (index_modified + 1)..=self.scene_compound_shapes_list.len() {
-                        let temp_element = self
-                            .scene_group_truth_distance_grid
+                        let temp_scene_group_truth_distance_grid = self.scene_group_truth_distance_grid.clone();
+                        let temp_element =
+                             temp_scene_group_truth_distance_grid
                             .get(index_modified, j)
                             .unwrap();
                         match temp_element {
@@ -1683,7 +1683,7 @@ impl CollisionManager {
                                                     *shape1_transform,
                                                     *shape2_transform,
                                                 )),
-                                            );
+                                            ).unwrap();
                                         }
                                         None => {}
                                     },
@@ -2276,14 +2276,24 @@ impl CollisionManager {
     #[profiling::function]
     pub fn clear_all_transient_shapes(&mut self) {
         if self.optima_version {
-            for (id, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
+            for (_, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
+                let temp_scene_compound_shapes_list = self.scene_compound_shapes_list.clone();
                 let (shape_modified_frame, shape_modified, _) =
-                    self.scene_compound_shapes_list.get(*frame_idx).unwrap();
-                for i in 0..=*frame_idx {
-                    // Array2D<Option<(ProximityInfo, Isometry3<f64>, Isometry3<f64>)>>,
+                    temp_scene_compound_shapes_list.get(*frame_idx).unwrap();
+                    let mut compound_shape_vec = shape_modified.shapes().to_vec();
+                    compound_shape_vec.remove(*vec_idx);
+                    let new_compound_shape = Compound::new(compound_shape_vec);
+                    let new_bounding_sphere_radius = new_compound_shape.local_bounding_sphere().radius;
+                    self.scene_compound_shapes_list[*frame_idx] = (
+                        shape_modified_frame.to_string(),
+                        new_compound_shape,
+                        new_bounding_sphere_radius,
+                    );
 
-                    let temp_element = self
-                        .scene_group_truth_distance_grid
+               
+                for i in 0..=*frame_idx {
+                    let temp_scene_group_truth_distance_grid = self.scene_group_truth_distance_grid.clone();
+                    let temp_element = temp_scene_group_truth_distance_grid
                         .get(i, *frame_idx)
                         .unwrap();
                     match temp_element {
@@ -2315,7 +2325,8 @@ impl CollisionManager {
                                                 *shape1_transform,
                                                 *shape2_transform,
                                             )),
-                                        );
+                                        ).unwrap();
+                                       
                                     }
                                     None => {}
                                 },
@@ -2327,8 +2338,8 @@ impl CollisionManager {
                 }
 
                 for j in (*frame_idx + 1)..=self.scene_compound_shapes_list.len() {
-                    let temp_element = self
-                        .scene_group_truth_distance_grid
+                    let temp_scene_group_truth_distance_grid = self.scene_group_truth_distance_grid.clone();
+                    let temp_element = temp_scene_group_truth_distance_grid
                         .get(*frame_idx, j)
                         .unwrap();
                     match temp_element {
@@ -2360,7 +2371,7 @@ impl CollisionManager {
                                                 *shape1_transform,
                                                 *shape2_transform,
                                             )),
-                                        );
+                                        ).unwrap();
                                     }
                                     None => {}
                                 },
@@ -2372,18 +2383,18 @@ impl CollisionManager {
                 }
             }
         } else {
-            for (id, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
+            for (_, (frame_idx, vec_idx)) in self.scene_transient_shapes_look_up.iter() {
                 let (frame_name, compound_shape, _) =
                     self.scene_compound_shapes_list.get(*frame_idx).unwrap();
                 let mut compound_shape_vec = compound_shape.shapes().to_vec();
                 compound_shape_vec.remove(*vec_idx);
                 let new_compound_shape = Compound::new(compound_shape_vec);
-                let new_bounding_sphere_radius = new_compound_shape.local_bounding_sphere().radius;
+               
 
                 self.scene_compound_shapes_list[*frame_idx] = (
                     frame_name.to_string(),
                     new_compound_shape,
-                    new_bounding_sphere_radius,
+                    0.0,
                 );
             }
             self.scene_transient_shapes_look_up.clear();
