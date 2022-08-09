@@ -510,7 +510,7 @@ fn solver_function() {
         box_13, box_14, box_15, box_16, box_17, box_18, box_19.clone(),box_20.clone()
     ];
 
-    for i in 1..= 200 {
+    for i in 1..= 60 {
         
         let mut rng = rand::thread_rng();
         let n : f64 = rng.gen_range(-2.0..2.0);
@@ -597,6 +597,7 @@ fn solver_function() {
         objective_vec,
         Some(scalar_range_vec),
         Some(box_shapes_vec),
+        None,
         None,
         None,
         None,

@@ -8,6 +8,7 @@ use nalgebra::vector;
 use nalgebra::Point3;
 use parry3d_f64::query::closest_points::ClosestPoints;
 use parry3d_f64::shape::*;
+use profiling::scope;
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
@@ -20,7 +21,7 @@ const TIME_BUDGET: Duration = Duration::from_micros(100);
 const ACCURACY_BUDGET: f64 = 0.1;
 const TIMED: bool = true;
 const A_VALUE: f64 = 1.0;
-const OPTIMA_NUMBER: usize = 100;
+const OPTIMA_NUMBER: usize = 20;
 
 // use log::info;
 
@@ -30,17 +31,18 @@ const OPTIMA_NUMBER: usize = 100;
 pub struct CollisionManager {
     scene_collision_shapes_list: Vec<(String, Compound, f64)>,
     scene_transient_shapes_look_up: HashMap<String, (usize, usize)>,
+    scene_optima_transient_shapes_look_up: HashMap<String, Vec<usize>>,
     scene_group_truth_distance_hashmap: HashMap<
         String,
-        (
-            ProximityInfo,
-            Compound,
-            Compound,
+        Vec<(
+             ProximityInfo,
+             Compound,
+             Compound,
             f64,
             f64,
             Isometry3<f64>,
             Isometry3<f64>,
-        ),
+        )>,
     >,
     optima_version: bool, //scene_a_table: Array2D<f64>,
 }
@@ -52,7 +54,7 @@ impl fmt::Debug for CollisionManager {
 }
 
 impl CollisionManager {
-    // #[profiling::function]
+    #[profiling::function]
     pub fn new(
         links: Vec<LinkInfo>,
         persistent_shapes: Vec<shapes::Shape>,
@@ -60,8 +62,9 @@ impl CollisionManager {
     ) -> Self {
         let mut optima_version = false;
         let mut scene_collision_shapes_list: Vec<(String, Compound, f64)> = vec![];
-        let  scene_group_truth_distance_hashmap = HashMap::new();
-        let scene_transient_shapes_look_up = HashMap::new();
+        let mut scene_group_truth_distance_hashmap = HashMap::new();
+        let mut scene_transient_shapes_look_up = HashMap::new();
+        let mut scene_optima_transient_shapes_look_up = HashMap::new();
         for link in &links {
             let mut robot_shapes_list: Vec<(Isometry3<f64>, SharedShape)> = Vec::new();
             let frame_name = &link.name;
@@ -438,10 +441,11 @@ impl CollisionManager {
             scene_transient_shapes_look_up,
             scene_group_truth_distance_hashmap,
             optima_version,
+            scene_optima_transient_shapes_look_up,
         }
     }
 
-    // #[profiling::function]
+    #[profiling::function]
     pub fn compute_ground_truth_distance_hashmap(
         &mut self,
         initial_frames: &HashMap<String, TransformInfo>,
@@ -454,16 +458,23 @@ impl CollisionManager {
                 let (shape1_frame, shape1, rad1) = self.scene_collision_shapes_list.get(i).unwrap();
                 let mut proximity: ProximityInfo = ProximityInfo::default();
                 let mut shape2_frame: String = "".to_string();
-                let temp_shape =SharedShape::ball(1.0);
-                let temp_list: Vec<(Isometry3<f64>, SharedShape)> = vec![(Isometry3::identity(),temp_shape)];
+                let temp_shape = SharedShape::ball(1.0);
+                let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
+                    vec![(Isometry3::identity(), temp_shape)];
                 let mut shape2: Compound = Compound::new(temp_list);
                 let mut rad2: f64 = 0.0;
                 let mut valid_shape1_transform: Isometry3<f64> = Isometry3::identity();
                 let mut valid_shape2_transform: Isometry3<f64> = Isometry3::identity();
+                let mut value_vec : Vec<(ProximityInfo,Compound,Compound,f64,f64,Isometry3<f64>,Isometry3<f64>)> = vec![];
 
                 for j in (i + 1)..=size - 1 {
                     // i : shape1 ; j : shape2
-                    shape2_frame = self.scene_collision_shapes_list.get(j).unwrap().0.to_string();
+                    shape2_frame = self
+                        .scene_collision_shapes_list
+                        .get(j)
+                        .unwrap()
+                        .0
+                        .to_string();
                     shape2 = self.scene_collision_shapes_list.get(j).unwrap().1.clone();
                     rad2 = self.scene_collision_shapes_list.get(j).unwrap().2;
                     if shape1_frame == "world" && shape2_frame == "world" {
@@ -496,6 +507,13 @@ impl CollisionManager {
                                                         )),
                                                         true,
                                                     );
+                                                    value_vec.push((proximity,
+                                                        shape1.clone(),
+                                                        shape2,
+                                                        *rad1,
+                                                        rad2,
+                                                        valid_shape1_transform,
+                                                        valid_shape2_transform,));
                                                 }
                                                 None => {}
                                             },
@@ -512,36 +530,86 @@ impl CollisionManager {
 
                 self.scene_group_truth_distance_hashmap.insert(
                     shape1_frame.to_string(),
-                    (
-                        proximity,
-                        shape1.clone(),
-                        shape2,
-                        *rad1,
-                        rad2,
-                        valid_shape1_transform,
-                        valid_shape2_transform,
-                    ),
+                    value_vec,
                 );
             }
         }
     }
 
-    // #[profiling::function]
+    #[profiling::function]
     pub fn perform_updates(&mut self, shape_updates: &Vec<ShapeUpdate>) {
         if self.optima_version {
             for update in shape_updates {
                 match update {
                     ShapeUpdate::Add { id, shape } => match shape {
-                        shapes::Shape::Box(box_object) => {}
+                        shapes::Shape::Box(box_object) => {
+                            let box_collider =
+                                SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
+                            if box_object.frame == "world" {
+                                if self.scene_transient_shapes_look_up.contains_key(id) {
+                                    println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                    //let (frame_index, vec_index) =  self.scene_transient_shapes_look_up.get(id).unwrap();
+                                } else {
+                                }
+                            } else {
+                                if self.scene_transient_shapes_look_up.contains_key(id) {
+                                    println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                    //let (frame_index, vec_index) =  self.scene_transient_shapes_look_up.get(id).unwrap();
+                                } else {
+                                    match self
+                                        .scene_group_truth_distance_hashmap
+                                        .get_mut(&box_object.frame)
+                                    {
+                                        Some(valid_vec) => {
+                                            let mut shape1_vec = valid_vec[0].1.shapes().to_vec();
+                                            shape1_vec
+                                                .push((box_object.local_transform, box_collider));
+                                            let  new_compound_shape =  Compound::new(shape1_vec);
+                                            let  new_bounding_sphere_radius = new_compound_shape
+                                                    .local_bounding_sphere()
+                                                    .radius;
+                                            for i in 0..valid_vec.len(){
+                                                let tuple = valid_vec.get_mut(i).unwrap();
+                                                //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
+                                                match parry3d_f64::query::contact(
+                                                    &tuple.5,
+                                                    &new_compound_shape,
+                                                    &tuple.6,
+                                                    &tuple.2,
+                                                    D_MAX,
+                                                ) {
+                                                    Ok(contact) => match contact{
+                                                        Some(valid_contact)=>{
+                                                            tuple.0.distance = valid_contact.dist;
+                                                            tuple.0.points = Some((valid_contact.point1, valid_contact.point2));
+                                                            tuple.1 = new_compound_shape.clone();
+                                                            tuple.3 = new_bounding_sphere_radius;
+                                                        }
+
+                                                        None => {}
+                                                    },
+                                                    Err(_)=> {}
+                                                }  
+
+
+
+                                            }
+                                            
+                                            
+
+                                        }
+                                        None => {}
+                                    }
+                                }
+                            }
+                        }
                         shapes::Shape::Cylinder(cylinder_object) => {}
                         shapes::Shape::Capsule(capsule_object) => {}
                         shapes::Shape::Sphere(sphere_object) => {}
                         shapes::Shape::Hull(hull_object) => {}
                         shapes::Shape::Mesh(_mesh_object) => {}
                     },
-                    ShapeUpdate::Move { id, pose } => {
-
-                    },
+                    ShapeUpdate::Move { id, pose } => {}
                     ShapeUpdate::Delete(id) => {}
                 }
             }
@@ -1121,7 +1189,7 @@ impl CollisionManager {
         }
     }
 
-    // #[profiling::function]
+    #[profiling::function]
     pub fn clear_all_transient_shapes(&mut self) {
         if self.optima_version {
         } else {
@@ -1140,7 +1208,7 @@ impl CollisionManager {
         }
     }
 
-    // #[profiling::function]
+    #[profiling::function]
     pub fn compute_relative_change_in_transform(
         &self,
         shape1_current_frame: &String,
@@ -1188,12 +1256,12 @@ impl CollisionManager {
 
         return Some((change_in_relative_translation, change_in_relative_rotation));
     }
-    // #[profiling::function]
+    #[profiling::function]
     pub fn compute_bounding_spheres(&self, compound_shape: &Compound) -> f64 {
         return compound_shape.local_bounding_sphere().radius;
     }
 
-    // #[profiling::function]
+    #[profiling::function]
     pub fn compute_translation_of_a_point_induced_by_rotation(
         &self,
         distance: f64,
@@ -1203,7 +1271,7 @@ impl CollisionManager {
         return result;
     }
 
-    // #[profiling::function]
+    #[profiling::function]
     pub fn compute_lower_signed_distance_bound(
         &self,
         shape1: &Compound,
@@ -1247,7 +1315,7 @@ impl CollisionManager {
         return lower_bound;
     }
 
-    // #[profiling::function]
+    #[profiling::function]
     pub fn compute_upper_signed_distance_bound(
         &self,
         shape1_frame: &String,
@@ -1302,7 +1370,7 @@ impl CollisionManager {
         return final_result;
     }
 
-    // #[profiling::function]
+    #[profiling::function]
     pub fn compute_loss_function(&self, x: &f64) -> f64 {
         let result;
         if *x <= 0.0 {
@@ -1316,7 +1384,7 @@ impl CollisionManager {
     }
 
     //compute loss with cutoff
-    // #[profiling::function]
+    #[profiling::function]
     pub fn compute_loss_with_cutoff(&self, x: &f64, a_value: &f64) -> f64 {
         let result;
 
@@ -1375,48 +1443,36 @@ impl CollisionManager {
         return result;
     }
 
-    // #[profiling::function]
+    #[profiling::function]
     pub fn ranking_maximum_loss_functions_error(
         &self,
         current_frame: &HashMap<String, TransformInfo>,
     ) -> Vec<(String, Compound, String, Compound, f64)> {
         let mut loss_functions_error_vec: Vec<(String, Compound, String, Compound, f64)> = vec![];
-        let size = self.scene_collision_shapes_list.len();
         let timed_timer = Instant::now();
-        // ProximityInfo,
-        //Compound,
-        //Compound,
-        //f64,
-        // f64,
-        //Isometry3<f64>,
-        // Isometry3<f64>,
-
-        //    pub struct ProximityInfo {
-        //     pub shape1: String,
-        //     pub shape2: String,
-        //     pub distance: f64,
-        //     pub points: Option<(Point3<f64>, Point3<f64>)>,
-        //     pub physical: bool,
-        // }
-        for (robot_frame, (proximity, shape1, shape2, rad1, rad2, pos1, pos2)) in
+        for (robot_frame, valid_vec) in
             self.scene_group_truth_distance_hashmap.clone()
         {
-            let current_loss_function_error = self.compute_maximum_loss_functions_error(
-                &shape1,
-                &proximity.shape1,
-                &shape2,
-                &proximity.shape2,
-                current_frame,
-                &(proximity.clone(), pos1, pos2),
-            );
-
-            loss_functions_error_vec.push((
-                proximity.shape1.to_string(),
-                shape1.clone(),
-                proximity.shape2.to_string(),
-                shape2.clone(),
-                current_loss_function_error,
-            ));
+            for ((proximity, shape1, shape2, rad1, rad2, pos1, pos2)) in valid_vec {
+                if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
+                    let current_loss_function_error = self.compute_maximum_loss_functions_error(
+                        &shape1,
+                        &proximity.shape1,
+                        &shape2,
+                        &proximity.shape2,
+                        current_frame,
+                        &(proximity.clone(), pos1, pos2),
+                    );
+                    loss_functions_error_vec.push((
+                        proximity.shape1.to_string(),
+                        shape1.clone(),
+                        proximity.shape2.to_string(),
+                        shape2.clone(),
+                        current_loss_function_error,
+                    ));
+                }
+            }
+            
         }
 
         loss_functions_error_vec.sort_by(|a, b| a.4.partial_cmp(&b.4).unwrap());
@@ -1424,7 +1480,7 @@ impl CollisionManager {
         return loss_functions_error_vec;
     }
 
-    // #[profiling::function]
+    #[profiling::function]
     pub fn get_proximity(
         &mut self,
         frames: &HashMap<String, TransformInfo>, // <String, (Iso, Iso)>// frame, world, local
