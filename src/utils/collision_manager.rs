@@ -30,8 +30,9 @@ const OPTIMA_NUMBER: usize = 20;
 #[derive(Clone)]
 pub struct CollisionManager {
     scene_collision_shapes_list: Vec<(String, Compound, f64)>,
+    scene_optima_collision_shapes_look_up: HashMap<String, (Compound, f64, Isometry3<f64>)>,
     scene_transient_shapes_look_up: HashMap<String, (usize, usize)>,
-    scene_optima_transient_shapes_look_up: HashMap<String, (String, Vec<usize>)>,
+    scene_optima_transient_shapes_look_up: HashMap<String, (String, Vec<Option<usize>>)>,
     scene_group_truth_distance_hashmap: HashMap<
         String,
         Vec<(
@@ -62,6 +63,10 @@ impl CollisionManager {
     ) -> Self {
         let mut optima_version = false;
         let mut scene_collision_shapes_list: Vec<(String, Compound, f64)> = vec![];
+        let mut scene_optima_collision_shapes_look_up: HashMap<
+            String,
+            (Compound, f64, Isometry3<f64>),
+        > = HashMap::new();
         let mut scene_group_truth_distance_hashmap = HashMap::new();
         let mut scene_transient_shapes_look_up = HashMap::new();
         let mut scene_optima_transient_shapes_look_up = HashMap::new();
@@ -438,6 +443,7 @@ impl CollisionManager {
 
         Self {
             scene_collision_shapes_list,
+            scene_optima_collision_shapes_look_up,
             scene_transient_shapes_look_up,
             scene_group_truth_distance_hashmap,
             optima_version,
@@ -525,9 +531,24 @@ impl CollisionManager {
                                                         valid_shape2_transform,
                                                     ));
                                                 }
-                                                None => {}
+                                                None => {
+                                                    self.scene_optima_collision_shapes_look_up
+                                                        .insert(
+                                                            shape1_frame.to_string(),
+                                                            (
+                                                                shape1.clone(),
+                                                                *rad1,
+                                                                shape1_transform.world,
+                                                            ),
+                                                        );
+                                                }
                                             },
-                                            Err(_) => {}
+                                            Err(_) => {
+                                                self.scene_optima_collision_shapes_look_up.insert(
+                                                    shape1_frame.to_string(),
+                                                    (shape1.clone(), *rad1, shape1_transform.world),
+                                                );
+                                            }
                                         }
                                     }
                                     None => {}
@@ -542,6 +563,7 @@ impl CollisionManager {
                     .insert(shape1_frame.to_string(), value_vec);
             }
         }
+        self.scene_collision_shapes_list.clear();
     }
 
     #[profiling::function]
@@ -556,63 +578,125 @@ impl CollisionManager {
                             if box_object.frame == "world" {
                                 if self.scene_transient_shapes_look_up.contains_key(id) {
                                     println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
-                                    //let (frame_index, vec_index) =  self.scene_transient_shapes_look_up.get(id).unwrap();
                                 } else {
                                     let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
                                         vec![(box_object.local_transform.clone(), box_collider)];
                                     let new_compound_shape = Compound::new(shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
-                                    let mut index_vec: Vec<usize> = vec![];
+                                    let mut index_vec: Vec<Option<usize>> = vec![];
                                     //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
                                     for (shape_frame, shapes_vec) in
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
-                                        let temp_tuple = shapes_vec.get(0).unwrap();
-                                        match parry3d_f64::query::contact(
-                                            &temp_tuple.5,
-                                            &temp_tuple.1,
-                                            &box_object.local_transform,
-                                            &new_compound_shape,
-                                            D_MAX,
-                                        ) {
-                                            Ok(contact) => match contact {
-                                                Some(valid_contact) => {
-                                                    let proximity = ProximityInfo::new(
-                                                        shape_frame.to_string(),
-                                                        box_object.frame.to_string(),
-                                                        valid_contact.dist,
-                                                        Some((
-                                                            valid_contact.point1,
-                                                            valid_contact.point2,
-                                                        )),
-                                                        true,
-                                                    );
-                                                    self.scene_group_truth_distance_hashmap
-                                                        .get_mut(&shape_frame)
-                                                        .unwrap()
-                                                        .push((
-                                                            proximity,
-                                                            temp_tuple.1.clone(),
-                                                            new_compound_shape.clone(),
-                                                            temp_tuple.3,
-                                                            new_bounding_sphere_radius,
-                                                            temp_tuple.5,
-                                                            box_object.local_transform,
-                                                        ));
-                                                    index_vec.push(
+                                        if shapes_vec.len() == 0 {
+                                            let temp_tuple = self
+                                                .scene_optima_collision_shapes_look_up
+                                                .get(&shape_frame);
+                                            match temp_tuple {
+                                                Some((shape1, rad1, trans1)) => {
+                                                    match parry3d_f64::query::contact(
+                                                        &trans1,
+                                                        shape1,
+                                                        &box_object.local_transform,
+                                                        &new_compound_shape,
+                                                        D_MAX,
+                                                    ) {
+                                                        Ok(contact) => match contact {
+                                                            Some(valid_contact) => {
+                                                                let proximity = ProximityInfo::new(
+                                                                    shape_frame.to_string(),
+                                                                    box_object.frame.to_string(),
+                                                                    valid_contact.dist,
+                                                                    Some((
+                                                                        valid_contact.point1,
+                                                                        valid_contact.point2,
+                                                                    )),
+                                                                    true,
+                                                                );
+                                                                self.scene_group_truth_distance_hashmap
+                                                                .get_mut(&shape_frame)
+                                                                .unwrap()
+                                                                .push((
+                                                                    proximity,
+                                                                    shape1.clone(),
+                                                                    new_compound_shape.clone(),
+                                                                    *rad1,
+                                                                    new_bounding_sphere_radius,
+                                                                    *trans1,
+                                                                    box_object.local_transform,
+                                                                ));
+                                                                index_vec.push(Some(
+                                                                self.scene_group_truth_distance_hashmap
+                                                                    .get_mut(&shape_frame)
+                                                                    .unwrap()
+                                                                    .len()
+                                                                    - 1)
+                                                            );
+                                                            }
+                                                            None => {
+                                                                index_vec.push(None);
+                                                            }
+                                                        },
+                                                        Err(_) => {
+                                                            index_vec.push(None);
+                                                        }
+                                                    }
+                                                }
+                                                None => {
+                                                    continue;
+                                                }
+                                            }
+                                        } else {
+                                            let temp_tuple = shapes_vec.get(0).unwrap();
+                                            match parry3d_f64::query::contact(
+                                                &temp_tuple.5,
+                                                &temp_tuple.1,
+                                                &box_object.local_transform,
+                                                &new_compound_shape,
+                                                D_MAX,
+                                            ) {
+                                                Ok(contact) => match contact {
+                                                    Some(valid_contact) => {
+                                                        let proximity = ProximityInfo::new(
+                                                            shape_frame.to_string(),
+                                                            box_object.frame.to_string(),
+                                                            valid_contact.dist,
+                                                            Some((
+                                                                valid_contact.point1,
+                                                                valid_contact.point2,
+                                                            )),
+                                                            true,
+                                                        );
                                                         self.scene_group_truth_distance_hashmap
                                                             .get_mut(&shape_frame)
                                                             .unwrap()
-                                                            .len()
-                                                            - 1,
-                                                    );
+                                                            .push((
+                                                                proximity,
+                                                                temp_tuple.1.clone(),
+                                                                new_compound_shape.clone(),
+                                                                temp_tuple.3,
+                                                                new_bounding_sphere_radius,
+                                                                temp_tuple.5,
+                                                                box_object.local_transform,
+                                                            ));
+                                                        index_vec.push(Some(
+                                                            self.scene_group_truth_distance_hashmap
+                                                                .get_mut(&shape_frame)
+                                                                .unwrap()
+                                                                .len()
+                                                                - 1,
+                                                        ));
+                                                    }
+                                                    None => {
+                                                        index_vec.push(None);
+                                                    }
+                                                },
+                                                Err(_) => {
+                                                    index_vec.push(None);
                                                 }
-                                                None => {}
-                                            },
-                                            Err(_) => {}
+                                            }
                                         }
-                                        //shapes_vec.push();
                                     }
                                     self.scene_optima_transient_shapes_look_up.insert(
                                         id.to_string(),
@@ -635,7 +719,7 @@ impl CollisionManager {
                                             let new_compound_shape = Compound::new(shape1_vec);
                                             let new_bounding_sphere_radius =
                                                 new_compound_shape.local_bounding_sphere().radius;
-                                            let mut index_vec: Vec<usize> = vec![];
+                                            let mut index_vec: Vec<Option<usize>> = vec![];
                                             for i in 0..valid_vec.len() {
                                                 let tuple = valid_vec.get_mut(i).unwrap();
                                                 //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
@@ -655,7 +739,7 @@ impl CollisionManager {
                                                             ));
                                                             tuple.1 = new_compound_shape.clone();
                                                             tuple.3 = new_bounding_sphere_radius;
-                                                            index_vec.push(i);
+                                                            index_vec.push(Some(i));
                                                         }
 
                                                         None => {}
@@ -690,56 +774,117 @@ impl CollisionManager {
                                     let new_compound_shape = Compound::new(shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
-                                    let mut index_vec: Vec<usize> = vec![];
+                                    let mut index_vec: Vec<Option<usize>> = vec![];
                                     //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
                                     for (shape_frame, shapes_vec) in
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
-                                        let temp_tuple = shapes_vec.get(0).unwrap();
-                                        match parry3d_f64::query::contact(
-                                            &temp_tuple.5,
-                                            &temp_tuple.1,
-                                            &cylinder_object.local_transform,
-                                            &new_compound_shape,
-                                            D_MAX,
-                                        ) {
-                                            Ok(contact) => match contact {
-                                                Some(valid_contact) => {
-                                                    let proximity = ProximityInfo::new(
-                                                        shape_frame.to_string(),
-                                                        cylinder_object.frame.to_string(),
-                                                        valid_contact.dist,
-                                                        Some((
-                                                            valid_contact.point1,
-                                                            valid_contact.point2,
-                                                        )),
-                                                        true,
-                                                    );
-                                                    self.scene_group_truth_distance_hashmap
-                                                        .get_mut(&shape_frame)
-                                                        .unwrap()
-                                                        .push((
-                                                            proximity,
-                                                            temp_tuple.1.clone(),
-                                                            new_compound_shape.clone(),
-                                                            temp_tuple.3,
-                                                            new_bounding_sphere_radius,
-                                                            temp_tuple.5,
-                                                            cylinder_object.local_transform,
-                                                        ));
-                                                    index_vec.push(
+                                        if shapes_vec.len() == 0 {
+                                            let temp_tuple = self
+                                                .scene_optima_collision_shapes_look_up
+                                                .get(&shape_frame);
+                                            match temp_tuple {
+                                                Some((shape1, rad1, trans1)) => {
+                                                    match parry3d_f64::query::contact(
+                                                        &trans1,
+                                                        shape1,
+                                                        &cylinder_object.local_transform,
+                                                        &new_compound_shape,
+                                                        D_MAX,
+                                                    ) {
+                                                        Ok(contact) => match contact {
+                                                            Some(valid_contact) => {
+                                                                let proximity = ProximityInfo::new(
+                                                                    shape_frame.to_string(),
+                                                                    cylinder_object
+                                                                        .frame
+                                                                        .to_string(),
+                                                                    valid_contact.dist,
+                                                                    Some((
+                                                                        valid_contact.point1,
+                                                                        valid_contact.point2,
+                                                                    )),
+                                                                    true,
+                                                                );
+                                                                self.scene_group_truth_distance_hashmap
+                                                                .get_mut(&shape_frame)
+                                                                .unwrap()
+                                                                .push((
+                                                                    proximity,
+                                                                    shape1.clone(),
+                                                                    new_compound_shape.clone(),
+                                                                    *rad1,
+                                                                    new_bounding_sphere_radius,
+                                                                    *trans1,
+                                                                    cylinder_object.local_transform,
+                                                                ));
+                                                                index_vec.push(Some(
+                                                                self.scene_group_truth_distance_hashmap
+                                                                    .get_mut(&shape_frame)
+                                                                    .unwrap()
+                                                                    .len()
+                                                                    - 1),
+                                                            );
+                                                            }
+                                                            None => {
+                                                                index_vec.push(None);
+                                                            }
+                                                        },
+                                                        Err(_) => {
+                                                            index_vec.push(None);
+                                                        }
+                                                    }
+                                                }
+                                                None => {
+                                                    continue;
+                                                }
+                                            }
+                                        } else {
+                                            let temp_tuple = shapes_vec.get(0).unwrap();
+                                            match parry3d_f64::query::contact(
+                                                &temp_tuple.5,
+                                                &temp_tuple.1,
+                                                &cylinder_object.local_transform,
+                                                &new_compound_shape,
+                                                D_MAX,
+                                            ) {
+                                                Ok(contact) => match contact {
+                                                    Some(valid_contact) => {
+                                                        let proximity = ProximityInfo::new(
+                                                            shape_frame.to_string(),
+                                                            cylinder_object.frame.to_string(),
+                                                            valid_contact.dist,
+                                                            Some((
+                                                                valid_contact.point1,
+                                                                valid_contact.point2,
+                                                            )),
+                                                            true,
+                                                        );
                                                         self.scene_group_truth_distance_hashmap
                                                             .get_mut(&shape_frame)
                                                             .unwrap()
-                                                            .len()
-                                                            - 1,
-                                                    );
-                                                }
-                                                None => {}
-                                            },
-                                            Err(_) => {}
+                                                            .push((
+                                                                proximity,
+                                                                temp_tuple.1.clone(),
+                                                                new_compound_shape.clone(),
+                                                                temp_tuple.3,
+                                                                new_bounding_sphere_radius,
+                                                                temp_tuple.5,
+                                                                cylinder_object.local_transform,
+                                                            ));
+                                                        index_vec.push(Some(
+                                                            self.scene_group_truth_distance_hashmap
+                                                                .get_mut(&shape_frame)
+                                                                .unwrap()
+                                                                .len()
+                                                                - 1,
+                                                        ));
+                                                    }
+                                                    None => {}
+                                                },
+                                                Err(_) => {}
+                                            }
                                         }
-                                        //shapes_vec.push();
                                     }
                                     self.scene_optima_transient_shapes_look_up.insert(
                                         id.to_string(),
@@ -764,7 +909,7 @@ impl CollisionManager {
                                             let new_compound_shape = Compound::new(shape1_vec);
                                             let new_bounding_sphere_radius =
                                                 new_compound_shape.local_bounding_sphere().radius;
-                                            let mut index_vec: Vec<usize> = vec![];
+                                            let mut index_vec: Vec<Option<usize>> = vec![];
                                             for i in 0..valid_vec.len() {
                                                 let tuple = valid_vec.get_mut(i).unwrap();
                                                 //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
@@ -784,12 +929,16 @@ impl CollisionManager {
                                                             ));
                                                             tuple.1 = new_compound_shape.clone();
                                                             tuple.3 = new_bounding_sphere_radius;
-                                                            index_vec.push(i);
+                                                            index_vec.push(Some(i));
                                                         }
 
-                                                        None => {}
+                                                        None => {
+                                                            index_vec.push(None);
+                                                        }
                                                     },
-                                                    Err(_) => {}
+                                                    Err(_) => {
+                                                        index_vec.push(None);
+                                                    }
                                                 }
                                             }
                                             self.scene_optima_transient_shapes_look_up.insert(
@@ -827,56 +976,121 @@ impl CollisionManager {
                                     let new_compound_shape = Compound::new(shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
-                                    let mut index_vec: Vec<usize> = vec![];
+                                    let mut index_vec: Vec<Option<usize>> = vec![];
                                     //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
                                     for (shape_frame, shapes_vec) in
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
-                                        let temp_tuple = shapes_vec.get(0).unwrap();
-                                        match parry3d_f64::query::contact(
-                                            &temp_tuple.5,
-                                            &temp_tuple.1,
-                                            &capsule_object.local_transform,
-                                            &new_compound_shape,
-                                            D_MAX,
-                                        ) {
-                                            Ok(contact) => match contact {
-                                                Some(valid_contact) => {
-                                                    let proximity = ProximityInfo::new(
-                                                        shape_frame.to_string(),
-                                                        capsule_object.frame.to_string(),
-                                                        valid_contact.dist,
-                                                        Some((
-                                                            valid_contact.point1,
-                                                            valid_contact.point2,
-                                                        )),
-                                                        true,
-                                                    );
-                                                    self.scene_group_truth_distance_hashmap
-                                                        .get_mut(&shape_frame)
-                                                        .unwrap()
-                                                        .push((
-                                                            proximity,
-                                                            temp_tuple.1.clone(),
-                                                            new_compound_shape.clone(),
-                                                            temp_tuple.3,
-                                                            new_bounding_sphere_radius,
-                                                            temp_tuple.5,
-                                                            capsule_object.local_transform,
-                                                        ));
-                                                    index_vec.push(
+                                        if shapes_vec.len() == 0 {
+                                            let temp_tuple = self
+                                                .scene_optima_collision_shapes_look_up
+                                                .get(&shape_frame);
+                                            match temp_tuple {
+                                                Some((shape1, rad1, trans1)) => {
+                                                    match parry3d_f64::query::contact(
+                                                        &trans1,
+                                                        shape1,
+                                                        &capsule_object.local_transform,
+                                                        &new_compound_shape,
+                                                        D_MAX,
+                                                    ) {
+                                                        Ok(contact) => match contact {
+                                                            Some(valid_contact) => {
+                                                                let proximity = ProximityInfo::new(
+                                                                    shape_frame.to_string(),
+                                                                    capsule_object
+                                                                        .frame
+                                                                        .to_string(),
+                                                                    valid_contact.dist,
+                                                                    Some((
+                                                                        valid_contact.point1,
+                                                                        valid_contact.point2,
+                                                                    )),
+                                                                    true,
+                                                                );
+                                                                self.scene_group_truth_distance_hashmap
+                                                                .get_mut(&shape_frame)
+                                                                .unwrap()
+                                                                .push((
+                                                                    proximity,
+                                                                    shape1.clone(),
+                                                                    new_compound_shape.clone(),
+                                                                    *rad1,
+                                                                    new_bounding_sphere_radius,
+                                                                    *trans1,
+                                                                    capsule_object.local_transform,
+                                                                ));
+                                                                index_vec.push(Some(
+                                                                self.scene_group_truth_distance_hashmap
+                                                                    .get_mut(&shape_frame)
+                                                                    .unwrap()
+                                                                    .len()
+                                                                    - 1),
+                                                            );
+                                                            }
+                                                            None => {
+                                                                index_vec.push(None);
+                                                            }
+                                                        },
+                                                        Err(_) => {
+                                                            index_vec.push(None);
+                                                        }
+                                                    }
+                                                }
+                                                None => {
+                                                    continue;
+                                                }
+                                            }
+                                        } else {
+                                            let temp_tuple = shapes_vec.get(0).unwrap();
+                                            match parry3d_f64::query::contact(
+                                                &temp_tuple.5,
+                                                &temp_tuple.1,
+                                                &capsule_object.local_transform,
+                                                &new_compound_shape,
+                                                D_MAX,
+                                            ) {
+                                                Ok(contact) => match contact {
+                                                    Some(valid_contact) => {
+                                                        let proximity = ProximityInfo::new(
+                                                            shape_frame.to_string(),
+                                                            capsule_object.frame.to_string(),
+                                                            valid_contact.dist,
+                                                            Some((
+                                                                valid_contact.point1,
+                                                                valid_contact.point2,
+                                                            )),
+                                                            true,
+                                                        );
                                                         self.scene_group_truth_distance_hashmap
                                                             .get_mut(&shape_frame)
                                                             .unwrap()
-                                                            .len()
-                                                            - 1,
-                                                    );
+                                                            .push((
+                                                                proximity,
+                                                                temp_tuple.1.clone(),
+                                                                new_compound_shape.clone(),
+                                                                temp_tuple.3,
+                                                                new_bounding_sphere_radius,
+                                                                temp_tuple.5,
+                                                                capsule_object.local_transform,
+                                                            ));
+                                                        index_vec.push(Some(
+                                                            self.scene_group_truth_distance_hashmap
+                                                                .get_mut(&shape_frame)
+                                                                .unwrap()
+                                                                .len()
+                                                                - 1,
+                                                        ));
+                                                    }
+                                                    None => {
+                                                        index_vec.push(None);
+                                                    }
+                                                },
+                                                Err(_) => {
+                                                    index_vec.push(None);
                                                 }
-                                                None => {}
-                                            },
-                                            Err(_) => {}
+                                            }
                                         }
-                                        //shapes_vec.push();
                                     }
                                     self.scene_optima_transient_shapes_look_up.insert(
                                         id.to_string(),
@@ -901,7 +1115,7 @@ impl CollisionManager {
                                             let new_compound_shape = Compound::new(shape1_vec);
                                             let new_bounding_sphere_radius =
                                                 new_compound_shape.local_bounding_sphere().radius;
-                                            let mut index_vec: Vec<usize> = vec![];
+                                            let mut index_vec: Vec<Option<usize>> = vec![];
                                             for i in 0..valid_vec.len() {
                                                 let tuple = valid_vec.get_mut(i).unwrap();
                                                 //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
@@ -921,12 +1135,16 @@ impl CollisionManager {
                                                             ));
                                                             tuple.1 = new_compound_shape.clone();
                                                             tuple.3 = new_bounding_sphere_radius;
-                                                            index_vec.push(i);
+                                                            index_vec.push(Some(i));
                                                         }
 
-                                                        None => {}
+                                                        None => {
+                                                            index_vec.push(None);
+                                                        }
                                                     },
-                                                    Err(_) => {}
+                                                    Err(_) => {
+                                                        index_vec.push(None);
+                                                    }
                                                 }
                                             }
                                             self.scene_optima_transient_shapes_look_up.insert(
@@ -953,56 +1171,115 @@ impl CollisionManager {
                                     let new_compound_shape = Compound::new(shape_vec);
                                     let new_bounding_sphere_radius =
                                         new_compound_shape.local_bounding_sphere().radius;
-                                    let mut index_vec: Vec<usize> = vec![];
+                                    let mut index_vec: Vec<Option<usize>> = vec![];
                                     //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
                                     for (shape_frame, shapes_vec) in
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
-                                        let temp_tuple = shapes_vec.get(0).unwrap();
-                                        match parry3d_f64::query::contact(
-                                            &temp_tuple.5,
-                                            &temp_tuple.1,
-                                            &sphere_object.local_transform,
-                                            &new_compound_shape,
-                                            D_MAX,
-                                        ) {
-                                            Ok(contact) => match contact {
-                                                Some(valid_contact) => {
-                                                    let proximity = ProximityInfo::new(
-                                                        shape_frame.to_string(),
-                                                        sphere_object.frame.to_string(),
-                                                        valid_contact.dist,
-                                                        Some((
-                                                            valid_contact.point1,
-                                                            valid_contact.point2,
-                                                        )),
-                                                        true,
-                                                    );
-                                                    self.scene_group_truth_distance_hashmap
-                                                        .get_mut(&shape_frame)
-                                                        .unwrap()
-                                                        .push((
-                                                            proximity,
-                                                            temp_tuple.1.clone(),
-                                                            new_compound_shape.clone(),
-                                                            temp_tuple.3,
-                                                            new_bounding_sphere_radius,
-                                                            temp_tuple.5,
-                                                            sphere_object.local_transform,
-                                                        ));
-                                                    index_vec.push(
+                                        if shapes_vec.len() == 0 {
+                                            let temp_tuple = self
+                                                .scene_optima_collision_shapes_look_up
+                                                .get(&shape_frame);
+                                            match temp_tuple {
+                                                Some((shape1, rad1, trans1)) => {
+                                                    match parry3d_f64::query::contact(
+                                                        &trans1,
+                                                        shape1,
+                                                        &sphere_object.local_transform,
+                                                        &new_compound_shape,
+                                                        D_MAX,
+                                                    ) {
+                                                        Ok(contact) => match contact {
+                                                            Some(valid_contact) => {
+                                                                let proximity = ProximityInfo::new(
+                                                                    shape_frame.to_string(),
+                                                                    sphere_object.frame.to_string(),
+                                                                    valid_contact.dist,
+                                                                    Some((
+                                                                        valid_contact.point1,
+                                                                        valid_contact.point2,
+                                                                    )),
+                                                                    true,
+                                                                );
+                                                                self.scene_group_truth_distance_hashmap
+                                                                .get_mut(&shape_frame)
+                                                                .unwrap()
+                                                                .push((
+                                                                    proximity,
+                                                                    shape1.clone(),
+                                                                    new_compound_shape.clone(),
+                                                                    *rad1,
+                                                                    new_bounding_sphere_radius,
+                                                                    *trans1,
+                                                                    sphere_object.local_transform,
+                                                                ));
+                                                                index_vec.push(Some(
+                                                                self.scene_group_truth_distance_hashmap
+                                                                    .get_mut(&shape_frame)
+                                                                    .unwrap()
+                                                                    .len()
+                                                                    - 1)
+                                                            );
+                                                            }
+                                                            None => index_vec.push(None),
+                                                        },
+                                                        Err(_) => index_vec.push(None),
+                                                    }
+                                                }
+                                                None => {
+                                                    continue;
+                                                }
+                                            }
+                                        } else {
+                                            let temp_tuple = shapes_vec.get(0).unwrap();
+                                            match parry3d_f64::query::contact(
+                                                &temp_tuple.5,
+                                                &temp_tuple.1,
+                                                &sphere_object.local_transform,
+                                                &new_compound_shape,
+                                                D_MAX,
+                                            ) {
+                                                Ok(contact) => match contact {
+                                                    Some(valid_contact) => {
+                                                        let proximity = ProximityInfo::new(
+                                                            shape_frame.to_string(),
+                                                            sphere_object.frame.to_string(),
+                                                            valid_contact.dist,
+                                                            Some((
+                                                                valid_contact.point1,
+                                                                valid_contact.point2,
+                                                            )),
+                                                            true,
+                                                        );
                                                         self.scene_group_truth_distance_hashmap
                                                             .get_mut(&shape_frame)
                                                             .unwrap()
-                                                            .len()
-                                                            - 1,
-                                                    );
+                                                            .push((
+                                                                proximity,
+                                                                temp_tuple.1.clone(),
+                                                                new_compound_shape.clone(),
+                                                                temp_tuple.3,
+                                                                new_bounding_sphere_radius,
+                                                                temp_tuple.5,
+                                                                sphere_object.local_transform,
+                                                            ));
+                                                        index_vec.push(Some(
+                                                            self.scene_group_truth_distance_hashmap
+                                                                .get_mut(&shape_frame)
+                                                                .unwrap()
+                                                                .len()
+                                                                - 1,
+                                                        ));
+                                                    }
+                                                    None => {
+                                                        index_vec.push(None);
+                                                    }
+                                                },
+                                                Err(_) => {
+                                                    index_vec.push(None);
                                                 }
-                                                None => {}
-                                            },
-                                            Err(_) => {}
+                                            }
                                         }
-                                        //shapes_vec.push();
                                     }
                                     self.scene_optima_transient_shapes_look_up.insert(
                                         id.to_string(),
@@ -1027,7 +1304,7 @@ impl CollisionManager {
                                             let new_compound_shape = Compound::new(shape1_vec);
                                             let new_bounding_sphere_radius =
                                                 new_compound_shape.local_bounding_sphere().radius;
-                                            let mut index_vec: Vec<usize> = vec![];
+                                            let mut index_vec: Vec<Option<usize>> = vec![];
                                             for i in 0..valid_vec.len() {
                                                 let tuple = valid_vec.get_mut(i).unwrap();
                                                 //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
@@ -1047,12 +1324,16 @@ impl CollisionManager {
                                                             ));
                                                             tuple.1 = new_compound_shape.clone();
                                                             tuple.3 = new_bounding_sphere_radius;
-                                                            index_vec.push(i);
+                                                            index_vec.push(Some(i));
                                                         }
 
-                                                        None => {}
+                                                        None => {
+                                                            index_vec.push(None);
+                                                        }
                                                     },
-                                                    Err(_) => {}
+                                                    Err(_) => {
+                                                        index_vec.push(None);
+                                                    }
                                                 }
                                             }
                                             self.scene_optima_transient_shapes_look_up.insert(
@@ -1086,56 +1367,121 @@ impl CollisionManager {
                                             let new_compound_shape = Compound::new(shape_vec);
                                             let new_bounding_sphere_radius =
                                                 new_compound_shape.local_bounding_sphere().radius;
-                                            let mut index_vec: Vec<usize> = vec![];
+                                            let mut index_vec: Vec<Option<usize>> = vec![];
                                             //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
                                             for (shape_frame, shapes_vec) in
                                                 self.scene_group_truth_distance_hashmap.clone()
                                             {
-                                                let temp_tuple = shapes_vec.get(0).unwrap();
-                                                match parry3d_f64::query::contact(
-                                                    &temp_tuple.5,
-                                                    &temp_tuple.1,
-                                                    &hull_object.local_transform,
-                                                    &new_compound_shape,
-                                                    D_MAX,
-                                                ) {
-                                                    Ok(contact) => match contact {
-                                                        Some(valid_contact) => {
-                                                            let proximity = ProximityInfo::new(
-                                                                shape_frame.to_string(),
-                                                                hull_object.frame.to_string(),
-                                                                valid_contact.dist,
-                                                                Some((
-                                                                    valid_contact.point1,
-                                                                    valid_contact.point2,
-                                                                )),
-                                                                true,
-                                                            );
-                                                            self.scene_group_truth_distance_hashmap
-                                                                .get_mut(&shape_frame)
-                                                                .unwrap()
-                                                                .push((
-                                                                    proximity,
-                                                                    temp_tuple.1.clone(),
-                                                                    new_compound_shape.clone(),
-                                                                    temp_tuple.3,
-                                                                    new_bounding_sphere_radius,
-                                                                    temp_tuple.5,
-                                                                    hull_object.local_transform,
-                                                                ));
-                                                            index_vec.push(
+                                                if shapes_vec.len() == 0 {
+                                                    let temp_tuple = self
+                                                        .scene_optima_collision_shapes_look_up
+                                                        .get(&shape_frame);
+                                                    match temp_tuple {
+                                                        Some((shape1, rad1, trans1)) => {
+                                                            match parry3d_f64::query::contact(
+                                                                &trans1,
+                                                                shape1,
+                                                                &hull_object.local_transform,
+                                                                &new_compound_shape,
+                                                                D_MAX,
+                                                            ) {
+                                                                Ok(contact) => {
+                                                                    match contact {
+                                                                        Some(valid_contact) => {
+                                                                            let proximity = ProximityInfo::new(
+                                                                            shape_frame.to_string(),
+                                                                            hull_object.frame.to_string(),
+                                                                            valid_contact.dist,
+                                                                            Some((
+                                                                                valid_contact.point1,
+                                                                                valid_contact.point2,
+                                                                            )),
+                                                                            true,
+                                                                        );
+                                                                            self.scene_group_truth_distance_hashmap
+                                                                        .get_mut(&shape_frame)
+                                                                        .unwrap()
+                                                                        .push((
+                                                                            proximity,
+                                                                            shape1.clone(),
+                                                                            new_compound_shape.clone(),
+                                                                            *rad1,
+                                                                            new_bounding_sphere_radius,
+                                                                            *trans1,
+                                                                            hull_object.local_transform,
+                                                                        ));
+                                                                            index_vec.push(Some(
+                                                                        self.scene_group_truth_distance_hashmap
+                                                                            .get_mut(&shape_frame)
+                                                                            .unwrap()
+                                                                            .len()
+                                                                            - 1)
+                                                                    );
+                                                                        }
+                                                                        None => {
+                                                                            index_vec.push(None);
+                                                                        }
+                                                                    }
+                                                                }
+                                                                Err(_) => {
+                                                                    index_vec.push(None);
+                                                                }
+                                                            }
+                                                        }
+                                                        None => {
+                                                            continue;
+                                                        }
+                                                    }
+                                                } else {
+                                                    let temp_tuple = shapes_vec.get(0).unwrap();
+                                                    match parry3d_f64::query::contact(
+                                                        &temp_tuple.5,
+                                                        &temp_tuple.1,
+                                                        &hull_object.local_transform,
+                                                        &new_compound_shape,
+                                                        D_MAX,
+                                                    ) {
+                                                        Ok(contact) => match contact {
+                                                            Some(valid_contact) => {
+                                                                let proximity = ProximityInfo::new(
+                                                                    shape_frame.to_string(),
+                                                                    hull_object.frame.to_string(),
+                                                                    valid_contact.dist,
+                                                                    Some((
+                                                                        valid_contact.point1,
+                                                                        valid_contact.point2,
+                                                                    )),
+                                                                    true,
+                                                                );
                                                                 self.scene_group_truth_distance_hashmap
                                                                     .get_mut(&shape_frame)
                                                                     .unwrap()
-                                                                    .len()
-                                                                    - 1,
-                                                            );
+                                                                    .push((
+                                                                        proximity,
+                                                                        temp_tuple.1.clone(),
+                                                                        new_compound_shape.clone(),
+                                                                        temp_tuple.3,
+                                                                        new_bounding_sphere_radius,
+                                                                        temp_tuple.5,
+                                                                        hull_object.local_transform,
+                                                                    ));
+                                                                index_vec.push(Some(
+                                                                    self.scene_group_truth_distance_hashmap
+                                                                        .get_mut(&shape_frame)
+                                                                        .unwrap()
+                                                                        .len()
+                                                                        - 1)
+                                                                );
+                                                            }
+                                                            None => {
+                                                                index_vec.push(None);
+                                                            }
+                                                        },
+                                                        Err(_) => {
+                                                            index_vec.push(None);
                                                         }
-                                                        None => {}
-                                                    },
-                                                    Err(_) => {}
+                                                    }
                                                 }
-                                                //shapes_vec.push();
                                             }
                                             self.scene_optima_transient_shapes_look_up.insert(
                                                 id.to_string(),
@@ -1164,7 +1510,7 @@ impl CollisionManager {
                                                         new_compound_shape
                                                             .local_bounding_sphere()
                                                             .radius;
-                                                    let mut index_vec: Vec<usize> = vec![];
+                                                    let mut index_vec: Vec<Option<usize>> = vec![];
                                                     for i in 0..valid_vec.len() {
                                                         let tuple = valid_vec.get_mut(i).unwrap();
                                                         //( old_proximity_info,_,shape2, old_rad1,_,old_trans1,trans2)
@@ -1187,11 +1533,15 @@ impl CollisionManager {
                                                                         new_compound_shape.clone();
                                                                     tuple.3 =
                                                                         new_bounding_sphere_radius;
-                                                                    index_vec.push(i);
+                                                                    index_vec.push(Some(i));
                                                                 }
-                                                                None => {}
+                                                                None => {
+                                                                    index_vec.push(None);
+                                                                }
                                                             },
-                                                            Err(_) => {}
+                                                            Err(_) => {
+                                                                index_vec.push(None);
+                                                            }
                                                         }
                                                     }
                                                     self.scene_optima_transient_shapes_look_up
@@ -1222,32 +1572,129 @@ impl CollisionManager {
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
                                         let index_move = index_vec.get(index).unwrap();
-                                        self.scene_group_truth_distance_hashmap
-                                            .get_mut(&frame_name)
-                                            .unwrap()
-                                            .get_mut(*index_move)
-                                            .unwrap()
-                                            .6 = *pose;
-                                        match parry3d_f64::query::contact(
-                                            &temp_vec.get(*index_move).unwrap().5,
-                                            &temp_vec.get(*index_move).unwrap().1,
-                                            &temp_vec.get(*index_move).unwrap().6,
-                                            &temp_vec.get(*index_move).unwrap().2,
-                                            D_MAX,
-                                        ) {
-                                            Ok(contact) => match contact {
-                                                Some(valid_contact) => {
-                                                    self.scene_group_truth_distance_hashmap
+                                        match index_vec.get(index).unwrap() {
+                                            Some(index_move) => {
+                                                self.scene_group_truth_distance_hashmap
+                                                    .get_mut(&frame_name)
+                                                    .unwrap()
+                                                    .get_mut(*index_move)
+                                                    .unwrap()
+                                                    .6 = *pose;
+                                                match parry3d_f64::query::contact(
+                                                    &temp_vec.get(*index_move).unwrap().5,
+                                                    &temp_vec.get(*index_move).unwrap().1,
+                                                    &temp_vec.get(*index_move).unwrap().6,
+                                                    &temp_vec.get(*index_move).unwrap().2,
+                                                    D_MAX,
+                                                ) {
+                                                    Ok(contact) => match contact {
+                                                        Some(valid_contact) => {
+                                                            self.scene_group_truth_distance_hashmap
                                                         .get_mut(&frame_name)
                                                         .unwrap()
                                                         .get_mut(*index_move)
                                                         .unwrap()
                                                         .0
                                                         .distance = valid_contact.dist;
-                                                    self.scene_group_truth_distance_hashmap
+                                                            self.scene_group_truth_distance_hashmap
                                                         .get_mut(&frame_name)
                                                         .unwrap()
                                                         .get_mut(*index_move)
+                                                        .unwrap()
+                                                        .0
+                                                        .points = Some((
+                                                        valid_contact.point1,
+                                                        valid_contact.point2,
+                                                    ));
+                                                        }
+                                                        None => {}
+                                                    },
+                                                    Err(_) => {}
+                                                }
+
+                                                index += 1;
+                                            }
+                                            None => {
+                                                index += 1;
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    let temp_vec = self
+                                        .scene_group_truth_distance_hashmap
+                                        .get(frame_name)
+                                        .unwrap()
+                                        .clone();
+
+                                    let index_change = self
+                                        .scene_optima_transient_shapes_look_up
+                                        .get(id)
+                                        .unwrap()
+                                        .1
+                                        .get(0)
+                                        .unwrap();
+
+                                    for (proximity, shape1, shape2, rad1, rad2, trans1, trans2) in
+                                        temp_vec
+                                    {
+                                        let mut shape_vec = shape1.shapes().to_vec();
+                                        let primitive_shape =
+                                            &shape_vec.get(*index_change).unwrap().1;
+                                        shape_vec[*index_change] = (*pose, primitive_shape.clone());
+                                        let new_compound_shape = Compound::new(shape_vec);
+                                        let new_radius =
+                                            new_compound_shape.local_bounding_sphere().radius();
+                                        self.scene_group_truth_distance_hashmap
+                                            .get_mut(frame_name)
+                                            .unwrap()
+                                            .get_mut(*index_change)
+                                            .unwrap()
+                                            .1 = new_compound_shape.clone();
+                                        self.scene_group_truth_distance_hashmap
+                                            .get_mut(frame_name)
+                                            .unwrap()
+                                            .get_mut(*index_change)
+                                            .unwrap()
+                                            .3 = new_radius;
+                                        match parry3d_f64::query::contact(
+                                            &self
+                                                .scene_group_truth_distance_hashmap
+                                                .get(frame_name)
+                                                .unwrap()
+                                                .get(*index_change)
+                                                .unwrap()
+                                                .5,
+                                            &new_compound_shape,
+                                            &self
+                                                .scene_group_truth_distance_hashmap
+                                                .get(frame_name)
+                                                .unwrap()
+                                                .get(*index_change)
+                                                .unwrap()
+                                                .6,
+                                            &self
+                                                .scene_group_truth_distance_hashmap
+                                                .get(frame_name)
+                                                .unwrap()
+                                                .get(*index_change)
+                                                .unwrap()
+                                                .2,
+                                            D_MAX,
+                                        ) {
+                                            Ok(contact) => match contact {
+                                                Some(valid_contact) => {
+                                                    self.scene_group_truth_distance_hashmap
+                                                        .get_mut(frame_name)
+                                                        .unwrap()
+                                                        .get_mut(*index_change)
+                                                        .unwrap()
+                                                        .0
+                                                        .distance = valid_contact.dist;
+                                                    self.scene_group_truth_distance_hashmap
+                                                        .get_mut(frame_name)
+                                                        .unwrap()
+                                                        .get_mut(*index_change)
                                                         .unwrap()
                                                         .0
                                                         .points = Some((
@@ -1259,45 +1706,6 @@ impl CollisionManager {
                                             },
                                             Err(_) => {}
                                         }
-
-                                        index += 1;
-                                    }
-                                } else {
-                                    let temp_vec = self.scene_group_truth_distance_hashmap.get(frame_name).unwrap().clone();
-                                    
-                                    let index_change = self.scene_optima_transient_shapes_look_up.get(id).unwrap().1.get(0).unwrap();
-
-                                    for (proximity,shape1,shape2,rad1,rad2,trans1,trans2) in temp_vec{
-                                        let mut shape_vec = shape1.shapes().to_vec();
-                                        let primitive_shape = &shape_vec.get(*index_change).unwrap().1;
-                                        shape_vec[*index_change] = (*pose,primitive_shape.clone());
-                                        let new_compound_shape = Compound::new(shape_vec);
-                                        let new_radius = new_compound_shape.local_bounding_sphere().radius();
-                                        self.scene_group_truth_distance_hashmap.get_mut(frame_name).unwrap().get_mut(*index_change).unwrap().1 = new_compound_shape.clone();
-                                        self.scene_group_truth_distance_hashmap.get_mut(frame_name).unwrap().get_mut(*index_change).unwrap().3 = new_radius;
-                                        match parry3d_f64::query::contact(
-                                            &self.scene_group_truth_distance_hashmap.get(frame_name).unwrap().get(*index_change).unwrap().5,
-                                            &new_compound_shape,
-                                            &self.scene_group_truth_distance_hashmap.get(frame_name).unwrap().get(*index_change).unwrap().6,
-                                            &self.scene_group_truth_distance_hashmap.get(frame_name).unwrap().get(*index_change).unwrap().2,
-                                            D_MAX,
-                                        ) {
-                                            Ok(contact) => match contact {
-                                                Some(valid_contact) => {
-                                                    self.scene_group_truth_distance_hashmap.get_mut(frame_name).unwrap().get_mut(*index_change).unwrap().0.distance = valid_contact.dist;
-                                                    self.scene_group_truth_distance_hashmap.get_mut(frame_name).unwrap().get_mut(*index_change).unwrap().0.points = Some((
-                                                        valid_contact.point1,
-                                                        valid_contact.point2,
-                                                    ));
-                                                }
-                                                None => {}
-                                            },
-                                            Err(_) => {}
-                                        }
-
-
-
-                                        
                                     }
                                     //self.scene_transient_shapes_look_up.get().unwarp().
                                 }
@@ -1312,15 +1720,29 @@ impl CollisionManager {
                             Some((frame_name, index_vec)) => {
                                 if frame_name == "world" {
                                     let mut index = 0;
-                                    for ((frame_name, _)) in
+                                    for ((frame_name, temp_vec)) in
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
-                                        let index_remove = index_vec.get(index).unwrap();
-                                        self.scene_group_truth_distance_hashmap
-                                            .get_mut(&frame_name)
-                                            .unwrap()
-                                            .remove(*index_remove);
-                                        index += 1;
+                                        match index_vec.get(index) {
+                                            Some(index_remove) => match index_remove {
+                                                Some(index_remove) => {
+                                                    if temp_vec.len() == 0 {
+                                                        break;
+                                                    }
+                                                    self.scene_group_truth_distance_hashmap
+                                                        .get_mut(&frame_name)
+                                                        .unwrap()
+                                                        .remove(*index_remove);
+                                                    index += 1;
+                                                }
+                                                None => {
+                                                    continue;
+                                                }
+                                            },
+                                            None => {
+                                                break;
+                                            }
+                                        }
                                     }
                                     self.scene_optima_transient_shapes_look_up
                                         .remove_entry(id)
@@ -1332,31 +1754,41 @@ impl CollisionManager {
                                         .unwrap();
                                     for index in index_vec {
                                         //( old_proximity_info,shape1,shape2, old_rad1,rad2,old_trans1,trans2)
-                                        for tuple in &mut *shapes_vec {
-                                            let mut temp_vec = tuple.1.shapes().to_vec();
-                                            temp_vec.remove(*index);
-                                            let new_compound_shape = Compound::new(temp_vec);
-                                            tuple.1 = new_compound_shape.clone();
-                                            tuple.3 =
-                                                new_compound_shape.local_bounding_sphere().radius;
-                                            match parry3d_f64::query::contact(
-                                                &tuple.5,
-                                                &new_compound_shape,
-                                                &tuple.6,
-                                                &tuple.2,
-                                                D_MAX,
-                                            ) {
-                                                Ok(contact) => match contact {
-                                                    Some(valid_contact) => {
-                                                        tuple.0.distance = valid_contact.dist;
-                                                        tuple.0.points = Some((
-                                                            valid_contact.point1,
-                                                            valid_contact.point2,
-                                                        ));
+                                        match index {
+                                            Some(index) => {
+                                                for tuple in &mut *shapes_vec {
+                                                    let mut temp_vec = tuple.1.shapes().to_vec();
+                                                    temp_vec.remove(*index);
+                                                    let new_compound_shape =
+                                                        Compound::new(temp_vec);
+                                                    tuple.1 = new_compound_shape.clone();
+                                                    tuple.3 = new_compound_shape
+                                                        .local_bounding_sphere()
+                                                        .radius;
+                                                    match parry3d_f64::query::contact(
+                                                        &tuple.5,
+                                                        &new_compound_shape,
+                                                        &tuple.6,
+                                                        &tuple.2,
+                                                        D_MAX,
+                                                    ) {
+                                                        Ok(contact) => match contact {
+                                                            Some(valid_contact) => {
+                                                                tuple.0.distance =
+                                                                    valid_contact.dist;
+                                                                tuple.0.points = Some((
+                                                                    valid_contact.point1,
+                                                                    valid_contact.point2,
+                                                                ));
+                                                            }
+                                                            None => {}
+                                                        },
+                                                        Err(_) => {}
                                                     }
-                                                    None => {}
-                                                },
-                                                Err(_) => {}
+                                                }
+                                            }
+                                            None => {
+                                                continue;
                                             }
                                         }
                                     }

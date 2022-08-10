@@ -610,27 +610,27 @@ fn solver_function() {
             id : "1".to_string(),
             shape : box_19.clone() //"world"
         },
-        ShapeUpdate::Move{
-            id : "1".to_string(),
-            pose : iso_18.clone()
-        },
+        // ShapeUpdate::Move{
+        //     id : "1".to_string(),
+        //     pose : iso_18.clone()
+        // },
         ShapeUpdate::Add{
             id : "2".to_string(),
             shape : box_20.clone() //"existing_frame"
         },
-        ShapeUpdate::Move{
-            id : "2".to_string(),
-            pose : iso_19.clone()
-        },
-        // ShapeUpdate::Delete ("1".to_string()),
-        // ShapeUpdate::Delete ("2".to_string()),
+        // ShapeUpdate::Move{
+        //     id : "2".to_string(),
+        //     pose : iso_19.clone()
+        // },
+         ShapeUpdate::Delete ("1".to_string()),
+         ShapeUpdate::Delete ("2".to_string()),
 
 
 
     ];
 
     let temp_solve = temp.solve(None, None, 0.0, Some(shape_update));
-    temp.reset(temp_solve,None);
+    //temp.reset(temp_solve,None);
     //temp.dele
     //temp.perform_updates();
 }
