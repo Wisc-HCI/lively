@@ -569,7 +569,7 @@ impl CollisionManager {
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
                                         let temp_tuple = shapes_vec.get(0).unwrap();
-                                        let temp_proximity_info = &temp_tuple.0;
+                                        
                                         match parry3d_f64::query::contact(
                                             &temp_tuple.5,
                                             &temp_tuple.1,
@@ -695,7 +695,7 @@ impl CollisionManager {
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
                                         let temp_tuple = shapes_vec.get(0).unwrap();
-                                        let temp_proximity_info = &temp_tuple.0;
+                                        
                                         match parry3d_f64::query::contact(
                                             &temp_tuple.5,
                                             &temp_tuple.1,
@@ -831,7 +831,7 @@ impl CollisionManager {
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
                                         let temp_tuple = shapes_vec.get(0).unwrap();
-                                        let temp_proximity_info = &temp_tuple.0;
+                                        
                                         match parry3d_f64::query::contact(
                                             &temp_tuple.5,
                                             &temp_tuple.1,
@@ -956,7 +956,7 @@ impl CollisionManager {
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
                                         let temp_tuple = shapes_vec.get(0).unwrap();
-                                        let temp_proximity_info = &temp_tuple.0;
+                                        
                                         match parry3d_f64::query::contact(
                                             &temp_tuple.5,
                                             &temp_tuple.1,
@@ -1086,7 +1086,7 @@ impl CollisionManager {
                                                 self.scene_group_truth_distance_hashmap.clone()
                                             {
                                                 let temp_tuple = shapes_vec.get(0).unwrap();
-                                                let temp_proximity_info = &temp_tuple.0;
+                                                
                                                 match parry3d_f64::query::contact(
                                                     &temp_tuple.5,
                                                     &temp_tuple.1,
@@ -1208,22 +1208,55 @@ impl CollisionManager {
                         }
                         shapes::Shape::Mesh(_mesh_object) => {}
                     },
-                    ShapeUpdate::Move { id, pose } => {}
+                    ShapeUpdate::Move { id, pose } => {
+                        
+
+                    }
                     ShapeUpdate::Delete(id) => {
                         match self.scene_optima_transient_shapes_look_up.get(id) {
                             Some((frame_name,index_vec)) => {
                                 if frame_name == "world"{
                                    let mut index = 0;
-                                   for ((frame_name,shapes_vec)) in self.scene_group_truth_distance_hashmap.clone(){
+                                   for ((frame_name,_)) in self.scene_group_truth_distance_hashmap.clone(){
                                     let index_remove = index_vec.get(index).unwrap();
-                                    self.scene_group_truth_distance_hashmap.get_mut(id).unwrap().remove(*index_remove);
+                                    self.scene_group_truth_distance_hashmap.get_mut(&frame_name).unwrap().remove(*index_remove);
                                     index += 1;
                                    }
                                    self.scene_optima_transient_shapes_look_up.remove_entry(id).unwrap();
 
                                 }else{
+                                    let shapes_vec = self.scene_group_truth_distance_hashmap.get_mut(id).unwrap();
                                     for index in index_vec{
-                                       let modify_vec = self.scene_group_truth_distance_hashmap.get_mut(id).unwrap();
+                                       //( old_proximity_info,shape1,shape2, old_rad1,rad2,old_trans1,trans2)
+                                       for tuple in &mut *shapes_vec{
+                                            let mut temp_vec = tuple.1.shapes().to_vec();
+                                            temp_vec.remove(*index);
+                                            let new_compound_shape = Compound::new(temp_vec);
+                                            tuple.1 = new_compound_shape.clone();
+                                            tuple.3 = new_compound_shape.local_bounding_sphere().radius;
+                                            match parry3d_f64::query::contact(
+                                                &tuple.5,
+                                                &new_compound_shape,
+                                                &tuple.6,
+                                                &tuple.2,
+                                                D_MAX,
+                                            ) {
+                                                Ok(contact) => match contact {
+                                                    Some(valid_contact) => {
+                                                        tuple.0.distance = valid_contact.dist;
+                                                            tuple.0.points = Some((
+                                                                valid_contact.point1,
+                                                                valid_contact.point2,
+                                                            ));
+                                                    }
+                                                    None => {}
+                                                },
+                                                Err(_)=>{}
+
+                                            }
+
+
+                                       }    
                                        
                                     }
                                     
