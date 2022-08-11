@@ -19,7 +19,7 @@ const TIME_BUDGET: Duration = Duration::from_micros(100);
 const ACCURACY_BUDGET: f64 = 0.1;
 const TIMED: bool = true;
 const A_VALUE: f64 = 1.0;
-const OPTIMA_NUMBER: usize = 20;
+const OPTIMA_NUMBER: usize = 0;
 
 #[derive(Clone)]
 pub struct CollisionManager {
@@ -450,6 +450,7 @@ impl CollisionManager {
         &mut self,
         initial_frames: &HashMap<String, TransformInfo>,
     ) {
+       
         let size = self.scene_collision_shapes_list.len();
         for i in 0..=size - 1 {
             if self.scene_collision_shapes_list.get(i).unwrap().0 == "world" {
@@ -552,8 +553,10 @@ impl CollisionManager {
 
                 self.scene_group_truth_distance_hashmap
                     .insert(shape1_frame.to_string(), value_vec);
+            
             }
         }
+       
         self.scene_collision_shapes_list.clear();
     }
 
@@ -566,9 +569,7 @@ impl CollisionManager {
                         shapes::Shape::Box(box_object) => {
                             let box_collider =
                                 SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
-                                println!("_______________________________________________________________________________________________");
-                                println!("contains the key : {:?}" ,  self.scene_transient_shapes_look_up.contains_key(id)  );
-                                println!("_______________________________________________________________________________________________");
+                                
                             if self.scene_transient_shapes_look_up.clone().contains_key(id) {
                                 println!("_______________________________________________________________________________________________");
                                 println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
@@ -787,6 +788,7 @@ impl CollisionManager {
                                     for (shape_frame, shapes_vec) in
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
+                                       
                                         if shapes_vec.len() == 0 {
                                             let temp_tuple = self
                                                 .scene_optima_collision_shapes_look_up
@@ -895,7 +897,12 @@ impl CollisionManager {
                                                 }
                                             }
                                         }
+                                        println!("++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                                        println!("the scene_group_truth_distance_hashmap: {:?}, {:?} " ,shape_frame, self.scene_group_truth_distance_hashmap
+                                        .clone().get(&shape_frame).unwrap().len());
+                                        println!("++++++++++++++++++++++++++++++++++++++++++++++++++++");
                                     }
+
                                     self.scene_optima_transient_shapes_look_up.insert(
                                         id.to_string(),
                                         (box_object.frame.to_string(), index_vec.clone()),
@@ -903,6 +910,7 @@ impl CollisionManager {
                                     println!("____________________________________________");
                                    
                                     println!("id: {:?}, frame: {:?}, with index_vec of {:?}" , id.to_string(), box_object.frame.to_string(), index_vec.clone());
+                                    
                                            
                                     
                                     println!("____________________________________________");
@@ -973,9 +981,9 @@ impl CollisionManager {
                             let new_length = cylinder_object.length / 2.0;
                             let cylinder_collider =
                                 SharedShape::cylinder(new_length, cylinder_object.radius);
-                                println!("_______________________________________________________________________________________________");
-                                println!("contains the key : {:?}" ,  self.scene_transient_shapes_look_up.contains_key(id)  );
-                                println!("_______________________________________________________________________________________________");
+                                // println!("_______________________________________________________________________________________________");
+                                // println!("contains the key : {:?}" ,  self.scene_transient_shapes_look_up.contains_key(id)  );
+                                // println!("_______________________________________________________________________________________________");
                                 if self.scene_transient_shapes_look_up.contains_key(id) {
                                     println!("_______________________________________________________________________________________________");
                                     println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
@@ -1302,6 +1310,10 @@ impl CollisionManager {
                                                     }
                                                 }
                                             }
+                                            println!("++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                                            println!("the scene_group_truth_distance_hashmap: {:?}, {:?} " ,shape_frame, self.scene_group_truth_distance_hashmap
+                                            .clone().get(&shape_frame).unwrap().len());
+                                            println!("++++++++++++++++++++++++++++++++++++++++++++++++++++");
                                         }
                                         self.scene_optima_transient_shapes_look_up.insert(
                                             id.to_string(),
@@ -1389,9 +1401,9 @@ impl CollisionManager {
                             );
                             let capsule_collider =
                                 SharedShape::capsule(point_a, point_b, capsule_object.radius);
-                                println!("_______________________________________________________________________________________________");
-                                println!("contains the key : {:?}" ,  self.scene_transient_shapes_look_up.contains_key(id)  );
-                                println!("_______________________________________________________________________________________________");
+                                // println!("_______________________________________________________________________________________________");
+                                // println!("contains the key : {:?}" ,  self.scene_transient_shapes_look_up.contains_key(id)  );
+                                // println!("_______________________________________________________________________________________________");
                                 if self.scene_transient_shapes_look_up.contains_key(id) {
                                     println!("_______________________________________________________________________________________________");
                                     println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
@@ -1718,6 +1730,10 @@ impl CollisionManager {
                                                     }
                                                 }
                                             }
+                                            println!("++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                                            println!("the scene_group_truth_distance_hashmap: {:?}, {:?} " ,shape_frame, self.scene_group_truth_distance_hashmap
+                                            .clone().get(&shape_frame).unwrap().len());
+                                            println!("++++++++++++++++++++++++++++++++++++++++++++++++++++");
                                         }
                                         self.scene_optima_transient_shapes_look_up.insert(
                                             id.to_string(),
@@ -1793,9 +1809,9 @@ impl CollisionManager {
                         }
                         shapes::Shape::Sphere(sphere_object) => {
                             let sphere_collider = SharedShape::ball(sphere_object.radius);
-                            println!("_______________________________________________________________________________________________");
-                                println!("contains the key : {:?}" ,  self.scene_transient_shapes_look_up.contains_key(id)  );
-                                println!("_______________________________________________________________________________________________");
+                            // println!("_______________________________________________________________________________________________");
+                            //     println!("contains the key : {:?}" ,  self.scene_transient_shapes_look_up.contains_key(id)  );
+                            //     println!("_______________________________________________________________________________________________");
                             if self.scene_transient_shapes_look_up.contains_key(id) {
                                 println!("_______________________________________________________________________________________________");
                                 println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
@@ -2122,6 +2138,10 @@ impl CollisionManager {
                                                 }
                                             }
                                         }
+                                        println!("++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                                        println!("the scene_group_truth_distance_hashmap: {:?}, {:?} " ,shape_frame, self.scene_group_truth_distance_hashmap
+                                        .clone().get(&shape_frame).unwrap().len());
+                                        println!("++++++++++++++++++++++++++++++++++++++++++++++++++++");
                                     }
                                     self.scene_optima_transient_shapes_look_up.insert(
                                         id.to_string(),
@@ -2205,9 +2225,9 @@ impl CollisionManager {
                             match SharedShape::convex_hull(hull_points.as_slice()) {
                                 Some(hull_collider) => {
                                     if self.scene_transient_shapes_look_up.contains_key(id) {
-                                        println!("_______________________________________________________________________________________________");
-                                        println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
-                                        println!("_______________________________________________________________________________________________");
+                                        // println!("_______________________________________________________________________________________________");
+                                        // println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
+                                        // println!("_______________________________________________________________________________________________");
                                         let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
                                             vec![(hull_object.local_transform.clone(), hull_collider)];
                                         let new_compound_shape = Compound::new(shape_vec);
@@ -2790,44 +2810,54 @@ impl CollisionManager {
                             Some((frame_name, index_vec)) => {
                                 if frame_name == "world" {
                                     let mut index = 0;
-                                    for (frame_name, temp_vec) in
+                                    for (frame_name, ground_truth_element_vec) in
                                         self.scene_group_truth_distance_hashmap.clone()
                                     {
-                                        match index_vec.get(index) {
-                                            Some(index_remove) => match index_remove {
-                                                Some(index_remove) => {
-                                                    if temp_vec.len() == 0 {
+                                        
+                                        if index > index_vec.len()-1{
+                                            break;
+                                        }else{
+                                            match index_vec.get(index) {
+                                                Some(index_remove) => match index_remove {
+                                                    Some(index_remove) => {
+                                                        if ground_truth_element_vec.len() == 0 || *index_remove > ground_truth_element_vec.len() -1 {
+                                                            index += 1;
+                                                            continue;
+                                                        }
+                                                        self.scene_group_truth_distance_hashmap
+                                                            .get_mut(&frame_name)
+                                                            .unwrap()
+                                                            .remove(*index_remove);
+                                                        index += 1;
+                                                    }
+                                                    None => {
+                                                        index += 1;
                                                         continue;
                                                     }
-                                                    self.scene_group_truth_distance_hashmap
-                                                        .get_mut(&frame_name)
-                                                        .unwrap()
-                                                        .remove(*index_remove);
-                                                    index += 1;
-                                                }
+                                                },
                                                 None => {
+                                                    index += 1;
                                                     continue;
                                                 }
-                                            },
-                                            None => {
-                                                break;
                                             }
                                         }
+                                       
                                     }
                                     self.scene_optima_transient_shapes_look_up
                                         .remove_entry(id)
                                         .unwrap();
                                 } else {
-                                    let shapes_vec = self
+                                    let ground_truth_element_vec = self
                                         .scene_group_truth_distance_hashmap
                                         .get_mut(frame_name)
                                         .unwrap();
                                     let index = index_vec.get(0).unwrap().unwrap();
 
-                                    for tuple in &mut *shapes_vec {
-                                        let mut temp_vec = tuple.1.shapes().to_vec();
-                                        temp_vec.remove(index);
-                                        let new_compound_shape = Compound::new(temp_vec);
+                                    for tuple in &mut *ground_truth_element_vec {
+                                        let mut shape1_compound_shapes_vec = tuple.1.shapes().to_vec();
+                                      
+                                        shape1_compound_shapes_vec.remove(index);
+                                        let new_compound_shape = Compound::new(shape1_compound_shapes_vec);
                                         tuple.1 = new_compound_shape.clone();
                                         tuple.3 = new_compound_shape.local_bounding_sphere().radius;
                                         match parry3d_f64::query::contact(
@@ -2845,15 +2875,20 @@ impl CollisionManager {
                                                         valid_contact.point2,
                                                     ));
                                                 }
-                                                None => {}
+                                                None => {
+                                                    continue;
+                                                }
                                             },
-                                            Err(_) => {}
+                                            Err(_) => {
+                                                continue;
+                                            }
                                         }
                                     }
 
                                     self.scene_optima_transient_shapes_look_up
                                         .remove_entry(id)
                                         .unwrap();
+                                    
                                 }
                             }
                             None => {}

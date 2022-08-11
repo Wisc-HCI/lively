@@ -510,7 +510,7 @@ fn solver_function() {
         box_13, box_14, box_15, box_16, box_17.clone(), box_18, box_19.clone(),box_20.clone()
     ];
 
-    for i in 1..= 60 {
+    for i in 1..= 10{
         
         let mut rng = rand::thread_rng();
         let n : f64 = rng.gen_range(-2.0..2.0);
@@ -685,46 +685,46 @@ fn solver_function() {
             shape : box_20.clone() // existing
         },
         //cylinder
-        // ShapeUpdate::Add{
-        //     id : "3".to_string(),
-        //     shape : temp_cylinder1.clone() // world
-        // },
+        ShapeUpdate::Add{
+            id : "3".to_string(),
+            shape : temp_cylinder1.clone() // world
+        },
 
-        // ShapeUpdate::Add{
-        //     id : "4".to_string(),
-        //     shape : temp_cylinder2.clone() // existing
-        // },
+        ShapeUpdate::Add{
+            id : "4".to_string(),
+            shape : temp_cylinder2.clone() // existing
+        },
 
-        // //sphere
-        // ShapeUpdate::Add{
-        //     id : "5".to_string(),
-        //     shape : temp_sphere1.clone() // world
-        // },
+        //sphere
+        ShapeUpdate::Add{
+            id : "5".to_string(),
+            shape : temp_sphere1.clone() // world
+        },
 
-        // ShapeUpdate::Add{
-        //     id : "6".to_string(),
-        //     shape : temp_sphere2.clone() // existing
-        // },
+        ShapeUpdate::Add{
+            id : "6".to_string(),
+            shape : temp_sphere2.clone() // existing
+        },
 
-        // //capsule
-        // ShapeUpdate::Add{
-        //     id : "7".to_string(),
-        //     shape : temp_sphere1.clone() // world
-        // },
+        //capsule
+        ShapeUpdate::Add{
+            id : "7".to_string(),
+            shape : temp_capsule1.clone() // world
+        },
 
-        // ShapeUpdate::Add{
-        //     id : "8".to_string(),
-        //     shape : temp_sphere2.clone() // existing
-        // },
+        ShapeUpdate::Add{
+            id : "8".to_string(),
+            shape : temp_capsule2.clone() // existing
+        },
         //-----------------------------------------------------------------------existing ids
-        ShapeUpdate::Add{
-            id : 1.to_string(),
-            shape : box_19.clone() //"world"
-        },
-        ShapeUpdate::Add{
-            id : 2.to_string(),
-            shape : box_20.clone() // existing
-        },
+        // ShapeUpdate::Add{
+        //     id : 1.to_string(),
+        //     shape : box_19.clone() //"world"
+        // },
+        // ShapeUpdate::Add{
+        //     id : 2.to_string(),
+        //     shape : box_20.clone() // existing
+        // },
         //cylinder
         // ShapeUpdate::Add{
         //     id : "3".to_string(),
@@ -762,27 +762,82 @@ fn solver_function() {
         
 
        
-        // ShapeUpdate::Move{
-        //     id : "1".to_string(),
-        //     pose : iso_18.clone()
-        // },
-        // ShapeUpdate::Add{
-        //     id : "2".to_string(),
-        //     shape : box_17.clone() //"existing_frame"
-        // },
-        // ShapeUpdate::Move{
-        //     id : "2".to_string(),
-        //     pose : iso_19.clone()
-        // },
-        //  ShapeUpdate::Delete ("1".to_string()),
-        //  ShapeUpdate::Delete ("2".to_string()),
+        ShapeUpdate::Move{
+            id : "1".to_string(),
+            pose : iso_18.clone()
+        },
+        ShapeUpdate::Move{
+            id : "2".to_string(),
+            pose : iso_19.clone()
+        },
+        ShapeUpdate::Move{
+            id : "2".to_string(),
+            pose : iso_20.clone()
+        },
+
+        ShapeUpdate::Move{
+            id : "2".to_string(),
+            pose : iso_18.clone()
+        },
+
+        ShapeUpdate::Move{
+            id : "2".to_string(),
+            pose : iso_2.clone()
+        },
+
+        ShapeUpdate::Move{
+            id : "2".to_string(),
+            pose : iso_19.clone()
+        },
+
+        ShapeUpdate::Move{
+            id : "2".to_string(),
+            pose : iso_19.clone()
+        },
+
+        ShapeUpdate::Move{
+            id : "2".to_string(),
+            pose : iso_19.clone()
+        },
+
+        ShapeUpdate::Move{
+            id : "3".to_string(),
+            pose : iso_19.clone()
+        },
+        ShapeUpdate::Move{
+            id : "5".to_string(),
+            pose : iso_19.clone()
+        },
+        ShapeUpdate::Move{
+            id : "6".to_string(),
+            pose : iso_19.clone()
+        },
+        ShapeUpdate::Move{
+            id : "7".to_string(),
+            pose : iso_1.clone()
+        },
+        ShapeUpdate::Move{
+            id : "8".to_string(),
+            pose : iso_3.clone()
+        },
+        ShapeUpdate::Move{
+            id : "9".to_string(),
+            pose : iso_3.clone()
+        },
+
+
+
+
+
+
+       
 
 
 
     ];
 
     let temp_solve = temp.solve(None, None, 0.0, Some(shape_update));
-    //temp.reset(temp_solve,None);
+    temp.reset(temp_solve,None);
     //temp.dele
     //temp.perform_updates();
 }
