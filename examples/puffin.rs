@@ -507,7 +507,7 @@ fn solver_function() {
 
     let mut box_shapes_vec: Vec<Shape> = vec![
         box_1, box_2, box_3, box_4, box_5, box_6, box_7, box_8, box_9, box_10, box_11, box_12,
-        box_13, box_14, box_15, box_16, box_17, box_18, box_19.clone(),box_20.clone()
+        box_13, box_14, box_15, box_16, box_17.clone(), box_18, box_19.clone(),box_20.clone()
     ];
 
     for i in 1..= 60 {
@@ -604,33 +604,185 @@ fn solver_function() {
         None,
     );
 
+    let mut rng = rand::thread_rng();
+
+    let n4 : f64 = rng.gen_range(0.0..1.0);
+            let n5 : f64 = rng.gen_range(0.0..1.0);
+            let n6 : f64 = rng.gen_range(0.0..1.0);
+            let n : f64 = rng.gen_range(-2.0..2.0);
+            let n1 : f64 = rng.gen_range(-2.0..2.0);
+            let n2 : f64 = rng.gen_range(-2.0..2.0);
+            let temp_translate = Translation3::new(n,n1,n2);
+            let n8 : f64 = rng.gen_range(-10.0..10.0);
+            let n6 : f64 = rng.gen_range(-10.0..10.0);
+            let n7 : f64 = rng.gen_range(-10.0..10.0);
+            let temp_quat = UnitQuaternion::new(Vector3::new(n7,n8,n6));
+            let iso = Isometry3::from_parts(temp_translate, temp_quat);
+
+    let temp_cylinder1 = Shape::Cylinder(CylinderShape::new(
+        "shape".to_string(),
+        "world".to_string(),
+        true,
+        n4,
+        n5,
+        iso,
+    ));
+
+    let temp_cylinder2 = Shape::Cylinder(CylinderShape::new(
+        "shape".to_string(),
+        "upper_arm_link".to_string(),
+        true,
+        n4,
+        n5,
+        iso,
+    ));
+
+    let temp_sphere1 = Shape::Sphere(SphereShape::new(
+        "shape".to_string(),
+        "world".to_string(),
+        true,
+        n4,
+        iso,
+    ));
+
+    let temp_sphere2 = Shape::Sphere(SphereShape::new(
+        "shape".to_string(),
+        "wrist_1_link".to_string(),
+        true,
+        n4,
+        iso,
+    ));
+
+    let temp_capsule1= Shape::Capsule(CapsuleShape::new(
+        "shape".to_string(),
+        "world".to_string(),
+        true,
+        n4,
+        n5,
+        iso,
+    ));
+
+    let temp_capsule2= Shape::Capsule(CapsuleShape::new(
+        "shape".to_string(),
+        "wrist_2_link".to_string(),
+        true,
+        n4,
+        n5,
+        iso,
+    ));
+    
+
+
 
     let shape_update : Vec<ShapeUpdate> = vec![
+        // box
         ShapeUpdate::Add{
-            id : "1".to_string(),
+            id : 1.to_string(),
             shape : box_19.clone() //"world"
         },
-        ShapeUpdate::Move{
-            id : "1".to_string(),
-            pose : iso_18.clone()
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_20.clone() // existing
+        },
+        //cylinder
+        // ShapeUpdate::Add{
+        //     id : "3".to_string(),
+        //     shape : temp_cylinder1.clone() // world
+        // },
+
+        // ShapeUpdate::Add{
+        //     id : "4".to_string(),
+        //     shape : temp_cylinder2.clone() // existing
+        // },
+
+        // //sphere
+        // ShapeUpdate::Add{
+        //     id : "5".to_string(),
+        //     shape : temp_sphere1.clone() // world
+        // },
+
+        // ShapeUpdate::Add{
+        //     id : "6".to_string(),
+        //     shape : temp_sphere2.clone() // existing
+        // },
+
+        // //capsule
+        // ShapeUpdate::Add{
+        //     id : "7".to_string(),
+        //     shape : temp_sphere1.clone() // world
+        // },
+
+        // ShapeUpdate::Add{
+        //     id : "8".to_string(),
+        //     shape : temp_sphere2.clone() // existing
+        // },
+        //-----------------------------------------------------------------------existing ids
+        ShapeUpdate::Add{
+            id : 1.to_string(),
+            shape : box_19.clone() //"world"
         },
         ShapeUpdate::Add{
-            id : "2".to_string(),
-            shape : box_20.clone() //"existing_frame"
+            id : 2.to_string(),
+            shape : box_20.clone() // existing
         },
-        ShapeUpdate::Move{
-            id : "2".to_string(),
-            pose : iso_19.clone()
-        },
-         ShapeUpdate::Delete ("1".to_string()),
-         ShapeUpdate::Delete ("2".to_string()),
+        //cylinder
+        // ShapeUpdate::Add{
+        //     id : "3".to_string(),
+        //     shape : temp_cylinder1.clone() // world
+        // },
+
+        // ShapeUpdate::Add{
+        //     id : "4".to_string(),
+        //     shape : temp_cylinder2.clone() // existing
+        // },
+
+        // //sphere
+        // ShapeUpdate::Add{
+        //     id : "5".to_string(),
+        //     shape : temp_sphere1.clone() // world
+        // },
+
+        // ShapeUpdate::Add{
+        //     id : "6".to_string(),
+        //     shape : temp_sphere2.clone() // existing
+        // },
+
+        // //capsule
+        // ShapeUpdate::Add{
+        //     id : "7".to_string(),
+        //     shape : temp_sphere1.clone() // world
+        // },
+
+        // ShapeUpdate::Add{
+        //     id : "8".to_string(),
+        //     shape : temp_sphere2.clone() // existing
+        // },
+
+
+        
+
+       
+        // ShapeUpdate::Move{
+        //     id : "1".to_string(),
+        //     pose : iso_18.clone()
+        // },
+        // ShapeUpdate::Add{
+        //     id : "2".to_string(),
+        //     shape : box_17.clone() //"existing_frame"
+        // },
+        // ShapeUpdate::Move{
+        //     id : "2".to_string(),
+        //     pose : iso_19.clone()
+        // },
+        //  ShapeUpdate::Delete ("1".to_string()),
+        //  ShapeUpdate::Delete ("2".to_string()),
 
 
 
     ];
 
     let temp_solve = temp.solve(None, None, 0.0, Some(shape_update));
-    temp.reset(temp_solve,None);
+    //temp.reset(temp_solve,None);
     //temp.dele
     //temp.perform_updates();
 }
