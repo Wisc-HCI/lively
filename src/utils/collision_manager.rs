@@ -8,12 +8,10 @@ use nalgebra::vector;
 use nalgebra::Point3;
 use parry3d_f64::query::closest_points::ClosestPoints;
 use parry3d_f64::shape::*;
-
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
 use std::time::{Duration, Instant};
-
 const D_MAX: f64 = 1.0;
 const R: f64 = 0.0;
 const A_MAX: f64 = 0.5;
@@ -22,10 +20,6 @@ const ACCURACY_BUDGET: f64 = 0.1;
 const TIMED: bool = true;
 const A_VALUE: f64 = 1.0;
 const OPTIMA_NUMBER: usize = 20;
-
-// use log::info;
-
-// use log::info;
 
 #[derive(Clone)]
 pub struct CollisionManager {
