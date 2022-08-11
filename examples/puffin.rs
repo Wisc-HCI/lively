@@ -758,46 +758,46 @@ fn solver_function() {
             shape : temp_capsule2.clone() // existing
         },
         //-----------------------------------------------------------------------existing ids
-        // ShapeUpdate::Add{
-        //     id : 1.to_string(),
-        //     shape : box_19.clone() //"world"
-        // },
-        // ShapeUpdate::Add{
-        //     id : 2.to_string(),
-        //     shape : box_20.clone() // existing
-        // },
+        ShapeUpdate::Add{
+            id : 1.to_string(),
+            shape : box_19.clone() //"world"
+        },
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_20.clone() // existing
+        },
         //cylinder
-        // ShapeUpdate::Add{
-        //     id : "3".to_string(),
-        //     shape : temp_cylinder1.clone() // world
-        // },
+        ShapeUpdate::Add{
+            id : "3".to_string(),
+            shape : temp_cylinder1.clone() // world
+        },
 
-        // ShapeUpdate::Add{
-        //     id : "4".to_string(),
-        //     shape : temp_cylinder2.clone() // existing
-        // },
+        ShapeUpdate::Add{
+            id : "4".to_string(),
+            shape : temp_cylinder2.clone() // existing
+        },
 
-        // //sphere
-        // ShapeUpdate::Add{
-        //     id : "5".to_string(),
-        //     shape : temp_sphere1.clone() // world
-        // },
+        //sphere
+        ShapeUpdate::Add{
+            id : "5".to_string(),
+            shape : temp_sphere1.clone() // world
+        },
 
-        // ShapeUpdate::Add{
-        //     id : "6".to_string(),
-        //     shape : temp_sphere2.clone() // existing
-        // },
+        ShapeUpdate::Add{
+            id : "6".to_string(),
+            shape : temp_sphere2.clone() // existing
+        },
 
-        // //capsule
-        // ShapeUpdate::Add{
-        //     id : "7".to_string(),
-        //     shape : temp_sphere1.clone() // world
-        // },
+        //capsule
+        ShapeUpdate::Add{
+            id : "7".to_string(),
+            shape : temp_sphere1.clone() // world
+        },
 
-        // ShapeUpdate::Add{
-        //     id : "8".to_string(),
-        //     shape : temp_sphere2.clone() // existing
-        // },
+        ShapeUpdate::Add{
+            id : "8".to_string(),
+            shape : temp_sphere2.clone() // existing
+        },
 
 
         
