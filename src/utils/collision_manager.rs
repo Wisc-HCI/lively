@@ -391,7 +391,7 @@ impl CollisionManager {
                                 ));
                             }
                             None => {
-                                println!("the given points cannot form a valid hull shape");
+                               // println!("the given points cannot form a valid hull shape");
                             }
                         }
                     } else {
@@ -441,7 +441,7 @@ impl CollisionManager {
                                 }
                             }
                             None => {
-                                println!("the given points cannot form a valid hull shape");
+                                //println!("the given points cannot form a valid hull shape");
                             }
                         }
                     }
@@ -805,7 +805,7 @@ impl CollisionManager {
                                         }
                                     }
                                     None => {
-                                        println!("the id you have provided is not valid");
+                                        //println!("the id you have provided is not valid");
                                     }
                                 }
                             } else {
@@ -1200,7 +1200,7 @@ impl CollisionManager {
                                             }
                                         }
                                         None => {
-                                            println!("the id you have provided is not valid");
+                                            //println!("the id you have provided is not valid");
                                         }
                                     }
                                 } else {
@@ -1605,7 +1605,7 @@ impl CollisionManager {
                                             }
                                         }
                                         None => {
-                                            println!("the id you have provided is not valid");
+                                            //println!("the id you have provided is not valid");
                                         }
                                     }
                                 } else {
@@ -1998,7 +1998,7 @@ impl CollisionManager {
                                         }
                                     }
                                     None => {
-                                        println!("the id you have provided is not valid");
+                                        //!("the id you have provided is not valid");
                                     }
                                 }
                             } else {
@@ -2400,7 +2400,7 @@ impl CollisionManager {
                                                 }
                                             }
                                             None => {
-                                                println!("the id you have provided is not valid");
+                                                //println!("the id you have provided is not valid");
                                             }
                                         }
                                     } else {
@@ -2786,7 +2786,7 @@ impl CollisionManager {
                                 }
                             }
                             None => {
-                                println!("the id you have provided is not valid");
+                               // println!("the id you have provided is not valid");
                             }
                         }
                     }
@@ -2921,7 +2921,7 @@ impl CollisionManager {
                                     }
                                 } else {
                                     if self.scene_transient_shapes_look_up.contains_key(id) {
-                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
                                         let (frame_index, vec_index) =
                                             self.scene_transient_shapes_look_up.get(id).unwrap();
                                         let (frame_name, compound_shape, _) = self
@@ -2969,9 +2969,9 @@ impl CollisionManager {
                                                 );
                                             }
                                             None => {
-                                                println!(
-                                                "The frame does not exist for this transient shape"
-                                            );
+                                            //     println!(
+                                            //     "The frame does not exist for this transient shape"
+                                            // );
                                             }
                                         }
                                     }
@@ -2984,7 +2984,7 @@ impl CollisionManager {
                                     SharedShape::cylinder(new_length, cylinder_object.radius);
                                 if cylinder_object.frame == "world" {
                                     if self.scene_transient_shapes_look_up.contains_key(id) {
-                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
                                         let (frame_index, vec_index) =
                                             self.scene_transient_shapes_look_up.get(id).unwrap();
                                         let (frame_name, compound_shape, _) = self
@@ -3018,7 +3018,7 @@ impl CollisionManager {
                                     }
                                 } else {
                                     if self.scene_transient_shapes_look_up.contains_key(id) {
-                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
                                         let (frame_index, vec_index) =
                                             self.scene_transient_shapes_look_up.get(id).unwrap();
                                         let (frame_name, compound_shape, _) = self
@@ -3069,9 +3069,9 @@ impl CollisionManager {
                                                 );
                                             }
                                             None => {
-                                                println!(
-                                                "The frame does not exist for this transient shape"
-                                            );
+                                            //     println!(
+                                            //     "The frame does not exist for this transient shape"
+                                            // );
                                             }
                                         }
                                     }
@@ -3081,7 +3081,7 @@ impl CollisionManager {
                                 let sphere_collider = SharedShape::ball(sphere_object.radius);
                                 if sphere_object.frame == "world" {
                                     if self.scene_transient_shapes_look_up.contains_key(id) {
-                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
                                         let (frame_index, vec_index) =
                                             self.scene_transient_shapes_look_up.get(id).unwrap();
                                         let (frame_name, compound_shape, _) = self
@@ -3111,7 +3111,7 @@ impl CollisionManager {
                                     }
                                 } else {
                                     if self.scene_transient_shapes_look_up.contains_key(id) {
-                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
                                         let (frame_index, vec_index) =
                                             self.scene_transient_shapes_look_up.get(id).unwrap();
                                         let (frame_name, compound_shape, _) = self
@@ -3159,9 +3159,9 @@ impl CollisionManager {
                                                 );
                                             }
                                             None => {
-                                                println!(
-                                                "The frame does not exist for this transient shape"
-                                            );
+                                            //     println!(
+                                            //     "The frame does not exist for this transient shape"
+                                            // );
                                             }
                                         }
                                     }
@@ -3182,7 +3182,7 @@ impl CollisionManager {
                                     SharedShape::capsule(point_a, point_b, capsule_object.radius);
                                 if capsule_object.frame == "world" {
                                     if self.scene_transient_shapes_look_up.contains_key(id) {
-                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
                                         let (frame_index, vec_index) =
                                             self.scene_transient_shapes_look_up.get(id).unwrap();
                                         let (frame_name, compound_shape, _) = self
@@ -3214,7 +3214,7 @@ impl CollisionManager {
                                     }
                                 } else {
                                     if self.scene_transient_shapes_look_up.contains_key(id) {
-                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
                                         let (frame_index, vec_index) =
                                             self.scene_transient_shapes_look_up.get(id).unwrap();
                                         let (frame_name, compound_shape, _) = self
@@ -3262,9 +3262,9 @@ impl CollisionManager {
                                                 );
                                             }
                                             None => {
-                                                println!(
-                                                    "The frame does not exist for this transient shape"
-                                                );
+                                                // println!(
+                                                //     "The frame does not exist for this transient shape"
+                                                // );
                                             }
                                         }
                                     }
@@ -3284,7 +3284,7 @@ impl CollisionManager {
                                         if hull_object.frame == "world" {
                                             if self.scene_transient_shapes_look_up.contains_key(id)
                                             {
-                                                println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                                println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
                                                 let (frame_index, vec_index) = self
                                                     .scene_transient_shapes_look_up
                                                     .get(id)
@@ -3326,7 +3326,7 @@ impl CollisionManager {
                                         } else {
                                             if self.scene_transient_shapes_look_up.contains_key(id)
                                             {
-                                                println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                                println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
                                                 let (frame_index, vec_index) = self
                                                     .scene_transient_shapes_look_up
                                                     .get(id)
@@ -3384,9 +3384,9 @@ impl CollisionManager {
                                                         );
                                                     }
                                                     None => {
-                                                        println!(
-                                                    "The frame does not exist for this transient shape"
-                                                );
+                                                //         println!(
+                                                //     "The frame does not exist for this transient shape"
+                                                // );
                                                     }
                                                 }
                                             }
@@ -3424,7 +3424,7 @@ impl CollisionManager {
                                 );
                             }
                             None => {
-                                println!("this id does not exist");
+                               // println!("this id does not exist");
                             }
                         }
                     }
@@ -3448,7 +3448,7 @@ impl CollisionManager {
                                 self.scene_transient_shapes_look_up.remove_entry(id);
                             }
                             None => {
-                                println!("this id does not exist");
+                               // println!("this id does not exist");
                             }
                         }
                     }
