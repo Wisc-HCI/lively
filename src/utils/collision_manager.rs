@@ -12,15 +12,10 @@ use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
 use std::time::{Duration, Instant};
-const D_MAX: f64 = 1.0;
-const R: f64 = 0.0;
-const A_MAX: f64 = 0.5;
-const TIME_BUDGET: Duration = Duration::from_micros(100);
-const ACCURACY_BUDGET: f64 = 0.1;
-const TIMED: bool = true;
-const A_VALUE: f64 = 1.0;
-const OPTIMA_NUMBER: usize = 600;
 
+
+const OPTIMA_NUMBER: usize = 600;
+const ACCURACY_BUDGET: f64 = 0.1;
 #[derive(Clone)]
 pub struct CollisionManager {
     scene_collision_shapes_list: Vec<(String, Compound, f64)>,
@@ -40,6 +35,12 @@ pub struct CollisionManager {
         )>,
     >,
     optima_version: bool,
+    d_max: f64,
+    r: f64,
+    a_max: f64,
+    time_budget: Duration,
+    timed: bool,
+    a_value: f64,
 }
 
 impl fmt::Debug for CollisionManager {
@@ -54,6 +55,31 @@ impl CollisionManager {
         persistent_shapes: Vec<shapes::Shape>,
         collision_settings: &Option<CollisionSettingInfo>,
     ) -> Self {
+        let d_max : f64;
+        let r : f64;
+        let a_max : f64;
+        let time_budget : Duration;
+        let timed : bool;
+        let a_value : f64;
+        match collision_settings {
+            Some (collision_settings) => {
+                d_max = collision_settings.d_max;
+                r = collision_settings.r;
+                a_max = collision_settings.a_max;
+                time_budget = collision_settings.time_budget;
+                timed= collision_settings.timed;
+                a_value = collision_settings.a_value;
+            }
+            None => {
+                d_max = CollisionSettingInfo::default().d_max;
+                r = CollisionSettingInfo::default().r;
+                a_max = CollisionSettingInfo::default().a_max;
+                time_budget = CollisionSettingInfo::default().time_budget;
+                timed= CollisionSettingInfo::default().timed;
+                a_value = CollisionSettingInfo::default().a_value;
+
+            }
+        }
         let mut optima_version = false;
         let mut scene_collision_shapes_list: Vec<(String, Compound, f64)> = vec![];
         let scene_optima_collision_shapes_look_up: HashMap<
@@ -441,6 +467,12 @@ impl CollisionManager {
             scene_group_truth_distance_hashmap,
             optima_version,
             scene_optima_transient_shapes_look_up,
+            d_max,
+            r,
+            a_max,
+            time_budget,
+            timed,
+            a_value,
         }
     }
 
@@ -498,7 +530,7 @@ impl CollisionManager {
                                             shape1,
                                             &shape2_transform.world,
                                             &shape2,
-                                            D_MAX,
+                                            self.d_max,
                                         ) {
                                             Ok(contact) => match contact {
                                                 Some(valid_contact) => {
@@ -635,7 +667,7 @@ impl CollisionManager {
                                                                                     .get(*index_move)
                                                                                     .unwrap()
                                                                                     .2,
-                                                                                D_MAX,
+                                                                                self.d_max,
                                                                             ) {
                                                                                 Ok(contact) => match contact {
                                                                                     Some(valid_contact) => {
@@ -740,7 +772,7 @@ impl CollisionManager {
                                                                 .get(*index_change)
                                                                 .unwrap()
                                                                 .2,
-                                                            D_MAX,
+                                                            self.d_max,
                                                         ) {
                                                             Ok(contact) => match contact {
                                                                 Some(valid_contact) => {
@@ -799,7 +831,7 @@ impl CollisionManager {
                                                         shape1,
                                                         &box_object.local_transform,
                                                         &new_compound_shape,
-                                                        D_MAX,
+                                                        self.d_max,
                                                     ) {
                                                         Ok(contact) => match contact {
                                                             Some(valid_contact) => {
@@ -853,7 +885,7 @@ impl CollisionManager {
                                                 &temp_tuple.1,
                                                 &box_object.local_transform,
                                                 &new_compound_shape,
-                                                D_MAX,
+                                                self.d_max,
                                             ) {
                                                 Ok(contact) => match contact {
                                                     Some(valid_contact) => {
@@ -925,7 +957,7 @@ impl CollisionManager {
                                                     &new_compound_shape,
                                                     &tuple.6,
                                                     &tuple.2,
-                                                    D_MAX,
+                                                    self.d_max,
                                                 ) {
                                                     Ok(contact) => match contact {
                                                         Some(valid_contact) => {
@@ -1030,7 +1062,7 @@ impl CollisionManager {
                                                                                         .get(*index_move)
                                                                                         .unwrap()
                                                                                         .2,
-                                                                                    D_MAX,
+                                                                                    self.d_max,
                                                                                 ) {
                                                                                     Ok(contact) => match contact {
                                                                                         Some(valid_contact) => {
@@ -1135,7 +1167,7 @@ impl CollisionManager {
                                                                     .get(*index_change)
                                                                     .unwrap()
                                                                     .2,
-                                                                D_MAX,
+                                                                self.d_max,
                                                             ) {
                                                                 Ok(contact) => match contact {
                                                                     Some(valid_contact) => {
@@ -1193,7 +1225,7 @@ impl CollisionManager {
                                                             shape1,
                                                             &cylinder_object.local_transform,
                                                             &new_compound_shape,
-                                                            D_MAX,
+                                                            self.d_max,
                                                         ) {
                                                             Ok(contact) => match contact {
                                                                 Some(valid_contact) => {
@@ -1247,7 +1279,7 @@ impl CollisionManager {
                                                     &temp_tuple.1,
                                                     &cylinder_object.local_transform,
                                                     &new_compound_shape,
-                                                    D_MAX,
+                                                    self.d_max,
                                                 ) {
                                                     Ok(contact) => match contact {
                                                         Some(valid_contact) => {
@@ -1319,7 +1351,7 @@ impl CollisionManager {
                                                         &new_compound_shape,
                                                         &tuple.6,
                                                         &tuple.2,
-                                                        D_MAX,
+                                                        self.d_max,
                                                     ) {
                                                         Ok(contact) => match contact {
                                                             Some(valid_contact) => {
@@ -1435,7 +1467,7 @@ impl CollisionManager {
                                                                                         .get(*index_move)
                                                                                         .unwrap()
                                                                                         .2,
-                                                                                    D_MAX,
+                                                                                        self.d_max,
                                                                                 ) {
                                                                                     Ok(contact) => match contact {
                                                                                         Some(valid_contact) => {
@@ -1540,7 +1572,7 @@ impl CollisionManager {
                                                                     .get(*index_change)
                                                                     .unwrap()
                                                                     .2,
-                                                                D_MAX,
+                                                                    self.d_max,
                                                             ) {
                                                                 Ok(contact) => match contact {
                                                                     Some(valid_contact) => {
@@ -1598,7 +1630,7 @@ impl CollisionManager {
                                                             shape1,
                                                             &capsule_object.local_transform,
                                                             &new_compound_shape,
-                                                            D_MAX,
+                                                            self.d_max,
                                                         ) {
                                                             Ok(contact) => match contact {
                                                                 Some(valid_contact) => {
@@ -1652,7 +1684,7 @@ impl CollisionManager {
                                                     &temp_tuple.1,
                                                     &capsule_object.local_transform,
                                                     &new_compound_shape,
-                                                    D_MAX,
+                                                    self.d_max,
                                                 ) {
                                                     Ok(contact) => match contact {
                                                         Some(valid_contact) => {
@@ -1724,7 +1756,7 @@ impl CollisionManager {
                                                         &new_compound_shape,
                                                         &tuple.6,
                                                         &tuple.2,
-                                                        D_MAX,
+                                                        self.d_max,
                                                     ) {
                                                         Ok(contact) => match contact {
                                                             Some(valid_contact) => {
@@ -1828,7 +1860,7 @@ impl CollisionManager {
                                                                                     .get(*index_move)
                                                                                     .unwrap()
                                                                                     .2,
-                                                                                D_MAX,
+                                                                                    self.d_max,
                                                                             ) {
                                                                                 Ok(contact) => match contact {
                                                                                     Some(valid_contact) => {
@@ -1933,7 +1965,7 @@ impl CollisionManager {
                                                                 .get(*index_change)
                                                                 .unwrap()
                                                                 .2,
-                                                            D_MAX,
+                                                                self.d_max,
                                                         ) {
                                                             Ok(contact) => match contact {
                                                                 Some(valid_contact) => {
@@ -1991,7 +2023,7 @@ impl CollisionManager {
                                                         shape1,
                                                         &sphere_object.local_transform,
                                                         &new_compound_shape,
-                                                        D_MAX,
+                                                        self.d_max,
                                                     ) {
                                                         Ok(contact) => match contact {
                                                             Some(valid_contact) => {
@@ -2045,7 +2077,7 @@ impl CollisionManager {
                                                 &temp_tuple.1,
                                                 &sphere_object.local_transform,
                                                 &new_compound_shape,
-                                                D_MAX,
+                                                self.d_max,
                                             ) {
                                                 Ok(contact) => match contact {
                                                     Some(valid_contact) => {
@@ -2122,7 +2154,7 @@ impl CollisionManager {
                                                     &new_compound_shape,
                                                     &tuple.6,
                                                     &tuple.2,
-                                                    D_MAX,
+                                                    self.d_max,
                                                 ) {
                                                     Ok(contact) => match contact {
                                                         Some(valid_contact) => {
@@ -2230,7 +2262,7 @@ impl CollisionManager {
                                                                                             .get(*index_move)
                                                                                             .unwrap()
                                                                                             .2,
-                                                                                        D_MAX,
+                                                                                            self.d_max,
                                                                                     ) {
                                                                                         Ok(contact) => match contact {
                                                                                             Some(valid_contact) => {
@@ -2335,7 +2367,7 @@ impl CollisionManager {
                                                                         .get(*index_change)
                                                                         .unwrap()
                                                                         .2,
-                                                                    D_MAX,
+                                                                        self.d_max,
                                                                 ) {
                                                                     Ok(contact) => match contact {
                                                                         Some(valid_contact) => {
@@ -2393,7 +2425,7 @@ impl CollisionManager {
                                                                 shape1,
                                                                 &hull_object.local_transform,
                                                                 &new_compound_shape,
-                                                                D_MAX,
+                                                                self.d_max,
                                                             ) {
                                                                 Ok(contact) => match contact {
                                                                     Some(valid_contact) => {
@@ -2447,7 +2479,7 @@ impl CollisionManager {
                                                         &temp_tuple.1,
                                                         &hull_object.local_transform,
                                                         &new_compound_shape,
-                                                        D_MAX,
+                                                        self.d_max,
                                                     ) {
                                                         Ok(contact) => match contact {
                                                             Some(valid_contact) => {
@@ -2517,7 +2549,7 @@ impl CollisionManager {
                                                             &new_compound_shape,
                                                             &tuple.6,
                                                             &tuple.2,
-                                                            D_MAX,
+                                                            self.d_max,
                                                         ) {
                                                             Ok(contact) => match contact {
                                                                 Some(valid_contact) => {
@@ -2601,7 +2633,7 @@ impl CollisionManager {
                                                                     .get(*index_move)
                                                                     .unwrap()
                                                                     .2,
-                                                                D_MAX,
+                                                                    self.d_max,
                                                             ) {
                                                                 Ok(contact) => match contact {
                                                                     Some(valid_contact) => {
@@ -2714,7 +2746,7 @@ impl CollisionManager {
                                                         .get(*index_change)
                                                         .unwrap()
                                                         .2,
-                                                    D_MAX,
+                                                        self.d_max,
                                                 ) {
                                                     Ok(contact) => match contact {
                                                         Some(valid_contact) => {
@@ -2818,7 +2850,7 @@ impl CollisionManager {
                                             &new_compound_shape,
                                             &tuple.6,
                                             &tuple.2,
-                                            D_MAX,
+                                            self.d_max,
                                         ) {
                                             Ok(contact) => match contact {
                                                 Some(valid_contact) => {
@@ -2859,7 +2891,7 @@ impl CollisionManager {
                                     SharedShape::cuboid(box_object.y, box_object.x, box_object.z);
                                 if box_object.frame == "world" {
                                     if self.scene_transient_shapes_look_up.contains_key(id) {
-                                        println!("WARNING: overwring the shape because another transient shape with the same id already exist in the scene");
+                                        println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
                                         let (frame_index, vec_index) =
                                             self.scene_transient_shapes_look_up.get(id).unwrap();
                                         let (frame_name, compound_shape, _) = self
@@ -3485,7 +3517,7 @@ impl CollisionManager {
                             &new_compound_shape,
                             &tuple.6,
                             &tuple.2,
-                            D_MAX,
+                            self.d_max,
                         ) {
                             Ok(contact) => match contact {
                                 Some(valid_contact) => {
@@ -3694,7 +3726,7 @@ impl CollisionManager {
         if *x <= 0.0 {
             result = -*x + 1.0;
         } else {
-            let c = 0.2 * A_MAX;
+            let c = 0.2 * self.a_max;
 
             result = (-(*x * *x) / 2.0 * c * c).exp();
         }
@@ -3705,7 +3737,7 @@ impl CollisionManager {
     pub fn compute_loss_with_cutoff(&self, x: &f64, a_value: &f64) -> f64 {
         let result;
 
-        if *x >= D_MAX || *x / *a_value >= A_MAX {
+        if *x >= self.d_max || *x / *a_value >= self.a_max {
             result = 0.0;
         } else {
             result = self.compute_loss_function(x);
@@ -3740,8 +3772,8 @@ impl CollisionManager {
             j_state,
         );
 
-        let estimated_distance = (1.0 - R) * lower_bound + R * upper_bound;
-        let a_value = A_VALUE;
+        let estimated_distance = (1.0 - self.r) * lower_bound + self.r * upper_bound;
+        let a_value = self.a_value;
         let loss_value_distance = self.compute_loss_with_cutoff(&estimated_distance, &a_value);
         let loss_value_lower_bound = self.compute_loss_with_cutoff(&lower_bound, &a_value);
         let loss_value_upper_bound = self.compute_loss_with_cutoff(&upper_bound, &a_value);
@@ -3769,7 +3801,7 @@ impl CollisionManager {
         let timed_timer = Instant::now();
         for (_, valid_vec) in self.scene_group_truth_distance_hashmap.clone() {
             for (proximity, shape1, shape2, _, _, pos1, pos2) in valid_vec {
-                if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
+                if timed_timer.elapsed().as_micros() < self.time_budget.as_micros() {
                     let current_loss_function_error = self.compute_maximum_loss_functions_error(
                         &shape1,
                         &proximity.shape1,
@@ -3801,10 +3833,10 @@ impl CollisionManager {
         if self.optima_version {
             let ranking_vector: Vec<(String, Compound, String, Compound, f64)> =
                 self.ranking_maximum_loss_functions_error(frames);
-            if TIMED {
+            if self.timed {
                 let timed_timer = Instant::now();
                 for (shape1_frame, shape1, shape2_frame, shape2, _) in ranking_vector {
-                    if timed_timer.elapsed().as_micros() < TIME_BUDGET.as_micros() {
+                    if timed_timer.elapsed().as_micros() < self.time_budget.as_micros() {
                         let shape1_transform = frames
                             .get(&shape1_frame)
                             .unwrap_or(&default_frame_transform)
@@ -3818,7 +3850,7 @@ impl CollisionManager {
                             &shape1,
                             &shape2_transform,
                             &shape2,
-                            D_MAX,
+                            self.d_max,
                         );
                         match contact {
                             Ok(contact) => match contact {
@@ -3866,7 +3898,7 @@ impl CollisionManager {
                                 current_shape1,
                                 &shape2_transform.world,
                                 current_shape2,
-                                D_MAX,
+                                self.d_max,
                             );
                             match contact {
                                 Ok(contact) => match contact {
@@ -3917,7 +3949,7 @@ impl CollisionManager {
                                         shape1,
                                         &shape2_transform.world,
                                         shape2,
-                                        D_MAX,
+                                        self.d_max,
                                     ) {
                                         Ok(valid_closest_points) => match valid_closest_points {
                                             ClosestPoints::Intersecting => {
