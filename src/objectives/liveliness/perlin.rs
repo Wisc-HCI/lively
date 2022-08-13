@@ -25,6 +25,7 @@ fn get_default_offsets() -> [f64;3] {
     return offsets
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct PositionLivelinessObjective {
     // Adds position liveliness to the specified link
@@ -66,6 +67,7 @@ impl PositionLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0
@@ -86,6 +88,7 @@ impl PositionLivelinessObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct OrientationLivelinessObjective {
     // Adds orientation liveliness to the link
@@ -126,6 +129,7 @@ impl OrientationLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0
@@ -147,6 +151,7 @@ impl OrientationLivelinessObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct JointLivelinessObjective {
     // Adds joint liveliness to the specified joint
@@ -180,6 +185,7 @@ impl JointLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0
@@ -198,6 +204,7 @@ impl JointLivelinessObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct RelativeMotionLivelinessObjective {
     // Defining a vector line between two links (link1 and link2), this objective promotes lively motion of the second link along that vector
@@ -231,6 +238,7 @@ impl RelativeMotionLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0
@@ -255,6 +263,7 @@ impl RelativeMotionLivelinessObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct OriginPositionLivelinessObjective {
     // Adds position liveliness to the specified link
@@ -295,6 +304,7 @@ impl OriginPositionLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0
@@ -315,6 +325,7 @@ impl OriginPositionLivelinessObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct OriginOrientationLivelinessObjective {
     // Adds orientation liveliness to the link
@@ -354,6 +365,7 @@ impl OriginOrientationLivelinessObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         if is_core {
             return 0.0

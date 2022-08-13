@@ -8,6 +8,7 @@ use crate::utils::info::*;
 A read-only struct that provides information about the origin, jointstate, and frames of a robot.
 */
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct State {

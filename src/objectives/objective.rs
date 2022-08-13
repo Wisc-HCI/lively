@@ -10,6 +10,7 @@ use crate::objectives::liveliness::forces::{*};
 use crate::objectives::liveliness::perlin::{*};
 use nalgebra::Translation3;
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 #[serde(tag = "type")]
 pub enum Objective {
@@ -82,36 +83,37 @@ impl Objective {
                 v: &Vars,
                 state: &State,
                 is_core: bool,
+                is_last: bool
             ) -> f64 {
                 match self {
-                    Self::PositionMatch(obj) => obj.call(v,state,is_core),
-                    Self::OrientationMatch(obj) => obj.call(v,state,is_core),
-                    Self::PositionLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::OrientationLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::PositionMirroring(obj) => obj.call(v,state,is_core),
-                    Self::OrientationMirroring(obj) => obj.call(v,state,is_core),
-                    Self::PositionBounding(obj) => obj.call(v,state,is_core),
-                    Self::OrientationBounding(obj) => obj.call(v,state,is_core),
-                    Self::JointMatch(obj) => obj.call(v,state,is_core),
-                    Self::JointLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::JointMirroring(obj) => obj.call(v,state,is_core),
-                    Self::JointLimits(obj) => obj.call(v,state,is_core),
-                    Self::JointBounding(obj) => obj.call(v,state,is_core),
-                    Self::CollisionAvoidance(obj) => obj.call(v,state,is_core),
-                    Self::VelocityMinimization(obj) => obj.call(v,state,is_core),
-                    Self::AccelerationMinimization(obj) => obj.call(v,state,is_core),
-                    Self::JerkMinimization(obj) => obj.call(v,state,is_core),
-                    Self::OriginVelocityMinimization(obj) => obj.call(v,state,is_core),
-                    Self::OriginAccelerationMinimization(obj) => obj.call(v,state,is_core),
-                    Self::OriginJerkMinimization(obj) => obj.call(v,state,is_core),
-                    Self::RelativeMotionLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::OriginPositionLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::OriginOrientationLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::OriginPositionMatch(obj) => obj.call(v,state,is_core),
-                    Self::OriginOrientationMatch(obj) => obj.call(v,state,is_core),
-                    Self::Gravity(obj) => obj.call(v,state,is_core),
-                    Self::SmoothnessMacro(obj) => obj.call(v,state,is_core),
-                    Self::DistanceMatch(obj) => obj.call(v,state,is_core)
+                    Self::PositionMatch(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OrientationMatch(obj) => obj.call(v,state,is_core,is_last),
+                    Self::PositionLiveliness(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OrientationLiveliness(obj) => obj.call(v,state,is_core,is_last),
+                    Self::PositionMirroring(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OrientationMirroring(obj) => obj.call(v,state,is_core,is_last),
+                    Self::PositionBounding(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OrientationBounding(obj) => obj.call(v,state,is_core,is_last),
+                    Self::JointMatch(obj) => obj.call(v,state,is_core,is_last),
+                    Self::JointLiveliness(obj) => obj.call(v,state,is_core,is_last),
+                    Self::JointMirroring(obj) => obj.call(v,state,is_core,is_last),
+                    Self::JointLimits(obj) => obj.call(v,state,is_core,is_last),
+                    Self::JointBounding(obj) => obj.call(v,state,is_core,is_last),
+                    Self::CollisionAvoidance(obj) => obj.call(v,state,is_core,is_last),
+                    Self::VelocityMinimization(obj) => obj.call(v,state,is_core,is_last),
+                    Self::AccelerationMinimization(obj) => obj.call(v,state,is_core,is_last),
+                    Self::JerkMinimization(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OriginVelocityMinimization(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OriginAccelerationMinimization(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OriginJerkMinimization(obj) => obj.call(v,state,is_core,is_last),
+                    Self::RelativeMotionLiveliness(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OriginPositionLiveliness(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OriginOrientationLiveliness(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OriginPositionMatch(obj) => obj.call(v,state,is_core,is_last),
+                    Self::OriginOrientationMatch(obj) => obj.call(v,state,is_core,is_last),
+                    Self::Gravity(obj) => obj.call(v,state,is_core,is_last),
+                    Self::SmoothnessMacro(obj) => obj.call(v,state,is_core,is_last),
+                    Self::DistanceMatch(obj) => obj.call(v,state,is_core,is_last)
                 }
     }
 

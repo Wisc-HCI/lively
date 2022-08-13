@@ -13,6 +13,7 @@ fn get_default_rot_bound() -> (UnitQuaternion<f64>,f64) {
     return (UnitQuaternion::identity(),0.0)
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct PositionBoundingObjective {
     // Bounds the position within a region according to the input provided in goals.
@@ -35,6 +36,7 @@ impl PositionBoundingObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let position = state.get_link_transform(&self.link).translation.vector;
         let pos = self.goal.0.inverse_transform_vector(&position);
@@ -46,6 +48,7 @@ impl PositionBoundingObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OrientationBoundingObjective {
     // Bounds the orientation within a region on the unit sphere according to the input provided in goals.
@@ -68,6 +71,7 @@ impl OrientationBoundingObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let orientation = state.get_link_transform(&self.link).rotation;
         let angle_dist = orientation.angle_to(&self.goal.0);
@@ -76,6 +80,7 @@ impl OrientationBoundingObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointBoundingObjective {
     // Bounds the position within a region according to the input provided in goals.
@@ -98,6 +103,7 @@ impl JointBoundingObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let joint_value = state.get_joint_position(&self.joint);
         let penalty_cutoff: f64 = 0.9;

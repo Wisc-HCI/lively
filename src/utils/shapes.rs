@@ -2,6 +2,7 @@ use serde::{Serialize, Deserialize};
 use nalgebra::geometry::{Isometry3};
 use nalgebra::Vector3;
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct BoxShape {
@@ -22,6 +23,7 @@ impl BoxShape {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct CylinderShape {
@@ -41,6 +43,7 @@ impl CylinderShape {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct CapsuleShape {
@@ -60,6 +63,7 @@ impl CapsuleShape {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct SphereShape {
@@ -78,6 +82,7 @@ impl SphereShape {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct MeshShape {
@@ -98,6 +103,7 @@ impl MeshShape {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct HullShape {
@@ -115,6 +121,7 @@ impl HullShape {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,PartialEq,Debug)]
 #[serde(tag = "type")]
 pub enum Shape {

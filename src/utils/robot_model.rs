@@ -203,6 +203,7 @@ impl RobotModel {
         } else {
             proximity = vec![]
         }
+
         let center_of_mass_vec = center_of_mass(&self.chain);
 
         // Return the current state.
@@ -222,7 +223,7 @@ impl RobotModel {
             }
         }
 
-        return self.get_state(&x, true)
+        return self.get_state(&x,true)
     }
     
     pub fn get_filled_state(&self, state: State) -> State {

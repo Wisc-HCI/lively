@@ -5,7 +5,7 @@ use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use std::f64::consts::{E};
 
-
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct CollisionAvoidanceObjective {
     pub name: String,
@@ -23,17 +23,24 @@ impl CollisionAvoidanceObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        is_last: bool
     ) -> f64 {
         let mut score: f64 = 0.0;
-        for proximity_info in &state.proximity {
-            if proximity_info.physical {
-                score += 1.0/E.powf(20.0*proximity_info.distance)
+        if is_last {
+            for proximity_info in &state.proximity {
+                if proximity_info.physical {
+                    score += 1.0/E.powf(20.0*proximity_info.distance)
+                }
             }
+            return self.weight * groove_loss(score, 0.0, 2, 0.32950, 0.1, 2)
+        } else {
+            return 0.0
         }
-        return self.weight * groove_loss(score, 0.0, 2, 0.32950, 0.1, 2)
+        
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointLimitsObjective {
     pub name: String,
@@ -46,6 +53,7 @@ impl JointLimitsObjective {
         v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let mut sum = 0.0;
         let penalty_cutoff: f64 = 0.9;
@@ -77,6 +85,7 @@ impl JointLimitsObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct VelocityMinimizationObjective {
     pub name: String,
@@ -94,6 +103,7 @@ impl VelocityMinimizationObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
@@ -110,6 +120,7 @@ impl VelocityMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginVelocityMinimizationObjective {
     pub name: String,
@@ -127,6 +138,7 @@ impl OriginVelocityMinimizationObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let past:Vector3<f64>;
         let x_val:f64;
@@ -140,6 +152,7 @@ impl OriginVelocityMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct AccelerationMinimizationObjective {
     pub name: String,
@@ -157,6 +170,7 @@ impl AccelerationMinimizationObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
@@ -178,6 +192,7 @@ impl AccelerationMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginAccelerationMinimizationObjective {
     pub name: String,
@@ -195,6 +210,7 @@ impl OriginAccelerationMinimizationObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let pos1 = state.origin.translation.vector;
         if is_core {
@@ -211,6 +227,7 @@ impl OriginAccelerationMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JerkMinimizationObjective {
     pub name: String,
@@ -228,6 +245,7 @@ impl JerkMinimizationObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
@@ -252,6 +270,7 @@ impl JerkMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginJerkMinimizationObjective {
     pub name: String,
@@ -269,6 +288,7 @@ impl OriginJerkMinimizationObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let x_val: f64;
         let pos1 = state.origin.translation.vector;
@@ -289,6 +309,7 @@ impl OriginJerkMinimizationObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub struct SmoothnessMacroObjective {
     pub name: String,
@@ -327,13 +348,14 @@ impl SmoothnessMacroObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        is_last: bool
     ) -> f64 {
-        let velocity_cost = self.velocity_objective.call(v, state, is_core);
-        let acceleration_cost = self.acceleration_objective.call(v, state, is_core);
-        let jerk_cost = self.jerk_objective.call(v, state, is_core);
-        let base_velocity_cost = self.base_velocity_objective.call(v, state, is_core);
-        let base_acceleration_cost = self.base_acceleration_objective.call(v, state, is_core);
-        let base_jerk_cost = self.base_jerk_objective.call(v, state, is_core);
+        let velocity_cost = self.velocity_objective.call(v, state, is_core, is_last);
+        let acceleration_cost = self.acceleration_objective.call(v, state, is_core, is_last);
+        let jerk_cost = self.jerk_objective.call(v, state, is_core, is_last);
+        let base_velocity_cost = self.base_velocity_objective.call(v, state, is_core, is_last);
+        let base_acceleration_cost = self.base_acceleration_objective.call(v, state, is_core, is_last);
+        let base_jerk_cost = self.base_jerk_objective.call(v, state, is_core, is_last);
         return self.weight * (velocity_cost + acceleration_cost + jerk_cost +
                base_velocity_cost + base_acceleration_cost + base_jerk_cost);
     }

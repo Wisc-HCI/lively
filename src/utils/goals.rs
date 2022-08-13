@@ -2,6 +2,7 @@ use serde::{Serialize,Deserialize};
 use nalgebra::geometry::{Translation3, Isometry3, UnitQuaternion};
 use nalgebra::{Vector3};
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 pub enum Goal {
     Translation(Translation3<f64>),

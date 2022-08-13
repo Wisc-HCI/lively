@@ -4,6 +4,7 @@ use crate::utils::state::State;
 use crate::objectives::objective::groove_loss;
 use std::f64::consts::{E};
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct GravityObjective {
     pub name: String,
@@ -22,6 +23,7 @@ impl GravityObjective {
         v: &Vars,
         state: &State,
         is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let prev_position;
         if is_core {

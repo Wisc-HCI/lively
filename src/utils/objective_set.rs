@@ -16,7 +16,7 @@ impl ObjectiveSet {
         let mut out = 0.0;
         let state = robot_model.get_state(&x.to_vec(),is_last);
         for i in 0..self.objectives.len() {
-            out += self.objectives[i].call(&vars, &state, is_core);
+            out += self.objectives[i].call(&vars, &state, is_core, is_last);
         }
         out
     }

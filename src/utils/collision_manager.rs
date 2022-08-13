@@ -3788,7 +3788,7 @@ impl CollisionManager {
         } else {
             result = loss_value_distance.clone() - loss_value_upper_bound.clone();
         }
-
+        
         return result;
     }
 

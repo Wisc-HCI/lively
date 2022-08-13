@@ -5,6 +5,7 @@ use crate::objectives::objective::groove_loss;
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct PositionMirroringObjective {
     // Matches the position between two joints, with a difference according to the Vector3 provided in goals.
@@ -28,6 +29,7 @@ impl PositionMirroringObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let link1_translation = state.get_link_transform(&self.link1).translation.vector;
         let link2_translation = state.get_link_transform(&self.link2).translation.vector;
@@ -36,6 +38,7 @@ impl PositionMirroringObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OrientationMirroringObjective {
     // Matches the orientation between two joints, with a difference according to the Quaternion provided in goals.
@@ -59,6 +62,7 @@ impl OrientationMirroringObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let link1_rotation = state.get_link_transform(&self.link1).rotation;
         let link2_rotation = state.get_link_transform(&self.link2).rotation;
@@ -67,6 +71,7 @@ impl OrientationMirroringObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointMirroringObjective {
     // Match joint values according to the difference specified in goals
@@ -90,6 +95,7 @@ impl JointMirroringObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let joint1_position = state.get_joint_position(&self.joint1);
         let joint2_position = state.get_joint_position(&self.joint2);

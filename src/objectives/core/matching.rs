@@ -5,6 +5,7 @@ use crate::objectives::objective::groove_loss;
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct PositionMatchObjective {
     pub name: String,
@@ -26,6 +27,7 @@ impl PositionMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         // Get the link transform from frames
         let link_translation = state.get_link_transform(&self.link).translation.vector;
@@ -36,6 +38,7 @@ impl PositionMatchObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OrientationMatchObjective {
     pub name: String,
@@ -57,6 +60,7 @@ impl OrientationMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
 
         // Get the link transform from frames
@@ -68,6 +72,7 @@ impl OrientationMatchObjective {
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct JointMatchObjective {
     // Sets a joint to a value given in scalar goal
@@ -90,12 +95,14 @@ impl JointMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let x_val = (self.goal - state.get_joint_position(&self.joint)).abs();
         return self.weight * groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2)
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginPositionMatchObjective {
     // Adds position liveliness to the Origin node (first three entries in x are these values)
@@ -117,12 +124,14 @@ impl OriginPositionMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let x_val = (self.goal - state.origin.translation.vector).norm();
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct OriginOrientationMatchObjective {
     // Adds Orientation liveliness to the Origin node (first three entries in x are these values)
@@ -144,12 +153,14 @@ impl OriginOrientationMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let x_val = state.origin.rotation.angle_to(&self.goal);
         return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct DistanceMatchObjective {
     // Specify that the cartesian distance between two links is maintained
@@ -173,6 +184,7 @@ impl DistanceMatchObjective {
         _v: &Vars,
         state: &State,
         _is_core: bool,
+        _is_last: bool
     ) -> f64 {
         let link1_translation = state.get_link_transform(&self.link1).translation.vector;
         let link2_translation = state.get_link_transform(&self.link2).translation.vector;

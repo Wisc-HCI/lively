@@ -7,6 +7,7 @@ use urdf_rs::{Geometry, Link, Mimic};
 use std::time::{Duration};
 // use std::fmt::Display;
 
+#[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct TransformInfo {
     #[serde(skip,default="Isometry3::identity")]
@@ -59,7 +60,9 @@ impl From<&Mimic> for MimicInfo {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+
+#[repr(C)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 #[serde(rename_all = "camelCase")]
 pub struct JointInfo {
     pub name: String,
@@ -97,7 +100,8 @@ impl JointInfo {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[repr(C)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LinkInfo {
     pub name: String,
@@ -277,7 +281,8 @@ impl From<Link> for LinkInfo {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[repr(C)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct ProximityInfo {
     pub shape1: String,
     pub shape2: String,
@@ -304,11 +309,8 @@ impl ProximityInfo {
     }
 }
 
-// #[derive(Default)]
-// pub struct CollisionSettingInfo {
 
-// }
-
+#[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CollisionSettingInfo {
@@ -358,7 +360,8 @@ impl Default for CollisionSettingInfo {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[repr(C)]
+#[derive(Serialize,Deserialize,Clone,Debug)]
 pub enum ShapeUpdate {
     Add { id: String, shape: Shape },
     Move { id: String, pose: Isometry3<f64> },
