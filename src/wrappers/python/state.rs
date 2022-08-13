@@ -50,7 +50,7 @@ impl PyState {
     }
 
     #[getter]
-    pub fn get_frames(&self, py: Python) -> PyResult<HashMap<String,PyTransformInfo>> {
+    pub fn get_frames(&self) -> PyResult<HashMap<String,PyTransformInfo>> {
         let mut transform_frames: HashMap<String,PyTransformInfo> = HashMap::new();
         for (key, tfi) in self.0.frames.iter() {
             transform_frames.insert(key.to_string(), PyTransformInfo::from(tfi.clone()));

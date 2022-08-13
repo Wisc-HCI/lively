@@ -213,7 +213,7 @@ impl Solver {
             return self.vars.state_core.clone()
         } else {
             self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
-            let mut state = self.robot_model.get_state(&self.xopt,true);
+            let state = self.robot_model.get_state(&self.xopt,true);
             self.vars.history.update(&state);
             //self.robot_model.collision_manager.lock().unwrap().update_ground_truth_table(&mut state);
             
@@ -269,35 +269,9 @@ impl Solver {
         return best_x.to_vec();
     }
 
-    
-
-    // fn call(&self, x: &[f64], is_core: bool) -> f64 {
-    //     let mut out = 0.0;
-    //     let state = self.robot_model.get_state(&x.to_vec());
-    //     for i in 0..self.objective_set.objectives.len() {
-    //         out += self.objective_set.objectives[i].call(&self.vars, &state, is_core);
-    //     }
-    //     out
-    // }
-
-    // fn gradient(
-    //     &self,
-    //     x: &[f64],
-    //     is_core: bool,
-    // ) -> (f64, Vec<f64>) {
-    //     let mut grad: Vec<f64> = vec![0.; x.len()];
-    //     let f_0 = self.call(x, is_core);
-
-    //     for i in 0..x.len() {
-    //         let mut x_h = x.to_vec();
-    //         x_h[i] += 0.000001;
-    //         let f_h = self.call(x_h.as_slice(), is_core);
-    //         grad[i] = (-f_0 + f_h) / 0.000001;
-    //     }
-
-    //     (f_0, grad)
-    // }
-
+    pub fn set_objectives(&mut self, objectives: Vec<Objective>) {
+        self.objective_set.objectives = objectives;
+    }
 }
 
 pub fn optimize(
@@ -343,5 +317,5 @@ pub fn optimize(
         Err(_err) => return f64::INFINITY.clone(),
         _ => return result.unwrap().cost_value(),
     }
-    // println!("Status: {:?}",status);
+    
 }

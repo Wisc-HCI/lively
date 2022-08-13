@@ -57,6 +57,12 @@ impl PySolver {
         Ok(self.0.objective_set.objectives.iter().map(|o| PyObjective::from(o.clone())).collect())
     }
 
+    #[setter]
+    pub fn set_objectives(&mut self, objectives: Vec<PyObjective>) {
+        let inner_objectives = objectives.iter().map(|o| Objective::from(o.clone())).collect();
+        self.0.set_objectives(inner_objectives);
+    }
+
     #[getter]
     pub fn get_current_state(&self) -> PyResult<PyState> {
         Ok(PyState::from(self.0.vars.history.prev1.clone()))

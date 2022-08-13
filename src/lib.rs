@@ -151,6 +151,12 @@ impl JsSolver {
         JsValue::from_serde(&self.0.objective_set.objectives).unwrap()
     }
 
+    #[wasm_bindgen(setter)]
+    pub fn set_objectives(&mut self, objectives: JsValue) {
+        let inner_objectives:Vec<Objective> = objectives.into_serde().unwrap();
+        self.0.set_objectives(inner_objectives)
+    }
+
     #[wasm_bindgen(getter = currentState)]
     pub fn current_state(&self) -> JsValue {
         JsValue::from_serde(&self.0.vars.history.prev1).unwrap()
