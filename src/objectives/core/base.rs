@@ -22,20 +22,15 @@ impl CollisionAvoidanceObjective {
         &self,
         _v: &Vars,
         state: &State,
-        _is_core: bool,
-        is_last: bool
+        _is_core: bool
     ) -> f64 {
         let mut score: f64 = 0.0;
-        if is_last {
-            for proximity_info in &state.proximity {
-                if proximity_info.physical {
-                    score += 1.0/E.powf(20.0*proximity_info.distance)
-                }
+        for proximity_info in &state.proximity {
+            if proximity_info.physical {
+                score += 1.0/E.powf(20.0*proximity_info.distance)
             }
-            return self.weight * groove_loss(score, 0.0, 2, 0.32950, 0.1, 2)
-        } else {
-            return 0.0
         }
+        return self.weight * groove_loss(score, 0.0, 2, 0.32950, 0.1, 2)
         
     }
 }
@@ -52,8 +47,7 @@ impl JointLimitsObjective {
         &self,
         v: &Vars,
         state: &State,
-        _is_core: bool,
-        _is_last: bool
+        _is_core: bool
     ) -> f64 {
         let mut sum = 0.0;
         let penalty_cutoff: f64 = 0.9;
@@ -102,8 +96,7 @@ impl VelocityMinimizationObjective {
         &self,
         v: &Vars,
         state: &State,
-        is_core: bool,
-        _is_last: bool
+        is_core: bool
     ) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
@@ -137,8 +130,7 @@ impl OriginVelocityMinimizationObjective {
         &self,
         v: &Vars,
         state: &State,
-        is_core: bool,
-        _is_last: bool
+        is_core: bool
     ) -> f64 {
         let past:Vector3<f64>;
         let x_val:f64;
@@ -169,8 +161,7 @@ impl AccelerationMinimizationObjective {
         &self,
         v: &Vars,
         state: &State,
-        is_core: bool,
-        _is_last: bool
+        is_core: bool
     ) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
@@ -209,8 +200,7 @@ impl OriginAccelerationMinimizationObjective {
         &self,
         v: &Vars,
         state: &State,
-        is_core: bool,
-        _is_last: bool
+        is_core: bool
     ) -> f64 {
         let pos1 = state.origin.translation.vector;
         if is_core {
@@ -244,8 +234,7 @@ impl JerkMinimizationObjective {
         &self,
         v: &Vars,
         state: &State,
-        is_core: bool,
-        _is_last: bool
+        is_core: bool
     ) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
@@ -287,8 +276,7 @@ impl OriginJerkMinimizationObjective {
         &self,
         v: &Vars,
         state: &State,
-        is_core: bool,
-        _is_last: bool
+        is_core: bool
     ) -> f64 {
         let x_val: f64;
         let pos1 = state.origin.translation.vector;
@@ -347,15 +335,14 @@ impl SmoothnessMacroObjective {
         &self,
         v: &Vars,
         state: &State,
-        is_core: bool,
-        is_last: bool
+        is_core: bool
     ) -> f64 {
-        let velocity_cost = self.velocity_objective.call(v, state, is_core, is_last);
-        let acceleration_cost = self.acceleration_objective.call(v, state, is_core, is_last);
-        let jerk_cost = self.jerk_objective.call(v, state, is_core, is_last);
-        let base_velocity_cost = self.base_velocity_objective.call(v, state, is_core, is_last);
-        let base_acceleration_cost = self.base_acceleration_objective.call(v, state, is_core, is_last);
-        let base_jerk_cost = self.base_jerk_objective.call(v, state, is_core, is_last);
+        let velocity_cost = self.velocity_objective.call(v, state, is_core);
+        let acceleration_cost = self.acceleration_objective.call(v, state, is_core);
+        let jerk_cost = self.jerk_objective.call(v, state, is_core);
+        let base_velocity_cost = self.base_velocity_objective.call(v, state, is_core);
+        let base_acceleration_cost = self.base_acceleration_objective.call(v, state, is_core);
+        let base_jerk_cost = self.base_jerk_objective.call(v, state, is_core);
         return self.weight * (velocity_cost + acceleration_cost + jerk_cost +
                base_velocity_cost + base_acceleration_cost + base_jerk_cost);
     }

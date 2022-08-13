@@ -22,8 +22,7 @@ impl GravityObjective {
         &self,
         v: &Vars,
         state: &State,
-        is_core: bool,
-        _is_last: bool
+        is_core: bool
     ) -> f64 {
         let prev_position;
         if is_core {

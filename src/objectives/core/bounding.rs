@@ -35,8 +35,7 @@ impl PositionBoundingObjective {
         &self,
         _v: &Vars,
         state: &State,
-        _is_core: bool,
-        _is_last: bool
+        _is_core: bool
     ) -> f64 {
         let position = state.get_link_transform(&self.link).translation.vector;
         let pos = self.goal.0.inverse_transform_vector(&position);
@@ -70,8 +69,7 @@ impl OrientationBoundingObjective {
         &self,
         _v: &Vars,
         state: &State,
-        _is_core: bool,
-        _is_last: bool
+        _is_core: bool
     ) -> f64 {
         let orientation = state.get_link_transform(&self.link).rotation;
         let angle_dist = orientation.angle_to(&self.goal.0);
@@ -102,8 +100,7 @@ impl JointBoundingObjective {
         &self,
         _v: &Vars,
         state: &State,
-        _is_core: bool,
-        _is_last: bool
+        _is_core: bool
     ) -> f64 {
         let joint_value = state.get_joint_position(&self.joint);
         let penalty_cutoff: f64 = 0.9;
