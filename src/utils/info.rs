@@ -10,7 +10,9 @@ use std::time::{Duration};
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct TransformInfo {
+    #[serde(skip_deserializing,default="Isometry3::identity")]
     pub world: Isometry3<f64>,
+    #[serde(skip_deserializing,default="Isometry3::identity")]
     pub local: Isometry3<f64>
 }
 
