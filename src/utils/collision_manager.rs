@@ -481,8 +481,8 @@ impl CollisionManager {
         &mut self,
         initial_frames: &HashMap<String, TransformInfo>,
     ) {
-       
-        let size = self.scene_collision_shapes_list.len();
+        if self.optima_version {
+            let size = self.scene_collision_shapes_list.len();
         for i in 0..=size - 1 {
             if self.scene_collision_shapes_list.get(i).unwrap().0 == "world" {
                 break;
@@ -587,8 +587,11 @@ impl CollisionManager {
             
             }
         }
+        }
        
-        self.scene_collision_shapes_list.clear();
+        
+       
+      
     }
 
   
