@@ -128,7 +128,7 @@ goal = Rotation(w:0.707,x:0.0,y:0.0,z:0.707)
 
 _javascript_
 ```javascript
-let goal = {Rotation:[0.707,0.0,0.0,0.707]}
+let goal = {Rotation:[0.707,0.0,0.0,0.707]} // [x, y, z, w] ordering
 ```
 
 **Scalar**
@@ -175,7 +175,7 @@ goal = Ellipse(
 _javascript_
 ```javascript
 let goal = {Ellipse: {
-    pose: {translation: [1.0,0.0,0.4], rotation: [0.707,0.0,0.0,0.707]},
+    pose: {translation: [1.0,0.0,0.4], rotation: [0.707,0.0,0.0,0.707]}, // [x, y, z, w] ordering for quaternion
     size: [0.1,0.1,0.2]
 }
 ```
@@ -195,7 +195,7 @@ goal = RotationRange(
 _javascript_
 ```javascript
 let goal = {RotationRange: {
-    rotation: [0.707,0.0,0.0,0.707],
+    rotation: [0.707,0.0,0.0,0.707], // [x, y, z, w] ordering for quaternion
     delta:0.4
 }
 ```
@@ -238,7 +238,7 @@ let shape = {
     frame: 'panda_hand',
     physical: true,
     x:0.5,y:0.5,z:0.2,
-    local_transform: {translation:[0.0,0.0,0.0],rotation:[1.0,0.0,0.0,0.0]}
+    localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
     }
 ```
 
@@ -262,7 +262,7 @@ let shape = {
     frame: 'world',
     physical: true,
     radius:0.1,
-    local_transform: {translation:[0.0,0.0,0.0],rotation:[1.0,0.0,0.0,0.0]}
+    localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
     }
 ```
 
@@ -288,7 +288,7 @@ let shape = {
     physical: true,
     length:0.2,
     radius:0.1,
-    local_transform: {translation:[0.0,0.0,0.0],rotation:[1.0,0.0,0.0,0.0]}
+    localTransform: {translation:[0.0,0.0,0.0],rotation:[1.0,0.0,0.0,0.0]} // [x, y, z, w] ordering for quaternion
     }
 ```
 
@@ -314,7 +314,7 @@ let shape = {
     physical: false,
     length:0.2,
     radius:0.1,
-    local_transform: {translation:[0.0,0.0,0.0],rotation:[1.0,0.0,0.0,0.0]}
+    localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
     }
 ```
 
