@@ -29,8 +29,8 @@ solver = Solver(
         ...
     ], 
     root_bounds=[
-        ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0), # Translational
-        ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0)  # Rotational
+        ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0), # Translational, (x, y, z)
+        ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0)  # Rotational, (r, p, y)
     ],
     shapes=[
         BoxShape(name="Table",frame="world",physical=True,x=2,y=1,z=1.2,local_transform=Transform.isometry())
@@ -59,8 +59,8 @@ let solver = new Solver(
         ...
     ], 
     [
-        {value:0.0,delta:0.0},{value:0.0,delta:0.0},{value:0.0,delta:0.0}, // Translational
-        {value:0.0,delta:0.0},{value:0.0,delta:0.0},{value:0.0,delta:0.0}  // Rotational
+        {value:0.0,delta:0.0},{value:0.0,delta:0.0},{value:0.0,delta:0.0}, // Translational, (x, y, z)
+        {value:0.0,delta:0.0},{value:0.0,delta:0.0},{value:0.0,delta:0.0}  // Rotational, (r, p, y)
     ],
     [
         {type:'Box',name="Table",frame:"world",physical:True,x:2,y:1,z:1.2,localTransform:{translation:[0,0,0],rotation:[1,0,0,0]}}
