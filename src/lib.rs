@@ -153,8 +153,11 @@ impl JsSolver {
 
     #[wasm_bindgen(setter)]
     pub fn set_objectives(&mut self, objectives: JsValue) {
-        let inner_objectives:Vec<Objective> = objectives.into_serde().unwrap();
-        self.0.set_objectives(inner_objectives)
+        let inner_objectives: Option<Vec<Objective>> = objectives.into_serde().unwrap();
+        match inner_objectives {
+            Some(objectives) => {self.0.set_objectives(objectives)},
+            None => {}
+        };
     }
 
     #[wasm_bindgen(getter = currentState)]

@@ -51,7 +51,7 @@ impl fmt::Debug for CollisionManager {
 
 
 impl CollisionManager {
-    #[profiling::function]
+    // #[profiling::function]
     pub fn new(
         links: Vec<LinkInfo>,
         persistent_shapes: Vec<shapes::Shape>,
@@ -3858,7 +3858,7 @@ impl CollisionManager {
         return loss_functions_error_vec;
     }
 
-    #[profiling::function]
+    // #[profiling::function]
     pub fn get_proximity(&mut self, frames: &HashMap<String, TransformInfo>) -> Vec<ProximityInfo> {
         let mut result_vector: Vec<ProximityInfo> = vec![];
         let default_frame_transform: TransformInfo = TransformInfo::default();

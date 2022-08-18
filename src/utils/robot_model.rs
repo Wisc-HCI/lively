@@ -1,4 +1,4 @@
-use nalgebra::{vector, Vector3};
+use nalgebra::{Vector3};
 use nalgebra::geometry::{Isometry3, Translation3, UnitQuaternion};
 use urdf_rs::{Robot, read_from_string};
 use k::{Chain, JointType, center_of_mass};
@@ -8,7 +8,6 @@ use std::sync::Mutex;
 use crate::utils::state::*;
 use crate::utils::shapes::*;
 use crate::utils::info::*;
-use crate::utils::general::{quaternion_exp,quaternion_log};
 use crate::utils::collision_manager::CollisionManager;
 
 #[derive(Debug)]
@@ -157,7 +156,7 @@ impl RobotModel {
 
     pub fn get_state(&self, x: &Vec<f64>,include_proximity: bool) -> State {
         let translation: Translation3<f64> = Translation3::new(x[0],x[1],x[2]);
-        let rotation: UnitQuaternion<f64> = quaternion_exp(vector![x[3],x[4],x[5]]);
+        let rotation: UnitQuaternion<f64> = UnitQuaternion::from_euler_angles(x[3],x[4],x[5]);
         let origin = Isometry3::from_parts(translation,rotation);
         let mut joints: HashMap<String,f64> = HashMap::new();
         let mut frames: HashMap<String,TransformInfo> = HashMap::new();
@@ -238,14 +237,14 @@ impl RobotModel {
 
     pub fn get_x(&self, state: State) -> Vec<f64> {
         let origin_translation: Vector3<f64> = state.origin.translation.vector;
-        let origin_rotation: Vector3<f64> = quaternion_log(state.origin.rotation);
+        let origin_rotation = state.origin.rotation.euler_angles();
         let mut x: Vec<f64> = vec![
             origin_translation[0],
             origin_translation[1],
             origin_translation[2],
-            origin_rotation[0],
-            origin_rotation[1],
-            origin_rotation[2]
+            origin_rotation.0,
+            origin_rotation.1,
+            origin_rotation.2
         ];
         for joint in &self.joints {
             match &joint.mimic {
