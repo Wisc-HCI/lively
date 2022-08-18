@@ -10,7 +10,8 @@ use parry3d_f64::shape::*;
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
-use std::time::{Duration, Instant};
+// use std::time::{Duration, Instant};
+use instant::{now};
 
 
 
@@ -38,7 +39,7 @@ pub struct CollisionManager {
     d_max: f64,
     r: f64,
     a_max: f64,
-    time_budget: Duration,
+    time_budget: f64,
     timed: bool,
     a_value: f64,
 }
@@ -60,7 +61,7 @@ impl CollisionManager {
         let d_max : f64;
         let r : f64;
         let a_max : f64;
-        let time_budget : Duration;
+        let time_budget : f64;
         let timed : bool;
         let a_value : f64;
         match collision_settings {
@@ -73,13 +74,13 @@ impl CollisionManager {
                 a_value = collision_settings.a_value;
             }
             None => {
-                d_max = CollisionSettingInfo::default().d_max;
-                r = CollisionSettingInfo::default().r;
-                a_max = CollisionSettingInfo::default().a_max;
-                time_budget = CollisionSettingInfo::default().time_budget;
-                timed= CollisionSettingInfo::default().timed;
-                a_value = CollisionSettingInfo::default().a_value;
-
+                let default_collision_settings = CollisionSettingInfo::default();
+                d_max = default_collision_settings.d_max;
+                r = default_collision_settings.r;
+                a_max = default_collision_settings.a_max;
+                time_budget = default_collision_settings.time_budget;
+                timed = default_collision_settings.timed;
+                a_value = default_collision_settings.a_value;
             }
         }
         let mut optima_version = false;
@@ -3830,10 +3831,10 @@ impl CollisionManager {
         current_frame: &HashMap<String, TransformInfo>,
     ) -> Vec<(String, Compound, String, Compound, f64)> {
         let mut loss_functions_error_vec: Vec<(String, Compound, String, Compound, f64)> = vec![];
-        let timed_timer = Instant::now();
+        let start_time = now();
         for (_, valid_vec) in self.scene_group_truth_distance_hashmap.clone() {
             for (proximity, shape1, shape2, _, _, pos1, pos2) in valid_vec {
-                if timed_timer.elapsed().as_micros() < self.time_budget.as_micros() {
+                if now() - start_time < self.time_budget {
                     let current_loss_function_error = self.compute_maximum_loss_functions_error(
                         &shape1,
                         &proximity.shape1,
@@ -3866,9 +3867,9 @@ impl CollisionManager {
             let ranking_vector: Vec<(String, Compound, String, Compound, f64)> =
                 self.ranking_maximum_loss_functions_error(frames);
             if self.timed {
-                let timed_timer = Instant::now();
+                let start_time = now();
                 for (shape1_frame, shape1, shape2_frame, shape2, _) in ranking_vector {
-                    if timed_timer.elapsed().as_micros() < self.time_budget.as_micros() {
+                    if now() - start_time < self.time_budget {
                         let shape1_transform = frames
                             .get(&shape1_frame)
                             .unwrap_or(&default_frame_transform)
