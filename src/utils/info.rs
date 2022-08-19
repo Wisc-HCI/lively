@@ -283,15 +283,14 @@ impl From<Link> for LinkInfo {
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
-#[serde(rename_all = "camelCase")]
 pub struct ProximityInfo {
     pub shape1: String,
     pub shape2: String,
     pub distance: f64,
     pub points: Option<(Point3<f64>, Point3<f64>)>,
     pub physical: bool,
-    pub loss: f64,
-    // pub average_distance: f64
+    pub loss : f64,
+   // pub average_distance : Option<f64>
 }
 
 impl ProximityInfo {
@@ -301,8 +300,8 @@ impl ProximityInfo {
         distance: f64,
         points: Option<(Point3<f64>, Point3<f64>)>,
         physical: bool,
-        loss: f64,
-        // average_distance: f64
+        loss : f64,
+       
     ) -> Self {
         Self {
             shape1,
@@ -310,8 +309,9 @@ impl ProximityInfo {
             distance,
             points,
             physical,
-            loss,
-            // average_distance,
+            loss, 
+          
+
         }
     }
 }

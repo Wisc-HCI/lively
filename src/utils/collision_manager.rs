@@ -552,6 +552,7 @@ impl CollisionManager {
                                         ) {
                                             Ok(contact) => match contact {
                                                 Some(valid_contact) => {
+                                                    
                                                     proximity = ProximityInfo::new(
                                                         shape1_frame.to_string(),
                                                         shape2_frame.to_string(),
@@ -561,6 +562,8 @@ impl CollisionManager {
                                                             valid_contact.point2,
                                                         )),
                                                         true,
+                                                        self.compute_loss_function(&valid_contact.dist)
+
                                                     );
                                                     value_vec.push((
                                                         proximity,
@@ -864,6 +867,7 @@ impl CollisionManager {
                                                                         valid_contact.point2,
                                                                     )),
                                                                     true,
+                                                                    self.compute_loss_function(&valid_contact.dist)
                                                                 );
                                                                 self.scene_group_truth_distance_hashmap
                                                                     .get_mut(&shape_frame)
@@ -918,6 +922,7 @@ impl CollisionManager {
                                                                 valid_contact.point2,
                                                             )),
                                                             true,
+                                                            self.compute_loss_function(&valid_contact.dist)
                                                         );
                                                         self.scene_group_truth_distance_hashmap
                                                             .get_mut(&shape_frame)
@@ -1258,6 +1263,7 @@ impl CollisionManager {
                                                                             valid_contact.point2,
                                                                         )),
                                                                         true,
+                                                                        self.compute_loss_function(&valid_contact.dist)
                                                                     );
                                                                     self.scene_group_truth_distance_hashmap
                                                                         .get_mut(&shape_frame)
@@ -1312,6 +1318,7 @@ impl CollisionManager {
                                                                     valid_contact.point2,
                                                                 )),
                                                                 true,
+                                                                self.compute_loss_function(&valid_contact.dist)
                                                             );
                                                             self.scene_group_truth_distance_hashmap
                                                                 .get_mut(&shape_frame)
@@ -1663,6 +1670,7 @@ impl CollisionManager {
                                                                             valid_contact.point2,
                                                                         )),
                                                                         true,
+                                                                        self.compute_loss_function(&valid_contact.dist)
                                                                     );
                                                                     self.scene_group_truth_distance_hashmap
                                                                         .get_mut(&shape_frame)
@@ -1717,6 +1725,7 @@ impl CollisionManager {
                                                                     valid_contact.point2,
                                                                 )),
                                                                 true,
+                                                                self.compute_loss_function(&valid_contact.dist)
                                                             );
                                                             self.scene_group_truth_distance_hashmap
                                                                 .get_mut(&shape_frame)
@@ -2056,6 +2065,7 @@ impl CollisionManager {
                                                                         valid_contact.point2,
                                                                     )),
                                                                     true,
+                                                                    self.compute_loss_function(&valid_contact.dist)
                                                                 );
                                                                 self.scene_group_truth_distance_hashmap
                                                                     .get_mut(&shape_frame)
@@ -2110,6 +2120,7 @@ impl CollisionManager {
                                                                 valid_contact.point2,
                                                             )),
                                                             true,
+                                                            self.compute_loss_function(&valid_contact.dist)
                                                         );
                                                         self.scene_group_truth_distance_hashmap
                                                             .get_mut(&shape_frame)
@@ -2458,6 +2469,7 @@ impl CollisionManager {
                                                                                 valid_contact.point2,
                                                                             )),
                                                                             true,
+                                                                            self.compute_loss_function(&valid_contact.dist)
                                                                         );
                                                                         self.scene_group_truth_distance_hashmap
                                                                             .get_mut(&shape_frame)
@@ -2512,6 +2524,7 @@ impl CollisionManager {
                                                                         valid_contact.point2,
                                                                     )),
                                                                     true,
+                                                                    self.compute_loss_function(&valid_contact.dist)
                                                                 );
                                                                 self.scene_group_truth_distance_hashmap
                                                                     .get_mut(&shape_frame)
@@ -3894,6 +3907,7 @@ impl CollisionManager {
                                         valid_contact.dist,
                                         Some((valid_contact.point1, valid_contact.point2)),
                                         true,
+                                        self.compute_loss_function(&valid_contact.dist)
                                     );
                                     result_vector.push(proximity.clone());
                                 }
@@ -3942,6 +3956,7 @@ impl CollisionManager {
                                             valid_contact.dist,
                                             Some((valid_contact.point1, valid_contact.point2)),
                                             true,
+                                            self.compute_loss_function(&valid_contact.dist)
                                         );
                                         result_vector.push(proximity.clone());
                                     }
@@ -3999,6 +4014,7 @@ impl CollisionManager {
                                                             valid_contact.point2,
                                                         )),
                                                         true,
+                                                        self.compute_loss_function(&valid_contact.dist)
                                                     ));
                                                    
                                                 }
