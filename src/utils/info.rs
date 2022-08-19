@@ -4,8 +4,7 @@ use nalgebra::geometry::Point3;
 use nalgebra::Isometry3;
 use serde::{Deserialize, Serialize};
 use urdf_rs::{Geometry, Link, Mimic};
-// use std::time::{Duration};
-// use std::fmt::Display;
+
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
@@ -324,7 +323,7 @@ pub struct CollisionSettingInfo {
     pub d_max: f64,
     pub r: f64,
     pub a_max: f64,
-    pub time_budget: f64,
+    pub time_budget: u64,
     pub timed: bool,
     pub a_value: f64,
 }
@@ -336,7 +335,7 @@ impl CollisionSettingInfo {
         d_max: f64,
         r: f64,
         a_max: f64,
-        time_budget: f64,
+        time_budget: u64,
         timed: bool,
         a_value: f64,
     ) -> Self {
@@ -363,7 +362,7 @@ impl CollisionSettingInfo {
 
 impl Default for CollisionSettingInfo {
     fn default() -> Self {
-        Self { d_max : 1.0,  r : 0.0 , a_max: 0.5, time_budget : 0.1, timed : true, a_value : 1.0  }
+        Self { d_max : 1.0,  r : 0.0 , a_max: 0.5, time_budget :  100, timed : false, a_value : 1.0  }
     }
 }
 
