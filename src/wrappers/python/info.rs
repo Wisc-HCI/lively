@@ -225,6 +225,10 @@ impl PyProximityInfo {
     pub fn get_physical(&self) -> PyResult<bool> {
         Ok(self.0.physical.clone())
     }
+    #[getter]
+    pub fn get_loss(&self) -> PyResult<f64> {
+        Ok(self.0.loss.clone())
+    }
     fn __str__(&self) -> PyResult<String> {
         Ok(format!("<Proximity (shape1: {}, shape2: {}, distance: {})>", self.0.shape1, self.0.shape2, self.0.distance))
     }

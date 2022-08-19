@@ -27,7 +27,7 @@ impl CollisionAvoidanceObjective {
         let mut score: f64 = 0.0;
         for proximity_info in &state.proximity {
             if proximity_info.physical {
-                score += 1.0/E.powf(20.0*proximity_info.distance)
+                score += proximity_info.loss
             }
         }
         return self.weight * groove_loss(score, 0.0, 2, 0.32950, 0.1, 2)
