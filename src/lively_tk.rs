@@ -10,6 +10,7 @@ use crate::objectives::objective::Objective;
 use rand::{thread_rng, Rng};
 use rand::rngs::ThreadRng;
 use std::f64::consts::{PI};
+use std::collections::HashMap;
 
 #[repr(C)]
 pub struct Solver {
@@ -272,6 +273,27 @@ impl Solver {
 
     pub fn set_objectives(&mut self, objectives: Vec<Objective>) {
         self.objective_set.objectives = objectives;
+    }
+
+    pub fn compute_a_table(&mut self) -> Vec<ProximityInfo> {
+
+        let mut sampled_states: Vec<HashMap<String,TransformInfo>> = vec![];
+        let mut rng: ThreadRng = thread_rng();
+
+        for _ in 0..100 {
+            let mut i:usize = 0;
+            let mut x = self.xopt_core.clone();
+            for xval in x.iter_mut() {
+                if self.upper_bounds[i] - self.lower_bounds[i] > 0.0 {
+                    *xval = rng.gen_range(self.lower_bounds[i]..self.upper_bounds[i]);
+                    i+=1;
+                }
+            }
+            let state = self.robot_model.get_state(&x, false);
+            sampled_states.push(state.frames);
+        }
+        
+        return self.robot_model.collision_manager.lock().unwrap().compute_a_table(&sampled_states);
     }
 }
 
