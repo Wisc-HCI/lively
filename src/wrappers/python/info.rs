@@ -229,6 +229,12 @@ impl PyProximityInfo {
     pub fn get_loss(&self) -> PyResult<f64> {
         Ok(self.0.loss.clone())
     }
+
+    #[getter]
+    pub fn get_average_distance(&self) -> PyResult<Option<f64>> {
+        Ok(self.0.average_distance)
+    }
+
     fn __str__(&self) -> PyResult<String> {
         Ok(format!("<Proximity (shape1: {}, shape2: {}, distance: {})>", self.0.shape1, self.0.shape2, self.0.distance))
     }

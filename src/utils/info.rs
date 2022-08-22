@@ -289,7 +289,7 @@ pub struct ProximityInfo {
     pub points: Option<(Point3<f64>, Point3<f64>)>,
     pub physical: bool,
     pub loss : f64,
-   // pub average_distance : Option<f64>
+    pub average_distance : Option<f64>
 }
 
 impl ProximityInfo {
@@ -300,6 +300,7 @@ impl ProximityInfo {
         points: Option<(Point3<f64>, Point3<f64>)>,
         physical: bool,
         loss : f64,
+        average_distance : Option<f64>
        
     ) -> Self {
         Self {
@@ -309,8 +310,7 @@ impl ProximityInfo {
             points,
             physical,
             loss, 
-          
-
+            average_distance
         }
     }
 }
@@ -362,7 +362,7 @@ impl CollisionSettingInfo {
 
 impl Default for CollisionSettingInfo {
     fn default() -> Self {
-        Self { d_max : 1.0,  r : 0.0 , a_max: 0.5, time_budget :  100, timed : false, a_value : 1.0  }
+        Self { d_max : 1.0,  r : 0.0 , a_max: 0.5, time_budget :  100, timed : true, a_value : 1.0  }
     }
 }
 

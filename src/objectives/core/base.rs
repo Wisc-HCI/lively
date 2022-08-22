@@ -30,7 +30,7 @@ impl CollisionAvoidanceObjective {
                 score += proximity_info.loss
             }
         }
-        return self.weight * groove_loss(score, 0.0, 2, 0.32950, 0.1, 2)
+        return self.weight * score;
         
     }
 }

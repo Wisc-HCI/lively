@@ -16,7 +16,7 @@ pub struct State {
     pub joints: HashMap<String,f64>,
     #[serde(skip_deserializing)]
     pub frames: HashMap<String,TransformInfo>,
-    #[serde(skip_deserializing)]
+    #[serde(default)]
     pub proximity: Vec<ProximityInfo>,
     #[serde(skip_deserializing)]
     pub center_of_mass: Vector3<f64>,

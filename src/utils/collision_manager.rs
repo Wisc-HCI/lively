@@ -496,7 +496,15 @@ impl CollisionManager {
         }
     }
 
-  
+    pub fn compute_a_table(&mut self, frames: &Vec<HashMap<String, TransformInfo>> ) -> Vec<ProximityInfo>{
+        let mut result_vector: Vec<ProximityInfo> = vec![];
+        for frame in frames {
+
+        }
+        
+        return  result_vector;
+
+    }
     pub fn compute_ground_truth_distance_hashmap(
         &mut self,
         initial_frames: &HashMap<String, TransformInfo>,
@@ -562,7 +570,8 @@ impl CollisionManager {
                                                             valid_contact.point2,
                                                         )),
                                                         true,
-                                                        self.compute_loss_function(&valid_contact.dist)
+                                                        self.compute_loss_function(&valid_contact.dist),
+                                                        Some(1.0)
 
                                                     );
                                                     value_vec.push((
