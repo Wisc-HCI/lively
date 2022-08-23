@@ -3,7 +3,7 @@ use nalgebra::{Vector3};
 use crate::objectives::objective::groove_loss;
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
-use std::f64::consts::{E};
+
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
@@ -30,7 +30,7 @@ impl CollisionAvoidanceObjective {
                 score += proximity_info.loss
             }
         }
-         println!("score is : {:?}" , score);
+        // println!("score is : {:?}" , score);
         return self.weight * score;
        
     }

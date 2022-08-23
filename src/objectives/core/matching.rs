@@ -32,7 +32,7 @@ impl PositionMatchObjective {
         let link_translation = state.get_link_transform(&self.link).translation.vector;
 
         let x_val = (link_translation - self.goal).norm();
-        println!("matching value is {:?}",self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2));
+        //println!("matching value is {:?}",self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2));
         return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }

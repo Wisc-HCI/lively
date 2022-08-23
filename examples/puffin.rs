@@ -593,11 +593,12 @@ fn solver_function() {
     ];
     
 
-    let mut temp = Solver::new(
-        data,
-        objective_vec,
-        Some(scalar_range_vec),
-        Some(box_shapes_vec),
+    let mut 
+    temp = Solver::new(
+        data.clone(),
+        objective_vec.clone(),
+        Some(scalar_range_vec.clone()),
+        Some(box_shapes_vec.clone()),
         None,
         None,
         None,
@@ -877,8 +878,25 @@ fn solver_function() {
 
 
     ];
-    temp.compute_a_table();
+    let vec = temp.compute_average_distance_table();
     let temp_solve = temp.solve(None, None, 0.0, None);
+
+    let mut 
+    temp2 = Solver::new(
+        data,
+        objective_vec,
+        Some(scalar_range_vec),
+        Some(box_shapes_vec),
+        Some(temp.vars.history.prev1),
+        None,
+        None,
+        None,
+        None,
+    );
+
+    let temp_solve2 = temp2.solve(None, None, 0.0, None);
+
+
     //temp.reset(temp_solve,None);
     //temp.dele
     //temp.perform_updates();
