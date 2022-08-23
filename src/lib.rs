@@ -207,7 +207,7 @@ impl JsSolver {
 
     #[wasm_bindgen(js_name = computeAverageDistanceTable)]
     pub fn compute_average_distance_table(&mut self) -> JsValue {
-        return JsValue::from_serde(self.0.compute_average_distance_table())
+        return JsValue::from_serde(&self.0.compute_average_distance_table()).unwrap()
     }
 }
 
