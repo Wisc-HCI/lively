@@ -47,14 +47,22 @@ impl Solver {
     ) -> Self {
         
         // Define the robot model, which is used for kinematics and handling collisions
-        let robot_model = RobotModel::new(urdf, shapes.unwrap_or(vec![]),&collision_settings,&initial_state);
+        let robot_model = RobotModel::new(urdf, shapes.unwrap_or(vec![]),&collision_settings);
 
         let current_state: State;
+        let average_distance: Vec<ProximityInfo>;
         match initial_state {
-            Some(state) => current_state = robot_model.get_filled_state(state),
-            None => current_state = robot_model.get_default_state()
+            Some(state) => {
+                average_distance = state.clone().proximity;
+                current_state = robot_model.get_filled_state(&state);
+            },
+            None => {
+                average_distance = vec![];
+                current_state = robot_model.get_default_state();
+            }
         }
-        robot_model.collision_manager.lock().unwrap().compute_ground_truth_distance_hashmap(&current_state.frames);
+
+        robot_model.collision_manager.lock().unwrap().compute_ground_truth_distance_hashmap(&current_state.frames,&average_distance);
         // Vars contains the variables that are passed along to each objective each solve
         let vars = Vars::new(&current_state, robot_model.joints.clone(), robot_model.links.clone());
 
@@ -102,7 +110,7 @@ impl Solver {
             
         }
 
-        let initial_x = robot_model.get_x(current_state);
+        let initial_x = robot_model.get_x(&current_state);
         
         Self {
             robot_model,
@@ -127,7 +135,7 @@ impl Solver {
     ) -> () {
         // Hande the state updates
         // First update the robot model, and then use that for updating rest
-        let current_state = self.robot_model.get_filled_state(state);
+        let current_state = self.robot_model.get_filled_state(&state);
         
         // Handle updating the values in vars
         self.vars.history.reset(&current_state);

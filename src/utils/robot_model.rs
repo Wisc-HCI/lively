@@ -26,7 +26,7 @@ pub struct RobotModel {
 
 impl RobotModel {
     
-    pub fn new(urdf: String, collision_objects: Vec<Shape>, collision_settings: &Option<CollisionSettingInfo>, initial_state: &Option<State>) -> Self {
+    pub fn new(urdf: String, collision_objects: Vec<Shape>, collision_settings: &Option<CollisionSettingInfo>) -> Self {
         
         let description: Robot = read_from_string(&urdf.as_str()).unwrap();
         let chain: Chain<f64> = Chain::from(description.clone());
@@ -114,7 +114,7 @@ impl RobotModel {
             } 
         }
         let collision_manager: Mutex<CollisionManager> = 
-            Mutex::new(CollisionManager::new(links.clone(),collision_objects.clone(),collision_settings,&initial_state.clone().map(|s| s.proximity)));
+            Mutex::new(CollisionManager::new(links.clone(),collision_objects.clone(),collision_settings));
 
         let mut child_map: HashMap<String, String> = HashMap::new();
         let mut joint_names: Vec<String> = Vec::new();
@@ -225,7 +225,7 @@ impl RobotModel {
         return self.get_state(&x,true)
     }
     
-    pub fn get_filled_state(&self, state: State) -> State {
+    pub fn get_filled_state(&self, state: &State) -> State {
         /*
         Accepts a state containing origin information and joint information and sets the robot's current state.
         Ignores frame information from the input state, and supports partial state updates.
@@ -235,7 +235,7 @@ impl RobotModel {
         return self.get_state(&self.get_x(state),true)
     }
 
-    pub fn get_x(&self, state: State) -> Vec<f64> {
+    pub fn get_x(&self, state: &State) -> Vec<f64> {
         let origin_translation: Vector3<f64> = state.origin.translation.vector;
         let origin_rotation = state.origin.rotation.euler_angles();
         let mut x: Vec<f64> = vec![
