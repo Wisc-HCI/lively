@@ -325,7 +325,7 @@ pub struct CollisionSettingInfo {
     pub a_max: f64,
     pub time_budget: u64,
     pub timed: bool,
-    pub a_value: f64,
+    
 }
 
 
@@ -337,7 +337,7 @@ impl CollisionSettingInfo {
         a_max: f64,
         time_budget: u64,
         timed: bool,
-        a_value: f64,
+        
     ) -> Self {
         Self {
             d_max,
@@ -345,7 +345,7 @@ impl CollisionSettingInfo {
             a_max,
             time_budget,
             timed,
-            a_value,
+           
         }
     }
 
@@ -362,7 +362,7 @@ impl CollisionSettingInfo {
 
 impl Default for CollisionSettingInfo {
     fn default() -> Self {
-        Self { d_max : 1.0,  r : 0.0 , a_max: 0.5, time_budget :  100, timed : true, a_value : 1.0  }
+        Self { d_max : 1.0,  r : 0.0 , a_max: 0.5, time_budget :  100, timed : true }
     }
 }
 
