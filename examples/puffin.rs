@@ -18,36 +18,36 @@ use rand::Rng;
 
 use std::fs;
 
-mod imgui_support;
-use imgui_support::ImguiManager;
+// mod imgui_support;
+// use imgui_support::ImguiManager;
 
-mod renderer;
-use puffin::set_scopes_on;
-use renderer::Renderer;
+// mod renderer;
+// use puffin::set_scopes_on;
+// use renderer::Renderer;
 
 fn update() {
     // profiling::scope!("update");
     solver_function();
 }
 
-fn draw(imgui_manager: &ImguiManager, profiler_ui: &mut puffin_imgui::ProfilerUi) {
-    profiling::scope!("draw");
-    //
-    //Draw an inspect window for the example struct
-    //
-    imgui_manager.with_ui(|ui| {
-        profiler_ui.window(ui);
-    });
-}
+// fn draw(imgui_manager: &ImguiManager, profiler_ui: &mut puffin_imgui::ProfilerUi) {
+//     profiling::scope!("draw");
+//     //
+//     //Draw an inspect window for the example struct
+//     //
+//     imgui_manager.with_ui(|ui| {
+//         profiler_ui.window(ui);
+//     });
+// }
 
-fn burn_time(micros: u128) {
-    let start_time = std::time::Instant::now();
-    loop {
-        if (std::time::Instant::now() - start_time).as_micros() > micros {
-            break;
-        }
-    }
-}
+// fn burn_time(micros: u128) {
+//     let start_time = std::time::Instant::now();
+//     loop {
+//         if (std::time::Instant::now() - start_time).as_micros() > micros {
+//             break;
+//         }
+//     }
+// }
 
 fn main() {
     // // Setup logging
@@ -881,6 +881,9 @@ fn solver_function() {
     let vec = temp.compute_average_distance_table();
     let temp_solve = temp.solve(None, None, 0.0, None);
 
+
+
+    println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     let mut 
     temp2 = Solver::new(
         data,
@@ -888,7 +891,7 @@ fn solver_function() {
         Some(scalar_range_vec),
         None,
         Some(temp.vars.history.prev1),
-        None,
+        Some(true),
         None,
         None,
         None,
