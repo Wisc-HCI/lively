@@ -30,7 +30,7 @@ impl CollisionAvoidanceObjective {
                 score += proximity_info.loss
             }
         }
-         println!("score is : {:?}" , score);
+        //  println!("score is : {:?}" , score);
         return self.weight * score;
        
     }
