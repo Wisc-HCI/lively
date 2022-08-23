@@ -250,11 +250,9 @@ impl Solver {
         while try_count < self.max_retries {
 
             if try_count > 0 {
-                let mut i:usize = 0;
-                for xval in xopt.iter_mut() {
+                for i in 0..xopt.len() {
                     if self.upper_bounds[i] - self.lower_bounds[i] > 0.0 {
-                        *xval = 0.9*best_x[i]+0.1*rng.gen_range(self.lower_bounds[i]..self.upper_bounds[i]);
-                        i+=1;
+                        xopt[i] = 0.9*best_x[i]+0.1*rng.gen_range(self.lower_bounds[i]..self.upper_bounds[i]);
                     }
                 }
             }
@@ -290,14 +288,13 @@ impl Solver {
         let mut rng: ThreadRng = thread_rng();
 
         for _ in 0..100 {
-            let mut i:usize = 0;
             let mut x = self.xopt_core.clone();
-            for xval in x.iter_mut() {
+            for i in 0..x.len() {
                 if self.upper_bounds[i] - self.lower_bounds[i] > 0.0 {
-                    *xval = rng.gen_range(self.lower_bounds[i]..self.upper_bounds[i]);
-                    i+=1;
+                    x[i] = rng.gen_range(self.lower_bounds[i]..self.upper_bounds[i]);
                 }
             }
+            println!("x: {:?}",x);
             let state = self.robot_model.get_state(&x, false);
             sampled_states.push(state.frames);
         }
