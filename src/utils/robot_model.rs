@@ -26,7 +26,7 @@ pub struct RobotModel {
 
 impl RobotModel {
     
-    pub fn new(urdf: String, collision_objects: Vec<Shape>, collision_settings: &Option<CollisionSettingInfo>) -> Self {
+    pub fn new(urdf: String, collision_objects: Vec<Shape>, collision_settings: &Option<CollisionSettingInfo>, initial_state: &Option<State>) -> Self {
         
         let description: Robot = read_from_string(&urdf.as_str()).unwrap();
         let chain: Chain<f64> = Chain::from(description.clone());
@@ -114,7 +114,7 @@ impl RobotModel {
             } 
         }
         let collision_manager: Mutex<CollisionManager> = 
-            Mutex::new(CollisionManager::new(links.clone(),collision_objects.clone(),collision_settings));
+            Mutex::new(CollisionManager::new(links.clone(),collision_objects.clone(),collision_settings,&initial_state.clone().map(|s| s.proximity)));
 
         let mut child_map: HashMap<String, String> = HashMap::new();
         let mut joint_names: Vec<String> = Vec::new();

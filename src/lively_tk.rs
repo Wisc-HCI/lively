@@ -47,7 +47,8 @@ impl Solver {
     ) -> Self {
         
         // Define the robot model, which is used for kinematics and handling collisions
-        let robot_model = RobotModel::new(urdf, shapes.unwrap_or(vec![]),&collision_settings);
+        let robot_model = RobotModel::new(urdf, shapes.unwrap_or(vec![]),&collision_settings,&initial_state);
+
         let current_state: State;
         match initial_state {
             Some(state) => current_state = robot_model.get_filled_state(state),
@@ -275,7 +276,7 @@ impl Solver {
         self.objective_set.objectives = objectives;
     }
 
-    pub fn compute_a_table(&mut self) -> Vec<ProximityInfo> {
+    pub fn compute_average_distance_table(&mut self) -> Vec<ProximityInfo> {
 
         let mut sampled_states: Vec<HashMap<String,TransformInfo>> = vec![];
         let mut rng: ThreadRng = thread_rng();

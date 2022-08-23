@@ -58,6 +58,7 @@ impl CollisionManager {
         links: Vec<LinkInfo>,
         persistent_shapes: Vec<shapes::Shape>,
         collision_settings: &Option<CollisionSettingInfo>,
+        proximity_info: &Option<Vec<ProximityInfo>>
     ) -> Self {
         let d_max : f64;
         let r : f64;

@@ -204,6 +204,11 @@ impl JsSolver {
         let state:State = self.0.solve(inner_goals,inner_weights,time,inner_updates);
         return JsValue::from_serde(&state).unwrap();
     }
+
+    #[wasm_bindgen(js_name = computeAverageDistanceTable)]
+    pub fn compute_average_distance_table(&mut self) -> JsValue {
+        return JsValue::from_serde(self.0.compute_average_distance_table())
+    }
 }
 
 #[cfg(feature = "jsbindings")]
