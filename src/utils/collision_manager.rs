@@ -3389,7 +3389,7 @@ impl CollisionManager {
         } else {
             let c = 0.2 * self.a_max;
 
-            result = (-(*x * *x) / 2.0 * c * c).exp();
+            result = (-(*x * *x) / (2.0 * c * c)).exp();
         }
         return result;
     }
