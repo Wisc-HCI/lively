@@ -3512,11 +3512,12 @@ impl CollisionManager {
         
     }
      loss_functions_error_vec.sort_by(|a, b| b.4.partial_cmp(&a.4).unwrap());
-    // println!("-------------------------------------------------");
-    // for item in loss_functions_error_vec.clone() {
-    //     println!("the loss value is : {:?}" , item.4);
-    // }
-    // println!("-------------------------------------------------");
+
+    println!("-------------------------------------------------");
+    for item in loss_functions_error_vec.clone() {
+        println!("the loss value with error is : {:?}" , item.4);
+    }
+    println!("-------------------------------------------------");
         return loss_functions_error_vec;
 }
      //#[profiling::function]
