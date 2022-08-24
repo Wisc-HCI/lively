@@ -884,20 +884,20 @@ fn solver_function() {
 
 
     println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    let mut 
-    temp2 = Solver::new(
-        data,
-        objective_vec,
-        Some(scalar_range_vec),
-        None,
-        Some(temp.vars.history.prev1),
-        Some(true),
-        None,
-        None,
-        None,
-    );
+    // let mut 
+    // temp2 = Solver::new(
+    //     data,
+    //     objective_vec,
+    //     Some(scalar_range_vec),
+    //     None,
+    //     Some(temp.vars.history.prev1),
+    //     Some(true),
+    //     None,
+    //     None,
+    //     None,
+    // );
 
-    let temp_solve2 = temp2.solve(None, None, 0.0, None);
+    // let temp_solve2 = temp2.solve(None, None, 0.0, None);
 
 
     //temp.reset(temp_solve,None);
