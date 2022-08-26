@@ -881,6 +881,11 @@ fn solver_function() {
     let vec = temp.compute_average_distance_table();
     let temp_solve = temp.solve(None, None, 0.0, None);
 
+    // for item in temp_solve.proximity {
+    //     println!("the result getting from temp_solve is {:?}" , item);
+    // }
+   
+
 
 
     println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");

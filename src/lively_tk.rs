@@ -287,7 +287,7 @@ impl Solver {
         let mut sampled_states: Vec<HashMap<String,TransformInfo>> = vec![];
         let mut rng: ThreadRng = thread_rng();
 
-        for _ in 0..100 {
+        for _ in 0..1000 {
             let mut x = self.xopt_core.clone();
             for i in 0..x.len() {
                 if self.upper_bounds[i] - self.lower_bounds[i] > 0.0 {
