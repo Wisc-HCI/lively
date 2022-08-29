@@ -558,15 +558,15 @@ impl CollisionManager {
             }
         }
 
-        println!("--------------------------------------------------------------------------------");
-        for (key, vec) in &self.scene_group_truth_distance_hashmap {
-                for item in vec {
-                    println!("the key is {:?} and the proximityInfo in vec is {:?} ___ {:?} ___{:?} __ {:?} __ {:?}" , key, item.0, item.3, item.4, item.7, item.8,
-                                );
-                }
+        // println!("--------------------------------------------------------------------------------");
+        // for (key, vec) in &self.scene_group_truth_distance_hashmap {
+        //         for item in vec {
+        //             println!("the key is {:?} and the proximityInfo in vec is {:?} ___ {:?} ___{:?} __ {:?} __ {:?}" , key, item.0, item.3, item.4, item.7, item.8,
+        //                         );
+        //         }
 
-             }
-        println!("--------------------------------------------------------------------------------");
+        //      }
+        // println!("--------------------------------------------------------------------------------");
 
         return result_vector;
     }
