@@ -561,7 +561,7 @@ impl CollisionManager {
         println!("--------------------------------------------------------------------------------");
         for (key, vec) in &self.scene_group_truth_distance_hashmap {
                 for item in vec {
-                    println!("the key is {:?} and the proximityInfo in vec is {:?} " , key, item.0
+                    println!("the key is {:?} and the proximityInfo in vec is {:?} ___ {:?} ___{:?} __ {:?} __ {:?}" , key, item.0, item.3, item.4, item.7, item.8,
                                 );
                 }
 
@@ -3230,6 +3230,8 @@ impl CollisionManager {
         shape2_frame: &String,
         current_frame: &HashMap<String, TransformInfo>,
         j_state: &(ProximityInfo, Isometry3<f64>, Isometry3<f64>),
+        rad1 : f64,
+        rad2 : f64
     ) -> f64 {
         // let distance_between_shapes = self.
         let mut lower_bound = 0.0;
@@ -3242,8 +3244,8 @@ impl CollisionManager {
             &j_state.2,
         ) {
             Some((change_in_translation, change_in_rotation)) => {
-                let shape1_bounding_sphere_radius = self.compute_bounding_spheres(shape1);
-                let shape2_bounding_sphere_radius = self.compute_bounding_spheres(shape2);
+                let shape1_bounding_sphere_radius = rad1;
+                let shape2_bounding_sphere_radius = rad2;
                 let max_bounding_sphere;
                 if shape1_bounding_sphere_radius > shape2_bounding_sphere_radius {
                     max_bounding_sphere = shape1_bounding_sphere_radius;
@@ -3337,27 +3339,27 @@ impl CollisionManager {
     //#[profiling::function]
     pub fn compute_loss_with_cutoff(&self, x: &f64, a_value: &f64, a_std: &f64) -> f64 {
         
-        // if *a_std == 0.0 {
-        //     return 0.0;
-        // }
+        if *a_std == 0.0 {
+            return 0.0;
+        }
 
-        // if *x >= self.d_max || *x >= self.a_max * *a_std + *a_value {
-        //     return 0.0;
-        // } else {
+        if *x >= self.d_max || *x >= self.a_max * *a_std + *a_value {
+            return 0.0;
+        } else {
            
-        //     return self.compute_loss_function(& ((*x - *a_value) / *a_std));
-        // }
+            return self.compute_loss_function(& ((*x - *a_value) / *a_std));
+        }
 
          // if *a_std == 0.0 {
         //     return 0.0;
         // }
 
-        if *x >= self.d_max || *x/ *a_value >= self.a_max {
-            return 0.0;
-        } else {
+        // if *x >= self.d_max || *x/ *a_value >= self.a_max {
+        //     return 0.0;
+        // } else {
            
-            return self.compute_loss_function(&  (*x/ *a_value) );
-        }
+        //     return self.compute_loss_function(&  (*x/ *a_value) );
+        // }
     }
 
     // #[profiling::function]
@@ -3369,6 +3371,8 @@ impl CollisionManager {
         shape2_frame: &String,
         current_frame: &HashMap<String, TransformInfo>,
         j_state: &(ProximityInfo, Isometry3<f64>, Isometry3<f64>),
+        rad1 : f64,
+        rad2 : f64
     ) -> f64 {
         let result;
 
@@ -3379,6 +3383,8 @@ impl CollisionManager {
             shape2_frame,
             current_frame,
             j_state,
+            rad1,
+            rad2
         );
         let upper_bound = self.compute_upper_signed_distance_bound(
             shape1_frame,
@@ -3408,6 +3414,9 @@ impl CollisionManager {
         } else {
             result = loss_value_lower_bound.clone() - loss_value_distance.clone();
         }
+        println!("first shape is {:?}, second shape is {:?}, lower bound is {:?} , upper bound is {:?}, estimated distance is {:?}, a_value is {:?},loss_value_distance is {:?} ,
+                 loss_value_lower_bound is {:?} , loss_value_upper_bound is {:?}, result is {:?}" , shape1_frame, shape2_frame, lower_bound, upper_bound, estimated_distance, a_value,loss_value_distance,
+                loss_value_lower_bound, loss_value_upper_bound, result);
 
         return result;
     }
@@ -3457,8 +3466,8 @@ impl CollisionManager {
                 proximity,
                 shape1_compound,
                 shape2_compound,
-                _,
-                _,
+                rad1,
+                rad2,
                 pos1,
                 pos2,
                 shape1_frame,
@@ -3484,6 +3493,8 @@ impl CollisionManager {
                         &shape2_frame,
                         current_frame,
                         &(proximity.clone(), pos1, pos2),
+                        rad1,
+                        rad2
                     );
 
                     //println!("the current_loss_function_error for {:?} , {:?} is : {:?}" , proximity.shape1, proximity.shape2, current_loss_function_error);
@@ -3492,7 +3503,7 @@ impl CollisionManager {
                         shape1_compound.clone(),
                         shape2_frame,
                         shape2_compound.clone(),
-                        current_loss_function_error,
+                        current_loss_function_error * proximity.standard_deviation.unwrap(),
                         new_shape1_transform,
                         new_shape2_transform,
                         proximity,
@@ -3524,9 +3535,10 @@ impl CollisionManager {
     }
     //#[profiling::function]
     pub fn get_proximity(&mut self, frames: &HashMap<String, TransformInfo>) -> Vec<ProximityInfo> {
-        for (key, transform) in frames {
-            println!("{:?} {:?}" , key, transform);
-        }
+        // for (key, transform) in frames {
+        //     println!("{:?} {:?}" , key, transform);
+        // }
+        println!("================================================================================================");
         let default_frame_transform: TransformInfo = TransformInfo::default();
         let mut result_vector: Vec<ProximityInfo> = vec![];
         let ranking_vector: Vec<(
@@ -3723,5 +3735,6 @@ impl CollisionManager {
             //  println!("-----------------------------------------------------------------------------------");
             return result_vector;
         }
+        println!("================================================================================================");
     }
 }

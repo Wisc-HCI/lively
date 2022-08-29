@@ -350,9 +350,9 @@ impl CollisionSettingInfo {
 impl Default for CollisionSettingInfo {
     fn default() -> Self {
         Self {
-            d_max: 1.0,
+            d_max: 0.3,
             r: 0.0,
-            a_max: 20.0,
+            a_max: 2.0,
             time_budget: 100,
             timed: true,
         }
