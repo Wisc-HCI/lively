@@ -3281,12 +3281,17 @@ impl CollisionManager {
             .unwrap_or(&default_frame_transform)
             .world
             .rotation;
+
         let shape1_past_state_rotation = j_state.1.rotation;
+
+
+
         let shape2_current_state_rotation = current_state
             .get(shape2_frame)
             .unwrap_or(&default_frame_transform)
             .world
             .rotation;
+
         let shape2_past_state_rotation = j_state.2.rotation;
 
         let shape1_current_state_translation = current_state
@@ -3294,12 +3299,16 @@ impl CollisionManager {
             .unwrap_or(&default_frame_transform)
             .world
             .translation;
+            
         let shape1_past_state_translation = j_state.1.translation;
+
+
         let shape2_current_state_translation = current_state
             .get(shape2_frame)
             .unwrap_or(&default_frame_transform)
             .world
             .translation;
+
         let shape2_past_state_translation = j_state.2.translation;
 
         let mut final_result = 0.0;
@@ -3330,7 +3339,7 @@ impl CollisionManager {
         } else {
             let c = 0.2 * self.a_max;
 
-            result = (-(*x * *x) / (2.0 * c * c)).exp();
+            result = (-(*x * *x) / (0.2 * c * c)).exp();
         }
         //println!("entered compute_loss_function with {:?}" , result);
         return result;
@@ -3339,27 +3348,27 @@ impl CollisionManager {
     //#[profiling::function]
     pub fn compute_loss_with_cutoff(&self, x: &f64, a_value: &f64, a_std: &f64) -> f64 {
         
-        if *a_std == 0.0 {
-            return 0.0;
-        }
+        // if *a_std == 0.0 {
+        //     return 0.0;
+        // }
 
-        if *x >= self.d_max || *x >= self.a_max * *a_std + *a_value {
-            return 0.0;
-        } else {
+        // if *x >= self.d_max || *x >= self.a_max * *a_std + *a_value {
+        //     return 0.0;
+        // } else {
            
-            return self.compute_loss_function(& ((*x - *a_value) / *a_std));
-        }
+        //     return self.compute_loss_function(& ((*x - *a_value) / *a_std));
+        // }
 
          // if *a_std == 0.0 {
         //     return 0.0;
         // }
 
-        // if *x >= self.d_max || *x/ *a_value >= self.a_max {
-        //     return 0.0;
-        // } else {
+        if *x >= self.d_max || *x/ *a_value >= self.a_max {
+            return 0.0;
+        } else {
            
-        //     return self.compute_loss_function(&  (*x/ *a_value) );
-        // }
+            return self.compute_loss_function(&  (*x/ *a_value) );
+        }
     }
 
     // #[profiling::function]
@@ -3386,6 +3395,7 @@ impl CollisionManager {
             rad1,
             rad2
         );
+
         let upper_bound = self.compute_upper_signed_distance_bound(
             shape1_frame,
             shape2_frame,
@@ -3403,20 +3413,12 @@ impl CollisionManager {
         let loss_value_lower_bound = self.compute_loss_with_cutoff(&lower_bound, &a_value, &a_std);
         let loss_value_upper_bound = self.compute_loss_with_cutoff(&upper_bound, &a_value, &a_std);
 
-        if (loss_value_lower_bound - loss_value_distance)
-            == (loss_value_distance - loss_value_upper_bound)
-        {
-            result = loss_value_lower_bound.clone() - loss_value_distance.clone();
-        } else if (loss_value_distance - loss_value_upper_bound)
-            > (loss_value_lower_bound - loss_value_distance)
-        {
-            result = loss_value_distance.clone() - loss_value_upper_bound.clone();
-        } else {
-            result = loss_value_lower_bound.clone() - loss_value_distance.clone();
-        }
-        println!("first shape is {:?}, second shape is {:?}, lower bound is {:?} , upper bound is {:?}, estimated distance is {:?}, a_value is {:?},loss_value_distance is {:?} ,
-                 loss_value_lower_bound is {:?} , loss_value_upper_bound is {:?}, result is {:?}" , shape1_frame, shape2_frame, lower_bound, upper_bound, estimated_distance, a_value,loss_value_distance,
-                loss_value_lower_bound, loss_value_upper_bound, result);
+        result = (loss_value_lower_bound - loss_value_distance).max(loss_value_distance - loss_value_upper_bound);
+       
+        
+        // println!("first shape is {:?}, second shape is {:?}, lower bound is {:?} , upper bound is {:?}, estimated distance is {:?}, a_value is {:?},loss_value_distance is {:?} ,
+        //          loss_value_lower_bound is {:?} , loss_value_upper_bound is {:?}, result is {:?}" , shape1_frame, shape2_frame, lower_bound, upper_bound, estimated_distance, a_value,loss_value_distance,
+        //         loss_value_lower_bound, loss_value_upper_bound, result);
 
         return result;
     }
@@ -3503,7 +3505,7 @@ impl CollisionManager {
                         shape1_compound.clone(),
                         shape2_frame,
                         shape2_compound.clone(),
-                        current_loss_function_error * proximity.standard_deviation.unwrap(),
+                        current_loss_function_error,
                         new_shape1_transform,
                         new_shape2_transform,
                         proximity,
@@ -3525,12 +3527,12 @@ impl CollisionManager {
         }
         loss_functions_error_vec.sort_by(|a, b| b.4.partial_cmp(&a.4).unwrap());
 
-        println!("-------------------------------------------------");
-        for item in loss_functions_error_vec.clone() {
+        // println!("-------------------------------------------------");
+        // for item in loss_functions_error_vec.clone() {
            
-            println!("the loss value with error for {:?} , {:?} is : {:?}" , item.7.shape1, item.7.shape2, item.4);
-        }
-        println!("-------------------------------------------------");
+        //     println!("the loss value with error for {:?} , {:?} is : {:?}" , item.7.shape1, item.7.shape2, item.4);
+        // }
+        // println!("-------------------------------------------------");
         return loss_functions_error_vec;
     }
     //#[profiling::function]
@@ -3538,7 +3540,7 @@ impl CollisionManager {
         // for (key, transform) in frames {
         //     println!("{:?} {:?}" , key, transform);
         // }
-        println!("================================================================================================");
+        //println!("================================================================================================");
         let default_frame_transform: TransformInfo = TransformInfo::default();
         let mut result_vector: Vec<ProximityInfo> = vec![];
         let ranking_vector: Vec<(
@@ -3614,6 +3616,8 @@ impl CollisionManager {
                             for item in mut_vec {
                                 if item.0.shape1 == proximity_info.shape1 && item.0.shape2 == proximity_info.shape2 {
                                     item.0 = proximity.clone();
+                                    item.5 = pos1;
+                                    item.6 = pos2;
                                     //println!("the j state is updated for {:?} and {:?}" , proximity_info.shape1, proximity_info.shape2 );
                                     break;
                                    
@@ -3639,7 +3643,7 @@ impl CollisionManager {
             //     println!("the info is : {:?}", item);
             // }
 
-            // println!("-----------------------------------------------------------------------------------");
+           // println!("-----------------------------------------------------------------------------------");
 
             return result_vector;
         } else {
@@ -3735,6 +3739,6 @@ impl CollisionManager {
             //  println!("-----------------------------------------------------------------------------------");
             return result_vector;
         }
-        println!("================================================================================================");
+        //println!("================================================================================================");
     }
 }
