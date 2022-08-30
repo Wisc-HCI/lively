@@ -3535,7 +3535,7 @@ impl CollisionManager {
 
             for (shape1_frame, shape1, _, shape2, _, pos1, pos2, proximity_info) in ranking_vector {
                
-                if timed_timer.elapsed().as_micros() < Duration::from_micros(self.time_budget).as_micros() {
+                //if timed_timer.elapsed().as_micros() < Duration::from_micros(self.time_budget).as_micros() {
                 
 
                 let contact =
@@ -3585,10 +3585,10 @@ impl CollisionManager {
                     Err(_) => {}
                 }
 
-                }else {
-                result_vector.push(proximity_info);
+                // }else {
+                // result_vector.push(proximity_info);
 
-                }
+                // }
             }
 
             //     println!("-----------------------------------------------------------------------------------");
