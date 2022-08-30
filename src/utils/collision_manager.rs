@@ -483,8 +483,10 @@ impl CollisionManager {
         proximity_info: &Vec<ProximityInfo>,
     ) {
         let default_transform = TransformInfo::default();
-        let size = self.scene_collision_shapes_list.len();
-        for i in 0..=size - 1 {
+        let size = self.scene_collision_shapes_list.len().max(1);
+
+
+        for i in 0..= size -1{
             if self.scene_collision_shapes_list.get(i).unwrap().0 == "world" {
                 break;
             } else {
@@ -632,7 +634,7 @@ impl CollisionManager {
     ) -> Vec<ProximityInfo> {
         let mut result_vector: Vec<ProximityInfo> = vec![];
         let mut proximity_look_up: HashMap<(String, String), Vec<f64>> = HashMap::new();
-        let size = self.scene_collision_shapes_list.len();
+        let size = self.scene_collision_shapes_list.len().max(1);
         let default_transform = TransformInfo::default();
 
         if size != 0 {
@@ -752,209 +754,7 @@ impl CollisionManager {
                         {
                             println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
 
-                            let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
-                                vec![(box_object.local_transform.clone(), box_collider)];
-                            let new_compound_shape = Compound::new(shape_vec);
-                            let new_bounding_sphere_radius =
-                                new_compound_shape.local_bounding_sphere().radius;
-                            match self.scene_optima_transient_shapes_look_up.get(id) {
-                                Some((frame_name, index_vec, _)) => {
-                                    if frame_name == "world" {
-                                        let mut index = 0;
-                                        for (frame_name, temp_vec) in
-                                            self.scene_group_truth_distance_hashmap.clone()
-                                        {
-                                            if temp_vec.len() == 0 {
-                                                index += 1;
-                                                continue;
-                                            }
-                                            match index_vec.get(index) {
-                                                Some(index_move) => match index_move {
-                                                    Some(index_move) => {
-                                                        match self
-                                                            .scene_group_truth_distance_hashmap
-                                                            .get_mut(&frame_name)
-                                                            .unwrap()
-                                                            .get_mut(*index_move)
-                                                        {
-                                                            Some(_) => {
-                                                                self.scene_group_truth_distance_hashmap
-                                                                                .get_mut(&frame_name)
-                                                                                .unwrap()
-                                                                                .get_mut(*index_move)
-                                                                                .unwrap()
-                                                                                .1 = new_compound_shape.clone();
-                                                                self.scene_group_truth_distance_hashmap
-                                                                                .get_mut(&frame_name)
-                                                                                .unwrap()
-                                                                                .get_mut(*index_move)
-                                                                                .unwrap()
-                                                                                .3 = new_bounding_sphere_radius;
-                                                                self.scene_group_truth_distance_hashmap
-                                                                                .get_mut(&frame_name)
-                                                                                .unwrap()
-                                                                                .get_mut(*index_move)
-                                                                                .unwrap()
-                                                                                .5 = box_object.local_transform;
-
-                                                                match parry3d_f64::query::contact(
-                                                                    &temp_vec
-                                                                        .get(*index_move)
-                                                                        .unwrap()
-                                                                        .5,
-                                                                    &temp_vec
-                                                                        .get(*index_move)
-                                                                        .unwrap()
-                                                                        .1,
-                                                                    &temp_vec
-                                                                        .get(*index_move)
-                                                                        .unwrap()
-                                                                        .6,
-                                                                    &temp_vec
-                                                                        .get(*index_move)
-                                                                        .unwrap()
-                                                                        .2,
-                                                                    self.d_max,
-                                                                ) {
-                                                                    Ok(contact) => match contact {
-                                                                        Some(valid_contact) => {
-                                                                            self.scene_group_truth_distance_hashmap
-                                                                                    .get_mut(&frame_name)
-                                                                                    .unwrap()
-                                                                                    .get_mut(*index_move)
-                                                                                    .unwrap()
-                                                                                    .0
-                                                                                    .distance = valid_contact.dist;
-                                                                            self.scene_group_truth_distance_hashmap
-                                                                                    .get_mut(&frame_name)
-                                                                                    .unwrap()
-                                                                                    .get_mut(*index_move)
-                                                                                    .unwrap()
-                                                                                    .0
-                                                                                    .points = Some((
-                                                                                    valid_contact.point1,
-                                                                                    valid_contact.point2,
-                                                                                ));
-                                                                        }
-                                                                        None => {}
-                                                                    },
-                                                                    Err(_) => {}
-                                                                }
-
-                                                                index += 1;
-                                                            }
-                                                            None => {
-                                                                index += 1;
-                                                                continue;
-                                                            }
-                                                        }
-                                                    }
-                                                    None => {
-                                                        index += 1;
-                                                        continue;
-                                                    }
-                                                },
-                                                None => {
-                                                    index += 1;
-                                                    continue;
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        let temp_vec = self
-                                            .scene_group_truth_distance_hashmap
-                                            .get(frame_name)
-                                            .unwrap()
-                                            .clone();
-
-                                        match self
-                                            .scene_optima_transient_shapes_look_up
-                                            .get(id)
-                                            .unwrap()
-                                            .1
-                                            .get(0)
-                                            .unwrap()
-                                        {
-                                            Some(index_change) => {
-                                                for _ in temp_vec {
-                                                    self.scene_group_truth_distance_hashmap
-                                                        .get_mut(frame_name)
-                                                        .unwrap()
-                                                        .get_mut(*index_change)
-                                                        .unwrap()
-                                                        .1 = new_compound_shape.clone();
-                                                    self.scene_group_truth_distance_hashmap
-                                                        .get_mut(frame_name)
-                                                        .unwrap()
-                                                        .get_mut(*index_change)
-                                                        .unwrap()
-                                                        .3 = new_bounding_sphere_radius;
-                                                    self.scene_group_truth_distance_hashmap
-                                                        .get_mut(frame_name)
-                                                        .unwrap()
-                                                        .get_mut(*index_change)
-                                                        .unwrap()
-                                                        .5 = box_object.local_transform;
-
-                                                    match parry3d_f64::query::contact(
-                                                        &self
-                                                            .scene_group_truth_distance_hashmap
-                                                            .get(frame_name)
-                                                            .unwrap()
-                                                            .get(*index_change)
-                                                            .unwrap()
-                                                            .5,
-                                                        &new_compound_shape,
-                                                        &self
-                                                            .scene_group_truth_distance_hashmap
-                                                            .get(frame_name)
-                                                            .unwrap()
-                                                            .get(*index_change)
-                                                            .unwrap()
-                                                            .6,
-                                                        &self
-                                                            .scene_group_truth_distance_hashmap
-                                                            .get(frame_name)
-                                                            .unwrap()
-                                                            .get(*index_change)
-                                                            .unwrap()
-                                                            .2,
-                                                        self.d_max,
-                                                    ) {
-                                                        Ok(contact) => match contact {
-                                                            Some(valid_contact) => {
-                                                                self.scene_group_truth_distance_hashmap
-                                                                    .get_mut(frame_name)
-                                                                    .unwrap()
-                                                                    .get_mut(*index_change)
-                                                                    .unwrap()
-                                                                    .0
-                                                                    .distance = valid_contact.dist;
-                                                                self.scene_group_truth_distance_hashmap
-                                                                    .get_mut(frame_name)
-                                                                    .unwrap()
-                                                                    .get_mut(*index_change)
-                                                                    .unwrap()
-                                                                    .0
-                                                                    .points = Some((
-                                                                    valid_contact.point1,
-                                                                    valid_contact.point2,
-                                                                ));
-                                                            }
-                                                            None => {}
-                                                        },
-                                                        Err(_) => {}
-                                                    }
-                                                }
-                                            }
-                                            None => {}
-                                        }
-                                    }
-                                }
-                                None => {
-                                    //println!("the id you have provided is not valid");
-                                }
-                            }
+                            
                         } else {
                             if box_object.frame == "world" {
                                 let shape2_transform = TransformInfo::default().world;
