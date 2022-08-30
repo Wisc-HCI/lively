@@ -28,7 +28,7 @@ use std::fs;
 
 fn main() {
     let data =
-        fs::read_to_string("./tests/ur3e.xml").expect("Something went wrong reading the file");
+        fs::read_to_string("./tests/panda.xml").expect("Something went wrong reading the file");
 
     let pos_match_obj =
         PositionMatchObjective::new("EE Position".to_string(), 20.0, "wrist_3_link".to_string());
@@ -470,7 +470,7 @@ fn main() {
         data.clone(),
         objective_vec.clone(),
         Some(scalar_range_vec.clone()),
-        Some(box_shapes_vec),
+        None,
         None,
         None,
         None,
@@ -750,8 +750,8 @@ fn main() {
 
 
     ];
-    let vec = temp.compute_average_distance_table();
-    println!("loss table {:?}",vec);
+    //let vec = temp.compute_average_distance_table();
+    //println!("loss table {:?}",vec);
     let temp_solve = temp.solve(None, None, 0.0, None);
 
     // for item in temp_solve.proximity {

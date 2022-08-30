@@ -3310,7 +3310,7 @@ impl CollisionManager {
                 //}
             }
         }
-        if loss_functions_error_vec.len() != 0 {
+        if loss_functions_error_vec.len() > 1 {
             loss_functions_error_vec.sort_by(|a, b| b.4.partial_cmp(&a.4).unwrap());
         }
         
@@ -3391,12 +3391,12 @@ impl CollisionManager {
                 // }
             }
 
-            //     println!("-----------------------------------------------------------------------------------");
-            //     for item in result_vector.clone() {
-            //         println!("the info is : {:?}", item);
-            //     }
+                println!("-----------------------------------------------------------------------------------");
+                for item in result_vector.clone() {
+                    println!("the info is : {:?}", item);
+                }
 
-            //    println!("-----------------------------------------------------------------------------------");
+               println!("-----------------------------------------------------------------------------------");
 
             return result_vector;
         } else {
