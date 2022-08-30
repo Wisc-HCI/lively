@@ -287,8 +287,7 @@ pub struct ProximityInfo {
     pub points: Option<(Point3<f64>, Point3<f64>)>,
     pub physical: bool,
     pub loss: f64,
-    pub average_distance: Option<f64>,
-    pub standard_deviation : Option<f64>
+    pub average_distance: Option<f64>
 }
 
 impl ProximityInfo {
@@ -299,8 +298,7 @@ impl ProximityInfo {
         points: Option<(Point3<f64>, Point3<f64>)>,
         physical: bool,
         loss: f64,
-        average_distance: Option<f64>,
-        standard_deviation : Option<f64>
+        average_distance: Option<f64>
     ) -> Self {
         Self {
             shape1,
@@ -309,8 +307,7 @@ impl ProximityInfo {
             points,
             physical,
             loss,
-            average_distance,
-            standard_deviation
+            average_distance
         }
     }
 }

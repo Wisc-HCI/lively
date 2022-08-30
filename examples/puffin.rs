@@ -212,7 +212,7 @@ fn solver_function() {
     let box_2 = Shape::Box(BoxShape::new(
         "conveyorCollisionShapeBelt".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.75,
         0.65,
         0.25,
@@ -231,7 +231,7 @@ fn solver_function() {
     let box_3 = Shape::Box(BoxShape::new(
         "conveyorRecieverCollisionShapeBase".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.75,
         0.25,
         0.7,
@@ -250,7 +250,7 @@ fn solver_function() {
     let box_4 = Shape::Box(BoxShape::new(
         "conveyorRecieverCollisionShapeLeftSplit".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.3,
         0.155,
         0.165,
@@ -269,7 +269,7 @@ fn solver_function() {
     let box_5 = Shape::Box(BoxShape::new(
         "conveyorRecieverCollisionShapeRightSplit".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.3,
         0.155,
         0.165,
@@ -288,7 +288,7 @@ fn solver_function() {
     let box_6 = Shape::Box(BoxShape::new(
         "conveyorDispatcherCollisionShapeBase".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.75,
         0.35,
         0.9,
@@ -307,7 +307,7 @@ fn solver_function() {
     let box_7 = Shape::Box(BoxShape::new(
         "conveyorDispatcherCollisionShapeLeftSplit".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.255,
         0.275,
         0.175,
@@ -326,7 +326,7 @@ fn solver_function() {
     let box_8 = Shape::Box(BoxShape::new(
         "conveyorDispatcherCollisionShapeRightSplit".to_string(),
         "world".to_string(),
-        true,
+     false,
         0.29,
         0.275,
         0.175,
@@ -345,7 +345,7 @@ fn solver_function() {
     let box_9 = Shape::Box(BoxShape::new(
         "conveyorDispatcherCollisionShapeRightSplit".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.29,
         0.275,
         0.175,
@@ -359,7 +359,7 @@ fn solver_function() {
     let box_10 = Shape::Box(BoxShape::new(
         "tableCollisionShapeTop".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.1225,
         0.625,
         0.05,
@@ -373,7 +373,7 @@ fn solver_function() {
     let box_11 = Shape::Box(BoxShape::new(
         "tableCollisionShapeFrontLeftLeg".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.05,
         0.05,
         0.75,
@@ -387,7 +387,7 @@ fn solver_function() {
     let box_12 = Shape::Box(BoxShape::new(
         "tableCollisionShapeRearLeftLeg".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.05,
         0.05,
         0.75,
@@ -401,7 +401,7 @@ fn solver_function() {
     let box_13 = Shape::Box(BoxShape::new(
         "tableCollisionShapeRearRightLeg".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.05,
         0.05,
         0.75,
@@ -415,7 +415,7 @@ fn solver_function() {
     let box_14 = Shape::Box(BoxShape::new(
         "pedestalCollisionShapeBase".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.65,
         0.65,
         0.15,
@@ -429,7 +429,7 @@ fn solver_function() {
     let box_15 = Shape::Box(BoxShape::new(
         "pedestalCollisionShapeTower".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.1,
         0.1,
         0.7,
@@ -443,7 +443,7 @@ fn solver_function() {
     let box_16 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeLeftVertical".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.125,
         0.185,
         0.4,
@@ -457,7 +457,7 @@ fn solver_function() {
     let box_17 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeRightVertical".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.125,
         0.225,
         0.4,
@@ -471,7 +471,7 @@ fn solver_function() {
     let box_18 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeBase".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.4,
         0.4,
         0.1,
@@ -485,7 +485,7 @@ fn solver_function() {
     let box_19 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeSpool".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.4,
         0.25,
         0.25,
@@ -499,7 +499,7 @@ fn solver_function() {
     let box_20 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeSpool".to_string(),
         "shoulder_link".to_string(),
-        true,
+        false,
         0.4,
         0.25,
         0.25,
@@ -598,7 +598,7 @@ fn solver_function() {
         data.clone(),
         objective_vec.clone(),
         Some(scalar_range_vec.clone()),
-        None,
+        Some(box_shapes_vec),
         None,
         None,
         None,
