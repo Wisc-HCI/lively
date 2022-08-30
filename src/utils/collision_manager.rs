@@ -3309,7 +3309,10 @@ impl CollisionManager {
                 //}
             }
         }
-        loss_functions_error_vec.sort_by(|a, b| b.4.partial_cmp(&a.4).unwrap());
+        if loss_functions_error_vec.len() != 0 {
+            loss_functions_error_vec.sort_by(|a, b| b.4.partial_cmp(&a.4).unwrap());
+        }
+        
 
         // println!("-------------------------------------------------");
         // for item in loss_functions_error_vec.clone() {
