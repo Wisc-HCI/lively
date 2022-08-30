@@ -459,9 +459,9 @@ fn main() {
     }
 
     let objective_vec: Vec<Objective> = vec![
-        lively_tk_lib::objectives::objective::Objective::PositionMatch(pos_match_obj),
-        lively_tk_lib::objectives::objective::Objective::CollisionAvoidance(col_avoid_obj),
-        lively_tk_lib::objectives::objective::Objective::SmoothnessMacro(smooth_macro_obj),
+        // lively_tk_lib::objectives::objective::Objective::PositionMatch(pos_match_obj),
+        // lively_tk_lib::objectives::objective::Objective::CollisionAvoidance(col_avoid_obj),
+        // lively_tk_lib::objectives::objective::Objective::SmoothnessMacro(smooth_macro_obj),
     ];
     
 
@@ -751,7 +751,7 @@ fn main() {
 
     ];
     let vec = temp.compute_average_distance_table();
-    println!("loss table {:?}",vec);
+    // println!("loss table {:?}",vec);
     let temp_solve = temp.solve(None, None, 0.0, None);
 
     // for item in temp_solve.proximity {
