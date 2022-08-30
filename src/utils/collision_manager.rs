@@ -3516,10 +3516,6 @@ impl CollisionManager {
     }
     //#[profiling::function]
     pub fn get_proximity(&mut self, frames: &HashMap<String, TransformInfo>) -> Vec<ProximityInfo> {
-        // for (key, transform) in frames {
-        //     println!("{:?} {:?}" , key, transform);
-        // }
-        //println!("================================================================================================");
        
         let mut result_vector: Vec<ProximityInfo> = vec![];
         let ranking_vector: Vec<(
@@ -3553,12 +3549,7 @@ impl CollisionManager {
                                 &proximity_info.average_distance.unwrap()
                              
                             );
-                            // println!("{:?} , {:?} :: entered compute_loss_with_cutoff with x :{:?} a_value: {:?} a_std : {:?}
-                            // self.a_max * *a_std + *a_value : {:?} and loss is {:?}" ,proximity_info.shape1, proximity_info.shape2,
-                            // dist , proximity_info.average_distance.unwrap(), proximity_info.standard_deviation.unwrap(),
-                            // self.a_max * proximity_info.standard_deviation.unwrap() + proximity_info.average_distance.unwrap(),loss);
-
-                            //println!("the loss value in get_proximity is: {:?} with {:?} and {:?}" , loss.clone(),dist,proximity_info.average_distance.unwrap() );
+                            
                             let proximity = ProximityInfo::new(
                                 proximity_info.clone().shape1,
                                 proximity_info.clone().shape2,
@@ -3580,7 +3571,7 @@ impl CollisionManager {
                                     item.0 = proximity.clone();
                                     item.5 = pos1;
                                     item.6 = pos2;
-                                    //println!("the j state is updated for {:?} and {:?}" , proximity_info.shape1, proximity_info.shape2 );
+                                   
                                     break;
                                 }
                             }
@@ -3598,12 +3589,12 @@ impl CollisionManager {
                 }
             }
 
-                println!("-----------------------------------------------------------------------------------");
-                for item in result_vector.clone() {
-                    println!("the info is : {:?}", item);
-                }
+            //     println!("-----------------------------------------------------------------------------------");
+            //     for item in result_vector.clone() {
+            //         println!("the info is : {:?}", item);
+            //     }
 
-               println!("-----------------------------------------------------------------------------------");
+            //    println!("-----------------------------------------------------------------------------------");
 
             return result_vector;
         } else {
