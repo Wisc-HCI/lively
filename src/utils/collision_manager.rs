@@ -3466,9 +3466,9 @@ impl CollisionManager {
                     .get(&shape2_frame)
                     .unwrap_or(&default_frame_transform)
                     .world;
-                // if timed_timer.elapsed().as_micros()
-                //     < Duration::from_micros(self.time_budget).as_micros()
-                // {
+                if timed_timer.elapsed().as_micros()
+                    < Duration::from_micros(self.time_budget).as_micros()
+                {
                     let current_loss_function_error = self.compute_maximum_loss_functions_error(   
                         &shape1_frame,
                         &shape2_frame,
@@ -3489,20 +3489,20 @@ impl CollisionManager {
                         new_shape2_transform,
                         proximity,
                     ));
-                //} 
+                } 
                 
-                // else {
-                //     loss_functions_error_vec.push((
-                //         shape1_frame,
-                //         shape1_compound.clone(),
-                //         shape2_frame,
-                //         shape2_compound.clone(),
-                //         proximity.loss,
-                //         new_shape1_transform,
-                //         new_shape2_transform,
-                //         proximity,
-                //     ));
-                // }
+                else {
+                    loss_functions_error_vec.push((
+                        shape1_frame,
+                        shape1_compound.clone(),
+                        shape2_frame,
+                        shape2_compound.clone(),
+                        proximity.loss,
+                        new_shape1_transform,
+                        new_shape2_transform,
+                        proximity,
+                    ));
+                }
                 //}
             }
         }
@@ -3535,7 +3535,7 @@ impl CollisionManager {
 
             for (shape1_frame, shape1, _, shape2, _, pos1, pos2, proximity_info) in ranking_vector {
                
-                //if timed_timer.elapsed().as_micros() < Duration::from_micros(self.time_budget).as_micros() {
+                if timed_timer.elapsed().as_micros() < Duration::from_micros(1000).as_micros() {
                 
 
                 let contact =
@@ -3585,10 +3585,10 @@ impl CollisionManager {
                     Err(_) => {}
                 }
 
-                // }else {
-                // result_vector.push(proximity_info);
+                }else {
+                result_vector.push(proximity_info);
 
-                // }
+                }
             }
 
             //     println!("-----------------------------------------------------------------------------------");
