@@ -162,7 +162,7 @@ impl JsSolver {
 
     #[wasm_bindgen(getter = currentState)]
     pub fn current_state(&self) -> JsValue {
-        JsValue::from_serde(&self.0.vars.history.prev1).unwrap()
+        JsValue::from_serde(&self.0.get_current_state()).unwrap()
     }
 
     #[wasm_bindgen(getter = currentGoals)]
