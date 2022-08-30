@@ -350,7 +350,7 @@ impl Default for CollisionSettingInfo {
             d_max: 0.3,
             r: 0.0,
             a_max: 2.0,
-            time_budget: 200,
+            time_budget: 100,
             timed: true,
         }
     }
