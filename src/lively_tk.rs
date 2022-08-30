@@ -301,6 +301,10 @@ impl Solver {
         
         return self.robot_model.collision_manager.lock().unwrap().compute_a_table(&sampled_states);
     }
+
+    pub fn get_current_state(&self) -> State {
+        return self.vars.history.prev1.clone()
+    }
 }
 
 pub fn optimize(
