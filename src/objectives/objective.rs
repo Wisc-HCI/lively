@@ -35,10 +35,6 @@ pub enum Objective {
     OriginAccelerationMinimization(OriginAccelerationMinimizationObjective),
     OriginJerkMinimization(OriginJerkMinimizationObjective),
     RelativeMotionLiveliness(RelativeMotionLivelinessObjective),
-    OriginPositionLiveliness(OriginPositionLivelinessObjective),
-    OriginOrientationLiveliness(OriginOrientationLivelinessObjective),
-    OriginPositionMatch(OriginPositionMatchObjective),
-    OriginOrientationMatch(OriginOrientationMatchObjective),
     Gravity(GravityObjective),
     SmoothnessMacro(SmoothnessMacroObjective),
     DistanceMatch(DistanceMatchObjective)
@@ -68,10 +64,6 @@ impl Objective {
             Self::OriginAccelerationMinimization(_obj) => return String::from("OriginAccelerationMinimizationObjective"),
             Self::OriginJerkMinimization(_obj) => return String::from("OriginJerkMinimizationObjective"),
             Self::RelativeMotionLiveliness(_obj) => return String::from("RelativeMotionLivelinessObjective"),
-            Self::OriginPositionLiveliness(_obj) => return String::from("OriginPositionLivelinessObjective"),
-            Self::OriginOrientationLiveliness(_obj) => return String::from("OriginOrientationLivelinessObjective"),
-            Self::OriginPositionMatch(_obj) => return String::from("OriginPositionMatchObjective"),
-            Self::OriginOrientationMatch(_obj) => return String::from("OriginOrientationMatchObjective"),
             Self::Gravity(_obj) => return String::from("GravityObjective"),
             Self::SmoothnessMacro(_obj) => return String::from("SmoothnessMacroObjective"),
             Self::DistanceMatch(_obj) => return String::from("DistanceMatchObjective"),
@@ -106,10 +98,6 @@ impl Objective {
                     Self::OriginAccelerationMinimization(obj) => obj.call(v,state,is_core),
                     Self::OriginJerkMinimization(obj) => obj.call(v,state,is_core),
                     Self::RelativeMotionLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::OriginPositionLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::OriginOrientationLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::OriginPositionMatch(obj) => obj.call(v,state,is_core),
-                    Self::OriginOrientationMatch(obj) => obj.call(v,state,is_core),
                     Self::Gravity(obj) => obj.call(v,state,is_core),
                     Self::SmoothnessMacro(obj) => obj.call(v,state,is_core),
                     Self::DistanceMatch(obj) => obj.call(v,state,is_core)
@@ -122,8 +110,6 @@ impl Objective {
             Self::OrientationLiveliness(obj) => obj.update(time),
             Self::JointLiveliness(obj) => obj.update(time),
             Self::RelativeMotionLiveliness(obj) => obj.update(time),
-            Self::OriginPositionLiveliness(obj) => obj.update(time),
-            Self::OriginOrientationLiveliness(obj) => obj.update(time),
             _ => {}
         }
     }
@@ -151,10 +137,6 @@ impl Objective {
             Self::OriginAccelerationMinimization(obj) => obj.weight = weight,
             Self::OriginJerkMinimization(obj) => obj.weight = weight,
             Self::RelativeMotionLiveliness(obj) => obj.weight = weight,
-            Self::OriginPositionLiveliness(obj) => obj.weight = weight,
-            Self::OriginOrientationLiveliness(obj) => obj.weight = weight,
-            Self::OriginPositionMatch(obj) => obj.weight = weight,
-            Self::OriginOrientationMatch(obj) => obj.weight = weight,
             Self::Gravity(obj) => obj.weight = weight,
             Self::SmoothnessMacro(obj) => obj.weight = weight,
             Self::DistanceMatch(obj) => obj.weight = weight
@@ -184,10 +166,6 @@ impl Objective {
             Self::OriginAccelerationMinimization(_obj) => return None,
             Self::OriginJerkMinimization(_obj) => return None,
             Self::RelativeMotionLiveliness(obj) => return Some(Goal::Scalar(obj.goal)),
-            Self::OriginPositionLiveliness(obj) => return Some(Goal::Size(obj.goal)),
-            Self::OriginOrientationLiveliness(obj) => return Some(Goal::Size(obj.goal)),
-            Self::OriginPositionMatch(obj) => return Some(Goal::Translation(Translation3::from(obj.goal))),
-            Self::OriginOrientationMatch(obj) => return Some(Goal::Rotation(obj.goal)),
             Self::Gravity(_obj) => return None,
             Self::SmoothnessMacro(_obj) => return None,
             Self::DistanceMatch(obj) => return Some(Goal::Scalar(obj.goal))
@@ -200,7 +178,6 @@ impl Objective {
                 match self {
                     Self::PositionMatch(obj) => obj.goal = translation_goal.vector,
                     Self::PositionMirroring(obj) => obj.goal = translation_goal.vector,
-                    Self::OriginPositionMatch(obj) => obj.goal = translation_goal.vector,
                     _ => println!("Unexpected Translation provided for Objective {}",self.get_type())
                 }
             },
@@ -208,7 +185,6 @@ impl Objective {
                 match self {
                     Self::OrientationMatch(obj) => obj.goal = *rotation_goal,
                     Self::OrientationMirroring(obj) => obj.goal = *rotation_goal,
-                    Self::OriginOrientationMatch(obj) => obj.goal = *rotation_goal,
                     _ => println!("Unexpected Rotation Goal type provided for Objective {}",self.get_type())
                 }
             },
@@ -226,8 +202,6 @@ impl Objective {
                 match self {
                     Self::PositionLiveliness(obj) => obj.goal = *size_goal,
                     Self::OrientationLiveliness(obj) => obj.goal = *size_goal,
-                    Self::OriginPositionLiveliness(obj) => obj.goal = *size_goal,
-                    Self::OriginOrientationLiveliness(obj) => obj.goal = *size_goal,
                     _ => println!("Unexpected Size Goal type provided for Objective {}",self.get_type())
                 }
             },

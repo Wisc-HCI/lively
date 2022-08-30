@@ -101,62 +101,6 @@ impl JointMatchObjective {
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
-pub struct OriginPositionMatchObjective {
-    // Adds position liveliness to the Origin node (first three entries in x are these values)
-    pub name: String,
-    pub weight: f64,
-    // Goal Value
-    #[serde(skip)]
-    pub goal: Vector3<f64>
-}
-
-impl OriginPositionMatchObjective {
-
-    pub fn new(name: String, weight: f64) -> Self {
-        Self { name, weight, goal: vector![0.0,0.0,0.0]}
-    }
-
-    pub fn call(
-        &self,
-        _v: &Vars,
-        state: &State,
-        _is_core: bool
-    ) -> f64 {
-        let x_val = (self.goal - state.origin.translation.vector).norm();
-        return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
-    }
-}
-
-#[repr(C)]
-#[derive(Serialize,Deserialize,Clone,Debug,Default)]
-pub struct OriginOrientationMatchObjective {
-    // Adds Orientation liveliness to the Origin node (first three entries in x are these values)
-    pub name: String,
-    pub weight: f64,
-    // Goal Value
-    #[serde(skip)]
-    pub goal: UnitQuaternion<f64>
-}
-
-impl OriginOrientationMatchObjective {
-
-    pub fn new(name: String, weight: f64) -> Self {
-        Self { name, weight, goal: UnitQuaternion::identity()}
-    }
-
-    pub fn call(
-        &self,
-        _v: &Vars,
-        state: &State,
-        _is_core: bool
-    ) -> f64 {
-        let x_val = state.origin.rotation.angle_to(&self.goal);
-        return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
-    }
-}
-
-#[repr(C)]
-#[derive(Serialize,Deserialize,Clone,Debug,Default)]
 pub struct DistanceMatchObjective {
     // Specify that the cartesian distance between two links is maintained
     pub name: String,

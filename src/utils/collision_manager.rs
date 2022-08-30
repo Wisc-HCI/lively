@@ -568,7 +568,7 @@ impl CollisionManager {
 
             }
 
-          
+            println!("lookup: {:?}",proximity_look_up);
             for ((shape1_name,shape2_name) , a_vec) in proximity_look_up {
                 let mut total = 0.0;
                 let mut index = 0.0;
