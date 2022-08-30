@@ -84,7 +84,7 @@ fn main() {
     let box_2 = Shape::Box(BoxShape::new(
         "conveyorCollisionShapeBelt".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.75,
         0.65,
         0.25,
@@ -103,7 +103,7 @@ fn main() {
     let box_3 = Shape::Box(BoxShape::new(
         "conveyorRecieverCollisionShapeBase".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.75,
         0.25,
         0.7,
@@ -122,7 +122,7 @@ fn main() {
     let box_4 = Shape::Box(BoxShape::new(
         "conveyorRecieverCollisionShapeLeftSplit".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.3,
         0.155,
         0.165,
@@ -141,7 +141,7 @@ fn main() {
     let box_5 = Shape::Box(BoxShape::new(
         "conveyorRecieverCollisionShapeRightSplit".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.3,
         0.155,
         0.165,
@@ -160,7 +160,7 @@ fn main() {
     let box_6 = Shape::Box(BoxShape::new(
         "conveyorDispatcherCollisionShapeBase".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.75,
         0.35,
         0.9,
@@ -179,7 +179,7 @@ fn main() {
     let box_7 = Shape::Box(BoxShape::new(
         "conveyorDispatcherCollisionShapeLeftSplit".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.255,
         0.275,
         0.175,
@@ -198,7 +198,7 @@ fn main() {
     let box_8 = Shape::Box(BoxShape::new(
         "conveyorDispatcherCollisionShapeRightSplit".to_string(),
         "world".to_string(),
-        true,
+     false,
         0.29,
         0.275,
         0.175,
@@ -217,7 +217,7 @@ fn main() {
     let box_9 = Shape::Box(BoxShape::new(
         "conveyorDispatcherCollisionShapeRightSplit".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.29,
         0.275,
         0.175,
@@ -231,7 +231,7 @@ fn main() {
     let box_10 = Shape::Box(BoxShape::new(
         "tableCollisionShapeTop".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.1225,
         0.625,
         0.05,
@@ -245,7 +245,7 @@ fn main() {
     let box_11 = Shape::Box(BoxShape::new(
         "tableCollisionShapeFrontLeftLeg".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.05,
         0.05,
         0.75,
@@ -259,7 +259,7 @@ fn main() {
     let box_12 = Shape::Box(BoxShape::new(
         "tableCollisionShapeRearLeftLeg".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.05,
         0.05,
         0.75,
@@ -273,7 +273,7 @@ fn main() {
     let box_13 = Shape::Box(BoxShape::new(
         "tableCollisionShapeRearRightLeg".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.05,
         0.05,
         0.75,
@@ -287,7 +287,7 @@ fn main() {
     let box_14 = Shape::Box(BoxShape::new(
         "pedestalCollisionShapeBase".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.65,
         0.65,
         0.15,
@@ -301,7 +301,7 @@ fn main() {
     let box_15 = Shape::Box(BoxShape::new(
         "pedestalCollisionShapeTower".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.1,
         0.1,
         0.7,
@@ -315,7 +315,7 @@ fn main() {
     let box_16 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeLeftVertical".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.125,
         0.185,
         0.4,
@@ -329,7 +329,7 @@ fn main() {
     let box_17 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeRightVertical".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.125,
         0.225,
         0.4,
@@ -343,7 +343,7 @@ fn main() {
     let box_18 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeBase".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.4,
         0.4,
         0.1,
@@ -357,7 +357,7 @@ fn main() {
     let box_19 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeSpool".to_string(),
         "world".to_string(),
-        true,
+        false,
         0.4,
         0.25,
         0.25,
@@ -371,7 +371,7 @@ fn main() {
     let box_20 = Shape::Box(BoxShape::new(
         "mk2CollisionShapeSpool".to_string(),
         "shoulder_link".to_string(),
-        true,
+        false,
         0.4,
         0.25,
         0.25,
@@ -470,7 +470,7 @@ fn main() {
         data.clone(),
         objective_vec.clone(),
         Some(scalar_range_vec.clone()),
-        None,
+        Some(box_shapes_vec),
         None,
         None,
         None,
@@ -754,23 +754,28 @@ fn main() {
     println!("loss table {:?}",vec);
     let temp_solve = temp.solve(None, None, 0.0, None);
 
+    // for item in temp_solve.proximity {
+    //     println!("the result getting from temp_solve is {:?}" , item);
+    // }
+   
+
 
 
     println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    let mut 
-    temp2 = Solver::new(
-        data,
-        objective_vec,
-        Some(scalar_range_vec),
-        None,
-        Some(temp.vars.history.prev1),
-        Some(true),
-        None,
-        None,
-        None,
-    );
+    // let mut 
+    // temp2 = Solver::new(
+    //     data,
+    //     objective_vec,
+    //     Some(scalar_range_vec),
+    //     None,
+    //     Some(temp.vars.history.prev1),
+    //     Some(true),
+    //     None,
+    //     None,
+    //     None,
+    // );
 
-    let temp_solve2 = temp2.solve(None, None, 0.0, None);
+    // let temp_solve2 = temp2.solve(None, None, 0.0, None);
 
 
     //temp.reset(temp_solve,None);

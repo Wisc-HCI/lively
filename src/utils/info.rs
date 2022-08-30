@@ -5,14 +5,13 @@ use nalgebra::Isometry3;
 use serde::{Deserialize, Serialize};
 use urdf_rs::{Geometry, Link, Mimic};
 
-
 #[repr(C)]
-#[derive(Serialize,Deserialize,Clone,Debug,Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct TransformInfo {
-    #[serde(skip_deserializing,default="Isometry3::identity")]
+    #[serde(skip_deserializing, default = "Isometry3::identity")]
     pub world: Isometry3<f64>,
-    #[serde(skip_deserializing,default="Isometry3::identity")]
-    pub local: Isometry3<f64>
+    #[serde(skip_deserializing, default = "Isometry3::identity")]
+    pub local: Isometry3<f64>,
 }
 
 impl TransformInfo {
@@ -59,9 +58,8 @@ impl From<&Mimic> for MimicInfo {
     }
 }
 
-
 #[repr(C)]
-#[derive(Serialize,Deserialize,Clone,Debug,Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct JointInfo {
     pub name: String,
@@ -100,7 +98,7 @@ impl JointInfo {
 }
 
 #[repr(C)]
-#[derive(Serialize,Deserialize,Clone,Debug,Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LinkInfo {
     pub name: String,
@@ -281,15 +279,15 @@ impl From<Link> for LinkInfo {
 }
 
 #[repr(C)]
-#[derive(Serialize,Deserialize,Clone,Debug,Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct ProximityInfo {
     pub shape1: String,
     pub shape2: String,
     pub distance: f64,
     pub points: Option<(Point3<f64>, Point3<f64>)>,
     pub physical: bool,
-    pub loss : f64,
-    pub average_distance : Option<f64>
+    pub loss: f64,
+    pub average_distance: Option<f64>
 }
 
 impl ProximityInfo {
@@ -299,9 +297,8 @@ impl ProximityInfo {
         distance: f64,
         points: Option<(Point3<f64>, Point3<f64>)>,
         physical: bool,
-        loss : f64,
-        average_distance : Option<f64>
-       
+        loss: f64,
+        average_distance: Option<f64>
     ) -> Self {
         Self {
             shape1,
@@ -309,12 +306,11 @@ impl ProximityInfo {
             distance,
             points,
             physical,
-            loss, 
+            loss,
             average_distance
         }
     }
 }
-
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -325,30 +321,18 @@ pub struct CollisionSettingInfo {
     pub a_max: f64,
     pub time_budget: u64,
     pub timed: bool,
-    
 }
 
-
-
 impl CollisionSettingInfo {
-    pub fn new(
-        d_max: f64,
-        r: f64,
-        a_max: f64,
-        time_budget: u64,
-        timed: bool,
-        
-    ) -> Self {
+    pub fn new(d_max: f64, r: f64, a_max: f64, time_budget: u64, timed: bool) -> Self {
         Self {
             d_max,
             r,
             a_max,
             time_budget,
             timed,
-           
         }
     }
-
 }
 
 // const D_MAX: f64 = 1.0;
@@ -362,12 +346,18 @@ impl CollisionSettingInfo {
 
 impl Default for CollisionSettingInfo {
     fn default() -> Self {
-        Self { d_max : 1.0,  r : 0.0 , a_max: 0.5, time_budget :  100, timed : true }
+        Self {
+            d_max: 0.3,
+            r: 0.0,
+            a_max: 2.0,
+            time_budget: 100,
+            timed: true,
+        }
     }
 }
 
 #[repr(C)]
-#[derive(Serialize,Deserialize,Clone,Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum ShapeUpdate {
     Add { id: String, shape: Shape },
     Move { id: String, pose: Isometry3<f64> },
