@@ -483,113 +483,124 @@ impl CollisionManager {
         proximity_info: &Vec<ProximityInfo>,
     ) {
         let default_transform = TransformInfo::default();
-        let size = self.scene_collision_shapes_list.len().max(1);
-
-
-        for i in 0..= size -1{
-            if self.scene_collision_shapes_list.get(i).unwrap().0 == "world" {
-                break;
-            } else {
-                let (shape1_frame, shape1, rad1, _, shape1_name, shape1_physical) =
-                    self.scene_collision_shapes_list.get(i).unwrap();
-                let mut proximity: ProximityInfo;
-
-                let mut value_vec: Vec<(
-                    ProximityInfo,
-                    Compound,
-                    Compound,
-                    f64,
-                    f64,
-                    Isometry3<f64>,
-                    Isometry3<f64>,
-                    String,
-                    String,
-                )> = vec![];
-
-                for j in (i + 1)..=size - 1 {
-                    let (shape2_frame, shape2, rad2, _, shape2_name, shape2_physical) =
-                        self.scene_collision_shapes_list.get(j).unwrap();
-
-                    if shape1_frame == "world" && shape2_frame == "world" {
-                        continue;
-                    } else {
-                        let shape1_transform = initial_frames
-                            .get(shape1_name)
-                            .unwrap_or(&default_transform);
-                        let shape2_transform = initial_frames
-                            .get(shape2_name)
-                            .unwrap_or(&default_transform);
-
-                        match parry3d_f64::query::contact(
-                            &shape1_transform.world,
-                            shape1,
-                            &shape2_transform.world,
-                            &shape2.clone(),
-                            self.d_max,
-                        ) {
-                            Ok(contact) => match contact {
-                                Some(valid_contact) => {
-                                    if proximity_info.len() != 0 {
-                                        'f: for item in proximity_info {
-                                            if shape1_name.to_string() == item.shape1
-                                                && shape2_name.to_string() == item.shape2
-                                            {
-                                                proximity = ProximityInfo::new(
-                                                    shape1_name.to_string(),
-                                                    shape2_name.to_string(),
-                                                    valid_contact.dist,
-                                                    Some((
-                                                        valid_contact.point1,
-                                                        valid_contact.point2,
-                                                    )),
-                                                    *shape1_physical && *shape2_physical,
-                                                    self.compute_loss_with_cutoff(
-                                                        &valid_contact.dist,
-                                                        &item.average_distance.unwrap_or(1.0),
-                                                    ),
-                                                    item.average_distance,
-                                                );
-                                                value_vec.push((
-                                                    proximity,
-                                                    shape1.clone(),
-                                                    shape2.clone(),
-                                                    *rad1,
-                                                    *rad2,
-                                                    shape1_transform.world,
-                                                    shape2_transform.world,
-                                                    shape1_frame.to_string(),
-                                                    shape2_frame.to_string(),
-                                                ));
-                                                break 'f;
+        let size = self.scene_collision_shapes_list.len();
+        if size != 0 {
+            for i in 0..= size -1{
+                if self.scene_collision_shapes_list.get(i).unwrap().0 == "world" {
+                    break;
+                } else {
+                    let (shape1_frame, shape1, rad1, _, shape1_name, shape1_physical) =
+                        self.scene_collision_shapes_list.get(i).unwrap();
+                    let mut proximity: ProximityInfo;
+    
+                    let mut value_vec: Vec<(
+                        ProximityInfo,
+                        Compound,
+                        Compound,
+                        f64,
+                        f64,
+                        Isometry3<f64>,
+                        Isometry3<f64>,
+                        String,
+                        String,
+                    )> = vec![];
+    
+                    for j in (i + 1)..=size - 1 {
+                        let (shape2_frame, shape2, rad2, _, shape2_name, shape2_physical) =
+                            self.scene_collision_shapes_list.get(j).unwrap();
+    
+                        if shape1_frame == "world" && shape2_frame == "world" {
+                            continue;
+                        } else {
+                            let shape1_transform = initial_frames
+                                .get(shape1_name)
+                                .unwrap_or(&default_transform);
+                            let shape2_transform = initial_frames
+                                .get(shape2_name)
+                                .unwrap_or(&default_transform);
+    
+                            match parry3d_f64::query::contact(
+                                &shape1_transform.world,
+                                shape1,
+                                &shape2_transform.world,
+                                &shape2.clone(),
+                                self.d_max,
+                            ) {
+                                Ok(contact) => match contact {
+                                    Some(valid_contact) => {
+                                        if proximity_info.len() != 0 {
+                                            'f: for item in proximity_info {
+                                                if shape1_name.to_string() == item.shape1
+                                                    && shape2_name.to_string() == item.shape2
+                                                {
+                                                    proximity = ProximityInfo::new(
+                                                        shape1_name.to_string(),
+                                                        shape2_name.to_string(),
+                                                        valid_contact.dist,
+                                                        Some((
+                                                            valid_contact.point1,
+                                                            valid_contact.point2,
+                                                        )),
+                                                        *shape1_physical && *shape2_physical,
+                                                        self.compute_loss_with_cutoff(
+                                                            &valid_contact.dist,
+                                                            &item.average_distance.unwrap_or(1.0),
+                                                        ),
+                                                        item.average_distance,
+                                                    );
+                                                    value_vec.push((
+                                                        proximity,
+                                                        shape1.clone(),
+                                                        shape2.clone(),
+                                                        *rad1,
+                                                        *rad2,
+                                                        shape1_transform.world,
+                                                        shape2_transform.world,
+                                                        shape1_frame.to_string(),
+                                                        shape2_frame.to_string(),
+                                                    ));
+                                                    break 'f;
+                                                }
                                             }
+                                        } else {
+                                            proximity = ProximityInfo::new(
+                                                shape1_name.to_string(),
+                                                shape2_name.to_string(),
+                                                valid_contact.dist,
+                                                Some((valid_contact.point1, valid_contact.point2)),
+                                                *shape1_physical && *shape2_physical,
+                                                self.compute_loss_with_cutoff(
+                                                    &valid_contact.dist,
+                                                    &1.0,
+                                                ),
+                                                Some(1.0),
+                                            );
+                                            value_vec.push((
+                                                proximity,
+                                                shape1.clone(),
+                                                shape2.clone(),
+                                                *rad1,
+                                                *rad2,
+                                                shape1_transform.world,
+                                                shape2_transform.world,
+                                                shape1_frame.to_string(),
+                                                shape2_frame.to_string(),
+                                            ));
                                         }
-                                    } else {
-                                        proximity = ProximityInfo::new(
-                                            shape1_name.to_string(),
-                                            shape2_name.to_string(),
-                                            valid_contact.dist,
-                                            Some((valid_contact.point1, valid_contact.point2)),
-                                            *shape1_physical && *shape2_physical,
-                                            self.compute_loss_with_cutoff(
-                                                &valid_contact.dist,
-                                                &1.0,
-                                            ),
-                                            Some(1.0),
-                                        );
-                                        value_vec.push((
-                                            proximity,
-                                            shape1.clone(),
-                                            shape2.clone(),
-                                            *rad1,
-                                            *rad2,
-                                            shape1_transform.world,
-                                            shape2_transform.world,
-                                            shape1_frame.to_string(),
-                                            shape2_frame.to_string(),
-                                        ));
                                     }
-                                }
-                                None => {
+                                    None => {
+                                        self.scene_optima_collision_shapes_look_up.insert(
+                                            shape1_name.to_string(),
+                                            (
+                                                shape1.clone(),
+                                                *rad1,
+                                                shape1_transform.world,
+                                                shape1_frame.to_string(),
+                                            ),
+                                        );
+                                    }
+                                },
+                                Err(_) => {
                                     self.scene_optima_collision_shapes_look_up.insert(
                                         shape1_name.to_string(),
                                         (
@@ -600,26 +611,17 @@ impl CollisionManager {
                                         ),
                                     );
                                 }
-                            },
-                            Err(_) => {
-                                self.scene_optima_collision_shapes_look_up.insert(
-                                    shape1_name.to_string(),
-                                    (
-                                        shape1.clone(),
-                                        *rad1,
-                                        shape1_transform.world,
-                                        shape1_frame.to_string(),
-                                    ),
-                                );
                             }
                         }
                     }
+    
+                    self.scene_group_truth_distance_hashmap
+                        .insert(shape1_name.to_string(), value_vec);
                 }
-
-                self.scene_group_truth_distance_hashmap
-                    .insert(shape1_name.to_string(), value_vec);
             }
         }
+
+
     }
     //  for (key, vec) in &self.scene_group_truth_distance_hashmap {
     //     for item in vec {
@@ -634,7 +636,7 @@ impl CollisionManager {
     ) -> Vec<ProximityInfo> {
         let mut result_vector: Vec<ProximityInfo> = vec![];
         let mut proximity_look_up: HashMap<(String, String), Vec<f64>> = HashMap::new();
-        let size = self.scene_collision_shapes_list.len().max(1);
+        let size = self.scene_collision_shapes_list.len();
         let default_transform = TransformInfo::default();
 
         if size != 0 {
