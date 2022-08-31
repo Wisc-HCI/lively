@@ -171,6 +171,11 @@ impl Solver {
         
         let xopt = self.xopt.clone();
         let xopt_core = self.xopt_core.clone();
+
+        if self.objective_set.objectives.len() == 0 {
+            return self.get_current_state();
+        }
+
         let mut rng: ThreadRng = thread_rng();
 
         // Update Goals for objectives if provided
@@ -215,6 +220,7 @@ impl Solver {
         // First, do xopt_core to develop a non-lively baseline
         self.xopt_core = self.solve_with_retries(xopt_core,true,self.only_core,&mut rng);
         self.vars.state_core = self.robot_model.get_state(&self.xopt_core,self.only_core);
+        // println!("State Core Frames {:?}",self.vars.state_core.frames);
         self.vars.history_core.update(&self.vars.state_core);
 
 
@@ -267,14 +273,18 @@ impl Solver {
                 &self.upper_bounds, 
                 self.max_iterations, 
                 is_core,
-                is_last
+                is_last,
+                &x.as_slice()
             );
-            if try_cost < best_cost {
+            if xopt.contains(&f64::NAN) {
+                xopt = x.clone();
+            } else if try_cost < best_cost {
                 best_x = xopt.clone();
                 best_cost = try_cost;
             }
             try_count += 1;
         }
+        // println!("Best {:?}",best_x);
         return best_x.to_vec();
     }
 
@@ -317,10 +327,12 @@ pub fn optimize(
     upper_bounds: &Vec<f64>,
     max_iter: usize,
     is_core: bool,
-    is_last: bool
+    is_last: bool,
+    orig_x: &[f64]
 ) -> f64 {
+
     let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
-        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u, is_core, is_last);
+        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u, is_core, is_last, orig_x);
         for i in 0..my_grad.len() {
             grad[i] = my_grad[i];
         }
@@ -328,7 +340,7 @@ pub fn optimize(
     };
 
     let f = |u: &[f64], c: &mut f64| -> Result<(), SolverError> {
-        *c = objective_set.call(&robot_model, &vars, u, is_core, is_last);
+        *c = objective_set.call(&robot_model, &vars, u, is_core, is_last, orig_x);
         Ok(())
     };
 
@@ -345,6 +357,8 @@ pub fn optimize(
 
     // Invoke the solver
     let result = panoc.solve(x);
+    // println!("Result Retrieved {:?}",result);
+
 
     match result {
         Err(_err) => return f64::INFINITY.clone(),
