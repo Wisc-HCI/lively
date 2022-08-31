@@ -469,7 +469,7 @@ fn main() {
     temp = Solver::new(
         data.clone(),
         objective_vec.clone(),
-        Some(scalar_range_vec.clone()),
+        None,//Some(scalar_range_vec.clone()),
         None,
         None,
         None,
@@ -477,6 +477,7 @@ fn main() {
         None,
         None,
     );
+    temp.compute_average_distance_table();
 
     let mut rng = rand::thread_rng();
 

@@ -300,8 +300,11 @@ impl Solver {
         for _ in 0..1000 {
             let mut x = self.xopt_core.clone();
             for i in 0..x.len() {
-                if self.upper_bounds[i] - self.lower_bounds[i] > 0.0 {
-                    x[i] = rng.gen_range(self.lower_bounds[i]..self.upper_bounds[i]);
+                let upper = self.upper_bounds[i].min(-50.0);
+                let lower = self.lower_bounds[i].max(50.0);
+                
+                if upper - lower > 0.0 {
+                    x[i] = rng.gen_range(lower..upper);
                 }
             }
             // println!("x: {:?}",x);
