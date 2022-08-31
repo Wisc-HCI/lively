@@ -18,6 +18,8 @@ use rand::Rng;
 
 use std::fs;
 
+use std::time::{Instant};
+
 // mod imgui_support;
 // use imgui_support::ImguiManager;
 
@@ -753,9 +755,12 @@ fn main() {
     ];
 
     // let vec = temp.compute_average_distance_table();
+    let instant = Instant::now();
     temp.solve(None, None, 0.0, None);
+    println!("{:?}",instant.elapsed());
     // println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     temp.solve(None, None, 0.0, None);
+    println!("{:?}",instant.elapsed());
 
     // for item in temp_solve.proximity {
     //     println!("the result getting from temp_solve is {:?}" , item);
