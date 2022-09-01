@@ -756,7 +756,7 @@ fn main() {
 
     // let vec = temp.compute_average_distance_table();
     let instant = Instant::now();
-    temp.solve(None, None, 0.0, None);
+    temp.solve(Some(vec![None]), None, 0.0, None);
     println!("{:?}",instant.elapsed());
     // println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     temp.solve(None, None, 0.0, None);

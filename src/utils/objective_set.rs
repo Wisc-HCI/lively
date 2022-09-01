@@ -24,7 +24,7 @@ impl ObjectiveSet {
     }
 
     pub fn gradient(&self, robot_model: &RobotModel, vars: &Vars, x: &[f64], is_core: bool, is_last: bool) -> (f64, Vec<f64>) {
-        // println!("Computing Gradient {:?}",x);
+        println!("Computing Gradient {:?}",x);
         let mut grad: Vec<f64> = vec![0.; x.len()];
         let f_0 = self.call(robot_model, vars, x, is_core, is_last);
         for i in 0..x.len() {
