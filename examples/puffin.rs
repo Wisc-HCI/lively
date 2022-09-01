@@ -13,7 +13,8 @@ use nalgebra::geometry::Isometry3;
 use nalgebra::geometry::Quaternion;
 use nalgebra::geometry::Translation3;
 use nalgebra::geometry::UnitQuaternion;
-
+use lively_tk_lib::utils::goals::{Goal};
+use std::collections::HashMap;
 use rand::Rng;
 
 use std::fs;
@@ -460,18 +461,17 @@ fn main() {
 
     }
 
-    let objective_vec: Vec<Objective> = vec![
-        lively_tk_lib::objectives::objective::Objective::PositionMatch(pos_match_obj),
-        // lively_tk_lib::objectives::objective::Objective::CollisionAvoidance(col_avoid_obj),
-        // lively_tk_lib::objectives::objective::Objective::SmoothnessMacro(smooth_macro_obj),
-    ];
+   
     
+    let mut objectives: HashMap<String,Objective> = HashMap::new();
+    objectives.insert("iowsdsfhwe".into(),Objective::PositionMatch(pos_match_obj));
+    objectives.insert("sdfsddsfes".into(),Objective::CollisionAvoidance(col_avoid_obj));
+    objectives.insert("dfawdaseas".into(),Objective::SmoothnessMacro(smooth_macro_obj));
 
     let mut 
     temp = Solver::new(
         data.clone(),
-        objective_vec.clone(),
-        //None,
+        objectives,
         Some(scalar_range_vec.clone()),
         None,
         None,
@@ -763,12 +763,19 @@ fn main() {
 
     ];
 
+
+    let mut goals: HashMap<String,Goal> = HashMap::new();
+    let mut weights: HashMap<String,f64> = HashMap::new();
+    goals.insert("iowsdsfhwe".into(),Goal::Translation(Translation3::new(0.5,0.0,0.5)));
+    weights.insert("iowsdsfhwe".into(),10.0);
+
+
     // let vec = temp.compute_average_distance_table();
     let instant = Instant::now();
-    temp.solve(Some(vec![None]), None, 0.0, Some(shape_update.clone()));
+    temp.solve(goals, weights, 0.0, Some(shape_update.clone()));
     println!("{:?}",instant.elapsed());
     // println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    temp.solve(None, None, 0.0, Some(shape_update));
+    //temp.solve(None, None, 0.0, Some(shape_update));
     println!("{:?}",instant.elapsed());
 
 

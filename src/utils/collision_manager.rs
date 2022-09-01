@@ -753,118 +753,148 @@ impl CollisionManager {
                             .contains_key(id)
                         {
                             println!("WARNING: overwriting the shape because another transient shape with the same id already exist in the scene");
+                            let temp = self.scene_optima_transient_shapes_look_up.clone();
+                            let index_vec = temp.get(id).unwrap();
                             if box_object.frame == "world" {
-                                let shape2_transform = TransformInfo::default().world;
-                                let index_vec =
-                                    self.scene_optima_transient_shapes_look_up.get(id).unwrap();
-                                let mut counter = 0;
-                                for (frame, shapes_vec) in
-                                    self.scene_group_truth_distance_hashmap.clone()
-                                {
-                                    if shapes_vec.len() == 0 {
-                                        break;
-                                    }
-                                    let index = index_vec.1.get(counter).unwrap();
-                                    match index {
-                                        Some(index) => {
-                                            let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
-                                                vec![(
-                                                    box_object.local_transform.clone(),
-                                                    box_collider.clone(),
-                                                )];
-                                            let shape2 = Compound::new(shape_vec);
-                                            let shape2_radius =
-                                                shape2.local_bounding_sphere().radius;
+                                // if replace shape is world frame
+                                if index_vec.0 == box_object.frame {
+                                    // if original frame is world
+                                    let mut new_index_vec: Vec<Option<usize>> = vec![];
+                                    let shape2_transform = TransformInfo::default().world;
+                                    let index_vec =
+                                        self.scene_optima_transient_shapes_look_up.get(id).unwrap();
+                                    let mut counter = 0;
+                                    for (frame, shapes_vec) in
+                                        self.scene_group_truth_distance_hashmap.clone()
+                                    {
+                                        if shapes_vec.len() == 0 {
+                                            break;
+                                        }
 
-                                            println!(
-                                                "leng for shapes_vec is {:?} and index is {:?}",
-                                                shapes_vec.len(),
-                                                index
-                                            );
-                                            let (
-                                                _,
-                                                shape1,
-                                                _,
-                                                rad1,
-                                                _,
-                                                shape1_transform,
-                                                _,
-                                                shape1_name,
-                                                _,
-                                            ) = shapes_vec.get(*index).unwrap();
+                                        let index = index_vec.1.get(counter).unwrap();
+                                        match index {
+                                            Some(index) => {
+                                                let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
+                                                    vec![(
+                                                        box_object.local_transform.clone(),
+                                                        box_collider.clone(),
+                                                    )];
+                                                let shape2 = Compound::new(shape_vec);
+                                                let shape2_radius =
+                                                    shape2.local_bounding_sphere().radius;
 
-                                            match parry3d_f64::query::contact(
-                                                shape1_transform,
-                                                shape1,
-                                                &shape2_transform,
-                                                &shape2.clone(),
-                                                self.d_max,
-                                            ) {
-                                                Ok(contact) => match contact {
-                                                    Some(valid_contact) => {
-                                                        let proximity = ProximityInfo::new(
-                                                            shape1_name.to_string(),
-                                                            box_object.name.to_string(),
-                                                            valid_contact.dist,
-                                                            Some((
-                                                                valid_contact.point1,
-                                                                valid_contact.point2,
-                                                            )),
-                                                            true && box_object.physical,
-                                                            self.compute_loss_with_cutoff(
-                                                                &valid_contact.dist,
-                                                                &1.0,
-                                                            ),
-                                                            None,
-                                                        );
-                                                        let mut_vec = self
-                                                            .scene_group_truth_distance_hashmap
-                                                            .get_mut(&frame)
-                                                            .unwrap();
-                                                        mut_vec.push((
-                                                            proximity,
-                                                            shape1.clone(),
-                                                            shape2.clone(),
-                                                            *rad1,
-                                                            shape2_radius,
-                                                            *shape1_transform,
-                                                            shape2_transform,
-                                                            shape1_name.to_string(),
-                                                            box_object.name.to_string(),
-                                                        ));
+                                                println!(
+                                                    "leng for shapes_vec is {:?} and index is {:?}",
+                                                    shapes_vec.len(),
+                                                    index
+                                                );
+                                                let (
+                                                    old_proximity,
+                                                    shape1,
+                                                    _,
+                                                    rad1,
+                                                    _,
+                                                    shape1_transform,
+                                                    _,
+                                                    shape1_frame,
+                                                    _,
+                                                ) = shapes_vec.get(*index).unwrap();
+
+                                                match parry3d_f64::query::contact(
+                                                    shape1_transform,
+                                                    shape1,
+                                                    &shape2_transform,
+                                                    &shape2.clone(),
+                                                    self.d_max,
+                                                ) {
+                                                    Ok(contact) => match contact {
+                                                        Some(valid_contact) => {
+                                                            let proximity = ProximityInfo::new(
+                                                                old_proximity.shape1.to_string(),
+                                                                box_object.name.to_string(),
+                                                                valid_contact.dist,
+                                                                Some((
+                                                                    valid_contact.point1,
+                                                                    valid_contact.point2,
+                                                                )),
+                                                                true && box_object.physical,
+                                                                self.compute_loss_with_cutoff(
+                                                                    &valid_contact.dist,
+                                                                    &old_proximity
+                                                                        .average_distance
+                                                                        .unwrap_or(1.0),
+                                                                ),
+                                                                old_proximity.average_distance,
+                                                            );
+                                                            let mut_vec = self
+                                                                .scene_group_truth_distance_hashmap
+                                                                .get_mut(&frame)
+                                                                .unwrap();
+                                                            mut_vec.remove(*index); // delete old world transient shapes
+                                                            mut_vec.push((
+                                                                // add in new world transient shape
+                                                                proximity,
+                                                                shape1.clone(),
+                                                                shape2.clone(),
+                                                                *rad1,
+                                                                shape2_radius,
+                                                                *shape1_transform,
+                                                                shape2_transform,
+                                                                shape1_frame.to_string(),
+                                                                box_object.frame.to_string(),
+                                                            ));
+                                                            new_index_vec
+                                                                .push(Some(mut_vec.len() - 1));
+                                                        }
+                                                        None => {
+                                                            new_index_vec.push(None);
+                                                        }
+                                                    },
+                                                    Err(_) => {
+                                                        new_index_vec.push(None);
                                                     }
-                                                    None => {}
-                                                },
-                                                Err(_) => {}
+                                                }
+                                            }
+                                            None => {
+                                                continue;
                                             }
                                         }
-                                        None => {}
+                                        counter += 1;
                                     }
-                                    counter += 1;
-                                }
-                            } else {
-                                match self
-                                    .scene_group_truth_distance_hashmap
-                                    .clone()
-                                    .get(&box_object.frame)
-                                {
-                                    Some(shapes_vec) => {
-                                        let temp =
-                                            self.scene_optima_transient_shapes_look_up.clone();
-                                        let index_vec = temp.get(id).unwrap();
-                                        let mut new_shapes_vec: Vec<(
-                                            ProximityInfo,
-                                            Compound,
-                                            Compound,
-                                            f64,
-                                            f64,
-                                            Isometry3<f64>,
-                                            Isometry3<f64>,
-                                            String,
-                                            String,
-                                        )> = vec![];
-                                        let mut counter = 0;
-                                        if index_vec.0 == box_object.frame {
+                                    self.scene_optima_transient_shapes_look_up.remove_entry(id);
+                                    self.scene_optima_transient_shapes_look_up.insert(
+                                        id.to_string(),
+                                        (
+                                            "world".to_string(),
+                                            new_index_vec,
+                                            box_object.clone().name,
+                                        ),
+                                    );
+                                } else {
+                                    // if original frame is not world 1. delete all transient shapes for that frame. 2. add the world transient in per each frame.
+                                    match self
+                                        .scene_group_truth_distance_hashmap
+                                        .clone()
+                                        .get(&box_object.frame)
+                                    {
+                                        Some(shapes_vec) => {
+                                            //1. delete all transient shapes for that frame.
+                                            let temp =
+                                                self.scene_optima_transient_shapes_look_up.clone();
+                                            let index_vec = temp.get(id).unwrap();
+                                            let mut new_shapes_vec: Vec<(
+                                                ProximityInfo,
+                                                Compound,
+                                                Compound,
+                                                f64,
+                                                f64,
+                                                Isometry3<f64>,
+                                                Isometry3<f64>,
+                                                String,
+                                                String,
+                                            )> = vec![];
+                                            let mut counter = 0;
+
                                             for (
                                                 old_proximity,
                                                 old_shape1,
@@ -877,7 +907,6 @@ impl CollisionManager {
                                                 shape2_name,
                                             ) in shapes_vec
                                             {
-                                                println!("{:?} : shapes_vec len is {:?} , index_vec len is {:?} and counter is {:?}" , shape1_name ,shapes_vec.len(),index_vec.1.len(), counter);
                                                 let index = index_vec.1.get(counter).unwrap();
                                                 match index {
                                                     Some(index) => {
@@ -902,20 +931,20 @@ impl CollisionManager {
                                                             Ok(contact) => match contact {
                                                                 Some(valid_contact) => {
                                                                     let proximity = ProximityInfo::new(
-                                                                    shape1_name.to_string(),
-                                                                    shape2_name.to_string(),
-                                                                    valid_contact.dist,
-                                                                    Some((
-                                                                        valid_contact.point1,
-                                                                        valid_contact.point2,
-                                                                    )),
-                                                                    old_proximity.physical,
-                                                                    self.compute_loss_with_cutoff(
-                                                                        &valid_contact.dist,
-                                                                        &old_proximity.average_distance.unwrap_or(1.0),
-                                                                    ),
-                                                                    old_proximity.average_distance,
-                                                                );
+                                                                shape1_name.to_string(),
+                                                                shape2_name.to_string(),
+                                                                valid_contact.dist,
+                                                                Some((
+                                                                    valid_contact.point1,
+                                                                    valid_contact.point2,
+                                                                )),
+                                                                old_proximity.physical,
+                                                                self.compute_loss_with_cutoff(
+                                                                    &valid_contact.dist,
+                                                                    &old_proximity.average_distance.unwrap_or(1.0),
+                                                                ),
+                                                                old_proximity.average_distance,
+                                                            );
                                                                     new_shapes_vec.push((
                                                                         proximity,
                                                                         new_shape1,
@@ -943,9 +972,192 @@ impl CollisionManager {
                                                 box_object.frame.to_string(),
                                                 new_shapes_vec,
                                             );
-                                            println!("shape updated for {:?}", box_object.frame);
-                                        } else {
-                                            // delete the previous shapes
+                                            self.scene_optima_transient_shapes_look_up.remove(id);
+
+                                            //2. add the world transient in per each frame.
+                                            let shape2_transform = TransformInfo::default().world;
+                                            let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
+                                                vec![(
+                                                    box_object.local_transform.clone(),
+                                                    box_collider.clone(),
+                                                )];
+                                            let shape2 = Compound::new(shape_vec);
+                                            let shape2_radius =
+                                                shape2.local_bounding_sphere().radius;
+                                            let mut index_vec: Vec<Option<usize>> = vec![];
+                                            for (shape1_name, shapes_vec) in
+                                                self.scene_group_truth_distance_hashmap.clone()
+                                            {
+                                                if shapes_vec.len() == 0 {
+                                                    break;
+                                                }
+                                                let shape1_transform =
+                                                    &shapes_vec.get(0).unwrap().5;
+                                                let shape1_radius = &shapes_vec.get(0).unwrap().3;
+                                                let shape1 = &shapes_vec.get(0).unwrap().1;
+                                                match parry3d_f64::query::contact(
+                                                    shape1_transform,
+                                                    shape1,
+                                                    &shape2_transform,
+                                                    &shape2.clone(),
+                                                    self.d_max,
+                                                ) {
+                                                    Ok(contact) => match contact {
+                                                        Some(valid_contact) => {
+                                                            let proximity = ProximityInfo::new(
+                                                                shape1_name.to_string(),
+                                                                box_object.name.to_string(),
+                                                                valid_contact.dist,
+                                                                Some((
+                                                                    valid_contact.point1,
+                                                                    valid_contact.point2,
+                                                                )),
+                                                                true && box_object.physical,
+                                                                self.compute_loss_with_cutoff(
+                                                                    &valid_contact.dist,
+                                                                    &1.0,
+                                                                ),
+                                                                None,
+                                                            );
+                                                            let mut_vec = self
+                                                                .scene_group_truth_distance_hashmap
+                                                                .get_mut(&shape1_name.clone())
+                                                                .unwrap();
+                                                            mut_vec.push((
+                                                                proximity,
+                                                                shape1.clone(),
+                                                                shape2.clone(),
+                                                                *shape1_radius,
+                                                                shape2_radius,
+                                                                *shape1_transform,
+                                                                shape2_transform,
+                                                                shape1_name.to_string(),
+                                                                box_object.name.to_string(),
+                                                            ));
+                                                            index_vec.push(Some(mut_vec.len() - 1));
+                                                        }
+                                                        None => {
+                                                            index_vec.push(None);
+                                                        }
+                                                    },
+                                                    Err(_) => {
+                                                        index_vec.push(None);
+                                                    }
+                                                }
+                                            }
+                                            self.scene_optima_transient_shapes_look_up.insert(
+                                                id.to_string(),
+                                                (
+                                                    box_object.frame.to_string(),
+                                                    index_vec.clone(),
+                                                    box_object.name.to_string(),
+                                                ),
+                                            );
+                                        }
+                                        None => {}
+                                    }
+                                }
+                            } else {
+                                // if replace transient shape is not world frame
+
+                                if index_vec.0 == "world" {
+                                    // 1. if original frame is world
+                                    let mut new_index_vec: Vec<Option<usize>> = vec![];
+                                    let shape2_transform = TransformInfo::default().world;
+                                    let index_vec =
+                                        self.scene_optima_transient_shapes_look_up.get(id).unwrap();
+                                    let mut counter = 0;
+                                    for (frame, shapes_vec) in
+                                        self.scene_group_truth_distance_hashmap.clone()
+                                    {
+                                        if shapes_vec.len() == 0 {
+                                            break;
+                                        }
+
+                                        let index = index_vec.1.get(counter).unwrap();
+                                        match index {
+                                            Some(index) => {
+                                                let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
+                                                    vec![(
+                                                        box_object.local_transform.clone(),
+                                                        box_collider.clone(),
+                                                    )];
+                                                let shape2 = Compound::new(shape_vec);
+                                                let shape2_radius =
+                                                    shape2.local_bounding_sphere().radius;
+
+                                                println!(
+                                                    "leng for shapes_vec is {:?} and index is {:?}",
+                                                    shapes_vec.len(),
+                                                    index
+                                                );
+                                                let (
+                                                    old_proximity,
+                                                    shape1,
+                                                    _,
+                                                    rad1,
+                                                    _,
+                                                    shape1_transform,
+                                                    _,
+                                                    shape1_frame,
+                                                    _,
+                                                ) = shapes_vec.get(*index).unwrap();
+
+                                                match parry3d_f64::query::contact(
+                                                    shape1_transform,
+                                                    shape1,
+                                                    &shape2_transform,
+                                                    &shape2.clone(),
+                                                    self.d_max,
+                                                ) {
+                                                    Ok(contact) => match contact {
+                                                        Some(valid_contact) => {
+                                                            let proximity = ProximityInfo::new(
+                                                                old_proximity.shape1.to_string(),
+                                                                box_object.name.to_string(),
+                                                                valid_contact.dist,
+                                                                Some((
+                                                                    valid_contact.point1,
+                                                                    valid_contact.point2,
+                                                                )),
+                                                                true && box_object.physical,
+                                                                self.compute_loss_with_cutoff(
+                                                                    &valid_contact.dist,
+                                                                    &old_proximity
+                                                                        .average_distance
+                                                                        .unwrap_or(1.0),
+                                                                ),
+                                                                old_proximity.average_distance,
+                                                            );
+                                                            let mut_vec = self
+                                                                .scene_group_truth_distance_hashmap
+                                                                .get_mut(&frame)
+                                                                .unwrap();
+                                                            mut_vec.remove(*index);
+                                                            // delete old world transient shapes
+                                                        }
+                                                        None => {}
+                                                    },
+                                                    Err(_) => {}
+                                                }
+                                            }
+                                            None => {
+                                                continue;
+                                            }
+                                        }
+                                        counter += 1;
+                                    }
+                                    self.scene_optima_transient_shapes_look_up.remove_entry(id);
+
+                                    //add in the non world transient shapes.
+
+                                    let mut index_vec: Vec<Option<usize>> = vec![];
+                                    match self
+                                        .scene_group_truth_distance_hashmap
+                                        .clone()
+                                        .get(&box_object.frame)
+                                    {
+                                        Some(shapes_vec) => {
                                             let mut new_shapes_vec: Vec<(
                                                 ProximityInfo,
                                                 Compound,
@@ -958,7 +1170,76 @@ impl CollisionManager {
                                                 String,
                                             )> = vec![];
 
-                                            let index = index_vec.1.get(0).unwrap();
+                                            for item in shapes_vec {
+                                                let mut temp_vec = item.1.shapes().to_vec();
+                                                temp_vec.push((
+                                                    box_object.local_transform,
+                                                    box_collider.clone(),
+                                                ));
+
+                                                let new_shape1 = Compound::new(temp_vec.clone());
+                                                let new_shape1_radius =
+                                                    new_shape1.local_bounding_sphere().radius;
+
+                                                match parry3d_f64::query::contact(
+                                                    &item.5,
+                                                    &new_shape1,
+                                                    &item.6,
+                                                    &item.2,
+                                                    self.d_max,
+                                                ) {
+                                                    Ok(contact) => match contact {
+                                                        Some(valid_contact) => {
+                                                            let new_proximity = ProximityInfo::new(
+                                                                item.7.to_string(),
+                                                                item.8.to_string(),
+                                                                valid_contact.dist,
+                                                                Some((
+                                                                    valid_contact.point1,
+                                                                    valid_contact.point2,
+                                                                )),
+                                                                item.0.physical,
+                                                                self.compute_loss_with_cutoff(
+                                                                    &valid_contact.dist,
+                                                                    &item
+                                                                        .0
+                                                                        .average_distance
+                                                                        .unwrap_or(1.0),
+                                                                ),
+                                                                item.0.average_distance,
+                                                            );
+
+                                                            new_shapes_vec.push((
+                                                                new_proximity,
+                                                                new_shape1,
+                                                                item.2.clone(),
+                                                                new_shape1_radius,
+                                                                item.4,
+                                                                item.5,
+                                                                item.6,
+                                                                item.7.to_string(),
+                                                                item.8.to_string(),
+                                                            ));
+                                                            index_vec
+                                                                .push(Some(temp_vec.len() - 1));
+                                                        }
+                                                        None => {
+                                                            index_vec.push(None);
+                                                        }
+                                                    },
+                                                    Err(_) => {
+                                                        index_vec.push(None);
+                                                    }
+                                                }
+                                            }
+
+                                            self.scene_group_truth_distance_hashmap
+                                                .remove_entry(&box_object.frame);
+                                            self.scene_group_truth_distance_hashmap.insert(
+                                                box_object.frame.to_string(),
+                                                new_shapes_vec.clone(),
+                                            );
+                                            println!("{:?} : testing: new_shapes_vec len is {:?} , and index_vec len is {:?} " ,box_object.frame, new_shapes_vec.clone().len(),index_vec.len());
                                             for (frame_name, shapes_vec) in
                                                 self.scene_group_truth_distance_hashmap.clone()
                                             {
@@ -968,208 +1249,253 @@ impl CollisionManager {
                                                     shapes_vec.len()
                                                 );
                                             }
+                                            self.scene_optima_transient_shapes_look_up.insert(
+                                                id.to_string(),
+                                                (
+                                                    box_object.frame.to_string(),
+                                                    index_vec,
+                                                    box_object.name.to_string(),
+                                                ),
+                                            );
+                                            println!(
+                                                "not contain ID, world, shape updated for {:?}",
+                                                box_object.frame
+                                            );
+                                        }
+                                        None => {}
+                                    }
+                                } else {
+                                    // 2. if orginal frame is not world
+                                    // check if replace shape has valid frame
+                                    //1. delete all the old transient shapes
+                                    match self
+                                        .scene_group_truth_distance_hashmap
+                                        .clone()
+                                        .get(&box_object.frame)
+                                    {
+                                        Some(shapes_vec) => {
+                                            //1. delete all transient shapes for that frame.
+                                            let temp =
+                                                self.scene_optima_transient_shapes_look_up.clone();
+                                            let index_vec = temp.get(id).unwrap();
+                                            let mut new_shapes_vec: Vec<(
+                                                ProximityInfo,
+                                                Compound,
+                                                Compound,
+                                                f64,
+                                                f64,
+                                                Isometry3<f64>,
+                                                Isometry3<f64>,
+                                                String,
+                                                String,
+                                            )> = vec![];
+                                            let mut counter = 0;
+
+                                            for (
+                                                old_proximity,
+                                                old_shape1,
+                                                shape2,
+                                                _,
+                                                rad2,
+                                                shape1_transform,
+                                                shape2_transform,
+                                                shape1_name,
+                                                shape2_name,
+                                            ) in shapes_vec
+                                            {
+                                                let index = index_vec.1.get(counter).unwrap();
+                                                match index {
+                                                    Some(index) => {
+                                                        let mut shape1 =
+                                                            old_shape1.shapes().to_vec();
+                                                        shape1[*index] = (
+                                                            box_object.local_transform,
+                                                            box_collider.clone(),
+                                                        );
+                                                        let new_shape1 = Compound::new(shape1);
+                                                        let new_shape1_rad = new_shape1
+                                                            .local_bounding_sphere()
+                                                            .radius;
+
+                                                        match parry3d_f64::query::contact(
+                                                            shape1_transform,
+                                                            &new_shape1,
+                                                            &shape2_transform,
+                                                            &shape2.clone(),
+                                                            self.d_max,
+                                                        ) {
+                                                            Ok(contact) => match contact {
+                                                                Some(valid_contact) => {
+                                                                    let proximity = ProximityInfo::new(
+                                                                shape1_name.to_string(),
+                                                                shape2_name.to_string(),
+                                                                valid_contact.dist,
+                                                                Some((
+                                                                    valid_contact.point1,
+                                                                    valid_contact.point2,
+                                                                )),
+                                                                old_proximity.physical,
+                                                                self.compute_loss_with_cutoff(
+                                                                    &valid_contact.dist,
+                                                                    &old_proximity.average_distance.unwrap_or(1.0),
+                                                                ),
+                                                                old_proximity.average_distance,
+                                                            );
+                                                                    new_shapes_vec.push((
+                                                                        proximity,
+                                                                        new_shape1,
+                                                                        shape2.clone(),
+                                                                        new_shape1_rad,
+                                                                        *rad2,
+                                                                        *shape1_transform,
+                                                                        *shape2_transform,
+                                                                        shape1_name.to_string(),
+                                                                        shape2_name.to_string(),
+                                                                    ));
+                                                                }
+                                                                None => {}
+                                                            },
+                                                            Err(_) => {}
+                                                        }
+                                                    }
+                                                    None => {}
+                                                }
+                                                counter += 1;
+                                            }
+                                            self.scene_group_truth_distance_hashmap
+                                                .remove_entry(&box_object.frame);
+                                            self.scene_group_truth_distance_hashmap.insert(
+                                                box_object.frame.to_string(),
+                                                new_shapes_vec,
+                                            );
+                                            self.scene_optima_transient_shapes_look_up.remove(id);
+
+                                            //2. add in the new transient shapes.
+                                            let mut index_vec: Vec<Option<usize>> = vec![];
                                             match self
                                                 .scene_group_truth_distance_hashmap
                                                 .clone()
-                                                .get(&index_vec.0)
+                                                .get(&box_object.frame)
                                             {
                                                 Some(shapes_vec) => {
-                                                    'a: for (
-                                                        old_proximity,
-                                                        shape1,
-                                                        shape2,
-                                                        _,
-                                                        rad2,
-                                                        shape1_transform,
-                                                        shape2_transform,
-                                                        shape1_name,
-                                                        shape2_name,
-                                                    ) in shapes_vec
-                                                    {
-                                                        println!("{:?}: len of shapes_vec is : {:?} and index_vec.len is {:?},counter is {:?}" , index_vec.0, shapes_vec.len(),index_vec.1.len(),counter );
+                                                    let mut new_shapes_vec: Vec<(
+                                                        ProximityInfo,
+                                                        Compound,
+                                                        Compound,
+                                                        f64,
+                                                        f64,
+                                                        Isometry3<f64>,
+                                                        Isometry3<f64>,
+                                                        String,
+                                                        String,
+                                                    )> = vec![];
 
-                                                        match index {
-                                                            Some(index) => {
-                                                                let mut new_shape1_vec =
-                                                                    shape1.shapes().to_vec();
-                                                                new_shape1_vec.remove(*index);
-                                                                let new_shape1 =
-                                                                    Compound::new(new_shape1_vec);
-                                                                let new_shape1_rad = new_shape1
-                                                                    .local_bounding_sphere()
-                                                                    .radius;
+                                                    for item in shapes_vec {
+                                                        let mut temp_vec = item.1.shapes().to_vec();
+                                                        temp_vec.push((
+                                                            box_object.local_transform,
+                                                            box_collider.clone(),
+                                                        ));
 
-                                                                match parry3d_f64::query::contact(
-                                                                    shape1_transform,
-                                                                    shape1,
-                                                                    &shape2_transform,
-                                                                    &shape2.clone(),
-                                                                    self.d_max,
-                                                                ) {
-                                                                    Ok(contact) => {
-                                                                        match contact {
-                                                                            Some(valid_contact) => {
-                                                                                let proximity = ProximityInfo::new(
-                                                                                shape1_name.to_string(),
-                                                                                shape2_name.to_string(),
-                                                                                valid_contact.dist,
-                                                                                Some((
-                                                                                    valid_contact.point1,
-                                                                                    valid_contact.point2,
-                                                                                )),
-                                                                                old_proximity.physical,
-                                                                                self.compute_loss_with_cutoff(
-                                                                                    &valid_contact.dist,
-                                                                                    &old_proximity.average_distance.unwrap_or(1.0),
-                                                                                ),
-                                                                                old_proximity.average_distance,
-                                                                            );
-                                                                                new_shapes_vec.push((proximity,new_shape1,shape2.clone(),new_shape1_rad,*rad2,*shape1_transform,*shape2_transform,shape1_name.to_string(),shape2_name.to_string()));
-                                                                            }
-                                                                            None => {
-                                                                                continue 'a;
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    Err(_) => {}
+                                                        let new_shape1 =
+                                                            Compound::new(temp_vec.clone());
+                                                        let new_shape1_radius = new_shape1
+                                                            .local_bounding_sphere()
+                                                            .radius;
+
+                                                        match parry3d_f64::query::contact(
+                                                            &item.5,
+                                                            &new_shape1,
+                                                            &item.6,
+                                                            &item.2,
+                                                            self.d_max,
+                                                        ) {
+                                                            Ok(contact) => match contact {
+                                                                Some(valid_contact) => {
+                                                                    let new_proximity = ProximityInfo::new(
+                                                            item.7.to_string(),
+                                                            item.8.to_string(),
+                                                            valid_contact.dist,
+                                                            Some((
+                                                                valid_contact.point1,
+                                                                valid_contact.point2,
+                                                            )),
+                                                            item.0.physical,
+                                                            self.compute_loss_with_cutoff(
+                                                                &valid_contact.dist,
+                                                                &item
+                                                                    .0
+                                                                    .average_distance
+                                                                    .unwrap_or(1.0),
+                                                            ),
+                                                            item.0.average_distance,
+                                                        );
+
+                                                                    new_shapes_vec.push((
+                                                                        new_proximity,
+                                                                        new_shape1,
+                                                                        item.2.clone(),
+                                                                        new_shape1_radius,
+                                                                        item.4,
+                                                                        item.5,
+                                                                        item.6,
+                                                                        item.7.to_string(),
+                                                                        item.8.to_string(),
+                                                                    ));
+                                                                    index_vec.push(Some(
+                                                                        temp_vec.len() - 1,
+                                                                    ));
                                                                 }
-                                                            }
-                                                            None => {
-                                                                continue 'a;
+                                                                None => {
+                                                                    index_vec.push(None);
+                                                                }
+                                                            },
+                                                            Err(_) => {
+                                                                index_vec.push(None);
                                                             }
                                                         }
                                                     }
+
                                                     self.scene_group_truth_distance_hashmap
-                                                        .remove_entry(&index_vec.0);
+                                                        .remove_entry(&box_object.frame);
                                                     self.scene_group_truth_distance_hashmap.insert(
-                                                        index_vec.0.to_string(),
+                                                        box_object.frame.to_string(),
                                                         new_shapes_vec.clone(),
                                                     );
-                                                    self.scene_optima_transient_shapes_look_up
-                                                        .remove_entry(id);
-                                                    println!("delete and insert done for {:?} with new_shapes_vec.len() of {:?}" , index_vec.0,new_shapes_vec.clone().len());
-
-
-                                                    let mut index_vec: Vec<Option<usize>> = vec![];
-                                                    match self
+                                                    println!("{:?} : testing: new_shapes_vec len is {:?} , and index_vec len is {:?} " ,box_object.frame, new_shapes_vec.clone().len(),index_vec.len());
+                                                    for (frame_name, shapes_vec) in self
                                                         .scene_group_truth_distance_hashmap
                                                         .clone()
-                                                        .get(&box_object.frame)
                                                     {
-                                                        Some(shapes_vec) => {
-                                                            let mut new_shapes_vec: Vec<(
-                                                                ProximityInfo,
-                                                                Compound,
-                                                                Compound,
-                                                                f64,
-                                                                f64,
-                                                                Isometry3<f64>,
-                                                                Isometry3<f64>,
-                                                                String,
-                                                                String,
-                                                            )> = vec![];
-                    
-                                                            for item in shapes_vec {
-                                                                let mut temp_vec = item.1.shapes().to_vec();
-                                                                temp_vec.push((
-                                                                    box_object.local_transform,
-                                                                    box_collider.clone(),
-                                                                ));
-                    
-                                                                let new_shape1 = Compound::new(temp_vec.clone());
-                                                                let new_shape1_radius =
-                                                                    new_shape1.local_bounding_sphere().radius;
-                    
-                                                                match parry3d_f64::query::contact(
-                                                                    &item.5,
-                                                                    &new_shape1,
-                                                                    &item.6,
-                                                                    &item.2,
-                                                                    self.d_max,
-                                                                ) {
-                                                                    Ok(contact) => match contact {
-                                                                        Some(valid_contact) => {
-                                                                            let new_proximity = ProximityInfo::new(
-                                                                                item.7.to_string(),
-                                                                                item.8.to_string(),
-                                                                                valid_contact.dist,
-                                                                                Some((
-                                                                                    valid_contact.point1,
-                                                                                    valid_contact.point2,
-                                                                                )),
-                                                                                item.0.physical,
-                                                                                self.compute_loss_with_cutoff(
-                                                                                    &valid_contact.dist,
-                                                                                    &item
-                                                                                        .0
-                                                                                        .average_distance
-                                                                                        .unwrap_or(1.0),
-                                                                                ),
-                                                                                item.0.average_distance,
-                                                                            );
-                    
-                                                                            new_shapes_vec.push((
-                                                                                new_proximity,
-                                                                                new_shape1,
-                                                                                item.2.clone(),
-                                                                                new_shape1_radius,
-                                                                                item.4,
-                                                                                item.5,
-                                                                                item.6,
-                                                                                item.7.to_string(),
-                                                                                item.8.to_string(),
-                                                                            ));
-                                                                            index_vec.push(Some(temp_vec.len() - 1));
-                                                                        }
-                                                                        None => {
-                                                                            index_vec.push(None);
-                                                                        }
-                                                                    },
-                                                                    Err(_) => {
-                                                                        index_vec.push(None);
-                                                                    }
-                                                                }
-                                                            }
-                    
-                                                            self.scene_group_truth_distance_hashmap
-                                                                .remove_entry(&box_object.frame);
-                                                            self.scene_group_truth_distance_hashmap.insert(
-                                                                box_object.frame.to_string(),
-                                                                new_shapes_vec.clone(),
-                                                            );
-                                                            println!("{:?} : testing: new_shapes_vec len is {:?} , and index_vec len is {:?} " ,box_object.frame, new_shapes_vec.clone().len(),index_vec.len());
-                                                            for (frame_name, shapes_vec) in
-                                                                self.scene_group_truth_distance_hashmap.clone()
-                                                            {
-                                                                println!(
-                                                                    "{:?} , {:?}",
-                                                                    frame_name.to_string(),
-                                                                    shapes_vec.len()
-                                                                );
-                                                            }
-                                                            self.scene_optima_transient_shapes_look_up.insert(
-                                                                id.to_string(),
-                                                                (
-                                                                    box_object.frame.to_string(),
-                                                                    index_vec,
-                                                                    box_object.name.to_string(),
-                                                                ),
-                                                            );
-                                                            println!(
-                                                                "contain ID, world, shape updated for {:?}",
-                                                                box_object.frame
-                                                            );
-                                                        }
-                                                        None => {}
+                                                        println!(
+                                                            "{:?} , {:?}",
+                                                            frame_name.to_string(),
+                                                            shapes_vec.len()
+                                                        );
                                                     }
+                                                    self.scene_optima_transient_shapes_look_up
+                                                        .insert(
+                                                            id.to_string(),
+                                                            (
+                                                                box_object.frame.to_string(),
+                                                                index_vec,
+                                                                box_object.name.to_string(),
+                                                            ),
+                                                        );
+                                                    println!(
+                                            "not contain ID, world, shape updated for {:?}",
+                                            box_object.frame
+                                        );
                                                 }
                                                 None => {}
                                             }
                                         }
+                                        None => {}
                                     }
-                                    None => {}
                                 }
                             }
+
+                            // 2.
                         } else {
                             if box_object.frame == "world" {
                                 let shape2_transform = TransformInfo::default().world;
