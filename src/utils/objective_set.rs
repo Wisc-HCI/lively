@@ -11,7 +11,7 @@ pub struct ObjectiveSet {
 
 impl ObjectiveSet {
     pub fn new(objectives: &Vec<Objective>) -> Self {
-        Self { objectives: objectives.clone(), baseline: VelocityMinimizationObjective::new("Baseline".into(),0.1)}
+        Self { objectives: objectives.clone(), baseline: VelocityMinimizationObjective::new("Baseline".into(),1.0)}
     }
 
     pub fn call(&self, robot_model: &RobotModel, vars: &Vars, x: &[f64], is_core: bool, is_last: bool) -> f64 {
