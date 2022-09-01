@@ -273,12 +273,9 @@ impl Solver {
                 &self.upper_bounds, 
                 self.max_iterations, 
                 is_core,
-                is_last,
-                &x.as_slice()
+                is_last
             );
-            if xopt.contains(&f64::NAN) {
-                xopt = x.clone();
-            } else if try_cost < best_cost {
+            if try_cost < best_cost {
                 best_x = xopt.clone();
                 best_cost = try_cost;
             }
@@ -330,12 +327,11 @@ pub fn optimize(
     upper_bounds: &Vec<f64>,
     max_iter: usize,
     is_core: bool,
-    is_last: bool,
-    orig_x: &[f64]
+    is_last: bool
 ) -> f64 {
 
     let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
-        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u, is_core, is_last, orig_x);
+        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u, is_core, is_last);
         for i in 0..my_grad.len() {
             grad[i] = my_grad[i];
         }
@@ -343,7 +339,7 @@ pub fn optimize(
     };
 
     let f = |u: &[f64], c: &mut f64| -> Result<(), SolverError> {
-        *c = objective_set.call(&robot_model, &vars, u, is_core, is_last, orig_x);
+        *c = objective_set.call(&robot_model, &vars, u, is_core, is_last);
         Ok(())
     };
 
