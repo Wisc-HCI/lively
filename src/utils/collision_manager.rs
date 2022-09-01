@@ -10,6 +10,7 @@ use parry3d_f64::shape::*;
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
+use std::cmp::Ordering;
 //use std::time::{Duration, Instant};
 //use instant::{now};
 use instant::{Duration, Instant};
@@ -4084,7 +4085,7 @@ impl CollisionManager {
         // }
         // println!("-------------------------------------------------");
         if loss_functions_error_vec.len() > 1 {
-            loss_functions_error_vec.sort_by(|a, b| b.4.partial_cmp(&a.4).unwrap());
+            loss_functions_error_vec.sort_unstable_by(|a, b| b.4.partial_cmp(&a.4).unwrap_or(Ordering::Equal));
         }
 
         return loss_functions_error_vec;
