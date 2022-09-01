@@ -36,7 +36,7 @@ pub struct Solver {
 impl Solver {
     pub fn new(
         urdf: String, 
-        objectives: Vec<Objective>, 
+        objectives: HashMap<String,Objective>, 
         root_bounds: Option<Vec<(f64,f64)>>,
         shapes: Option<Vec<Shape>>,
         initial_state: Option<State>,
@@ -131,7 +131,7 @@ impl Solver {
     pub fn reset(
         &mut self, 
         state: State,
-        weights: Option<Vec<Option<f64>>>
+        weights: HashMap<String,f64>
     ) -> () {
         // Hande the state updates
         // First update the robot model, and then use that for updating rest
@@ -143,28 +143,20 @@ impl Solver {
         self.robot_model.collision_manager.lock().unwrap().clear_all_transient_shapes();
 
         // Handle updating weights
-        match weights {
-            Some(new_weight_set) => {
-                for i in 0..new_weight_set.len() {
-                    match new_weight_set[i] {
-                        Some(new_weight) => {
-                            self.objective_set.objectives[i].set_weight(new_weight)
-                        },
-                        None => {}
-                    }
-                }
-            },
-            None => {}
+        for (key,weight) in &weights {
+            match self.objective_set.objectives.get_mut(key) {
+                Some(objective) => objective.set_weight(*weight),
+                _ => {}
+            }
         }
-
         ()
     }
     
     // #[profiling::function]
     pub fn solve(
         &mut self,
-        goals: Option<Vec<Option<Goal>>>,
-        weights: Option<Vec<Option<f64>>>,
+        goals: HashMap<String,Goal>,
+        weights: HashMap<String,f64>,
         time: f64,
         shape_updates: Option<Vec<ShapeUpdate>>
     ) -> State {
@@ -178,36 +170,16 @@ impl Solver {
 
         let mut rng: ThreadRng = thread_rng();
 
-        // Update Goals for objectives if provided
-        match goals {
-            Some(new_goal_set) => {
-                for i in 0..new_goal_set.len() {
-                    match &new_goal_set[i] {
-                        Some(goal) => self.objective_set.objectives[i].set_goal(goal),
-                        _ => {}
-                    }
-                }
-            },
-            None => {}
-        }
-
-        // Update Weights for objectives if provided
-        match weights {
-            Some(new_weight_set) => {
-                for i in 0..new_weight_set.len() {
-                    match new_weight_set[i] {
-                        Some(new_weight) => {
-                            self.objective_set.objectives[i].set_weight(new_weight)
-                        },
-                        None => {}
-                    }
-                }
-            },
-            None => {}
-        }
-
-        // Update liveliness objectives based on time
-        for objective in self.objective_set.objectives.iter_mut() {
+        // Update Goals/Objectives/Time for objectives if provided updates
+        for (key,objective) in &mut self.objective_set.objectives {
+            match goals.get(key) {
+                Some(goal) => objective.set_goal(goal),
+                _ => {}
+            }
+            match weights.get(key) {
+                Some(weight) => objective.set_weight(*weight),
+                _ => {}
+            }
             objective.update(time)
         }
 
@@ -285,7 +257,7 @@ impl Solver {
         return best_x.to_vec();
     }
 
-    pub fn set_objectives(&mut self, objectives: Vec<Objective>) {
+    pub fn set_objectives(&mut self, objectives: HashMap<String,Objective>) {
         self.objective_set.objectives = objectives;
     }
 
