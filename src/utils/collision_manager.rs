@@ -816,8 +816,7 @@ impl CollisionManager {
                                             if shapes_vec.len() == 0 {
                                                 break;
                                             }
-                        
-                                            let index = index_vec.1.get(counter).unwrap();
+                                            let index = index_vec.1.get(counter).unwrap_or(&None);
                                             match index {
                                                 Some(index) => {
                                                     let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
@@ -965,7 +964,7 @@ impl CollisionManager {
                                                     shape2_name,
                                                 ) in shapes_vec
                                                 {
-                                                    let index = index_vec.1.get(counter).unwrap();
+                                                    let index = index_vec.1.get(counter).unwrap_or(&None);
                                                     match index {
                                                         Some(index) => {
                                                             let mut shape1 =
@@ -1150,7 +1149,7 @@ impl CollisionManager {
                                                 break;
                                             }
                         
-                                            let index = index_vec.1.get(counter).unwrap();
+                                            let index = index_vec.1.get(counter).unwrap_or(&None);
                                             match index {
                                                 Some(index) => {
                                                     let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
@@ -1886,7 +1885,7 @@ impl CollisionManager {
                                             break;
                                         }
                     
-                                        let index = index_vec.1.get(counter).unwrap();
+                                        let index = index_vec.1.get(counter).unwrap_or(&None);
                                         match index {
                                             Some(index) => {
                                                 let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
@@ -2034,7 +2033,7 @@ impl CollisionManager {
                                                 shape2_name,
                                             ) in shapes_vec
                                             {
-                                                let index = index_vec.1.get(counter).unwrap();
+                                                let index = index_vec.1.get(counter).unwrap_or(&None);
                                                 match index {
                                                     Some(index) => {
                                                         let mut shape1 =
@@ -2219,7 +2218,7 @@ impl CollisionManager {
                                             break;
                                         }
                     
-                                        let index = index_vec.1.get(counter).unwrap();
+                                        let index = index_vec.1.get(counter).unwrap_or(&None);
                                         match index {
                                             Some(index) => {
                                                 let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
@@ -2952,7 +2951,7 @@ impl CollisionManager {
                                             break;
                                         }
                     
-                                        let index = index_vec.1.get(counter).unwrap();
+                                        let index = index_vec.1.get(counter).unwrap_or(&None);
                                         match index {
                                             Some(index) => {
                                                 let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
@@ -3100,7 +3099,7 @@ impl CollisionManager {
                                                 shape2_name,
                                             ) in shapes_vec
                                             {
-                                                let index = index_vec.1.get(counter).unwrap();
+                                                let index = index_vec.1.get(counter).unwrap_or(&None);
                                                 match index {
                                                     Some(index) => {
                                                         let mut shape1 =
@@ -3285,7 +3284,7 @@ impl CollisionManager {
                                             break;
                                         }
                     
-                                        let index = index_vec.1.get(counter).unwrap();
+                                        let index = index_vec.1.get(counter).unwrap_or(&None);
                                         match index {
                                             Some(index) => {
                                                 let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
@@ -4006,7 +4005,7 @@ impl CollisionManager {
                                         break;
                                     }
                 
-                                    let index = index_vec.1.get(counter).unwrap();
+                                    let index = index_vec.1.get(counter).unwrap_or(&None);
                                     match index {
                                         Some(index) => {
                                             let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
@@ -4154,7 +4153,7 @@ impl CollisionManager {
                                             shape2_name,
                                         ) in shapes_vec
                                         {
-                                            let index = index_vec.1.get(counter).unwrap();
+                                            let index = index_vec.1.get(counter).unwrap_or(&None);
                                             match index {
                                                 Some(index) => {
                                                     let mut shape1 =
@@ -4339,7 +4338,7 @@ impl CollisionManager {
                                         break;
                                     }
                 
-                                    let index = index_vec.1.get(counter).unwrap();
+                                    let index = index_vec.1.get(counter).unwrap_or(&None);
                                     match index {
                                         Some(index) => {
                                             let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
@@ -5065,7 +5064,7 @@ impl CollisionManager {
                                             break;
                                         }
                     
-                                        let index = index_vec.1.get(counter).unwrap();
+                                        let index = index_vec.1.get(counter).unwrap_or(&None);
                                         match index {
                                             Some(index) => {
                                                 let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
@@ -5213,7 +5212,7 @@ impl CollisionManager {
                                                 shape2_name,
                                             ) in shapes_vec
                                             {
-                                                let index = index_vec.1.get(counter).unwrap();
+                                                let index = index_vec.1.get(counter).unwrap_or(&None);
                                                 match index {
                                                     Some(index) => {
                                                         let mut shape1 =
@@ -5398,7 +5397,7 @@ impl CollisionManager {
                                             break;
                                         }
                     
-                                        let index = index_vec.1.get(counter).unwrap();
+                                        let index = index_vec.1.get(counter).unwrap_or(&None);
                                         match index {
                                             Some(index) => {
                                                 let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =

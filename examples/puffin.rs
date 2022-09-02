@@ -381,6 +381,16 @@ fn main() {
         iso_20,
     ));
 
+    let eroor_box = Shape::Box(BoxShape::new(
+        "error box".to_string(),
+        "not exist".to_string(),
+        false,
+        0.4,
+        0.25,
+        0.25,
+        iso_20,
+    ));
+
     let mut box_shapes_vec: Vec<Shape> = vec![
         box_1, box_2, box_3, box_4, box_5, box_6, box_7, box_8, box_9, box_10, box_11, box_12,
         box_13, box_14, box_15, box_16.clone(), box_17.clone(), box_18.clone(), box_19.clone(),box_20.clone()
@@ -562,6 +572,8 @@ fn main() {
             id : 2.to_string(),
             shape : box_20.clone() //new robot frame
         },
+
+       
         ShapeUpdate::Add{
             id : 1.to_string(),
             shape : box_16.clone() //replace world to world
@@ -581,16 +593,77 @@ fn main() {
             id : 2.to_string(),
             shape : box_16.clone() //replace robot frame to world
         },
-        //cylinder
-        // ShapeUpdate::Add{
-        //     id : "3".to_string(),
-        //     shape : temp_cylinder1.clone() // world
-        // },
 
-        // ShapeUpdate::Add{
-        //     id : "4".to_string(),
-        //     shape : temp_cylinder2.clone() // existing
-        // },
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_16.clone() //replace robot frame to world
+        },
+
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_16.clone() //replace robot frame to world
+        },
+
+        ShapeUpdate::Add{
+            id : 10.to_string(),
+            shape : eroor_box.clone() //error frame
+        },
+
+        ShapeUpdate::Add{
+            id : 1.to_string(),
+            shape : eroor_box.clone() //error frame
+        },
+
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : eroor_box.clone() //error frame
+        },
+
+        //cylinder
+        ShapeUpdate::Add{
+            id : "3".to_string(),
+            shape : temp_cylinder1.clone() // world
+        },
+
+        ShapeUpdate::Add{
+            id : "4".to_string(),
+            shape : temp_cylinder2.clone() // existing
+        },
+
+        ShapeUpdate::Add{
+            id : "3".to_string(),
+            shape : temp_cylinder1.clone() // replace world to world
+        },
+
+        ShapeUpdate::Add{
+            id : "3".to_string(),
+            shape : temp_cylinder2.clone() // replace world to robot frame
+        },
+
+        ShapeUpdate::Add{
+            id : "4".to_string(),
+            shape : temp_cylinder1.clone() // replace robot frame to world
+        },
+
+        ShapeUpdate::Add{
+            id : "4".to_string(),
+            shape : temp_cylinder2.clone() // replace robot frame to robot frame
+        },
+
+        ShapeUpdate::Add{
+            id : 11.to_string(),
+            shape : eroor_box.clone() //error frame
+        },
+
+        ShapeUpdate::Add{
+            id : 3.to_string(),
+            shape : eroor_box.clone() //error frame
+        },
+
+        ShapeUpdate::Add{
+            id : 4.to_string(),
+            shape : eroor_box.clone() //error frame
+        },
 
         // //sphere
         // ShapeUpdate::Add{
