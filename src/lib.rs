@@ -29,7 +29,8 @@ use crate::wrappers::python::state::PyState;
 #[cfg(feature = "pybindings")]
 use crate::wrappers::python::info::{*};
 
-
+#[cfg(feature = "jsbindings")]
+use std::collections::HashMap;
 #[cfg(feature = "jsbindings")]
 use crate::utils::state::State;
 #[cfg(feature = "jsbindings")]
@@ -134,7 +135,7 @@ impl JsSolver {
         collision_settings: &JsValue
     ) -> Self {
             console_error_panic_hook::set_once();
-            let inner_objectives:Vec<Objective> = objectives.into_serde().unwrap();
+            let inner_objectives:HashMap<String,Objective> = objectives.into_serde().unwrap();
             let temp_bounds:Option<Vec<ScalarRange>> = root_bounds.into_serde().unwrap();
             let inner_bounds:Option<Vec<(f64,f64)>> = temp_bounds.map(|bs| bs.iter().map(|b| (b.value,b.delta)).collect());
             let inner_shapes:Option<Vec<Shape>> = shapes.into_serde().unwrap();
@@ -153,11 +154,8 @@ impl JsSolver {
 
     #[wasm_bindgen(setter)]
     pub fn set_objectives(&mut self, objectives: JsValue) {
-        let inner_objectives: Option<Vec<Objective>> = objectives.into_serde().unwrap();
-        match inner_objectives {
-            Some(objectives) => {self.0.set_objectives(objectives)},
-            None => {}
-        };
+        let inner_objectives: HashMap<String,Objective> = objectives.into_serde().unwrap();
+        self.0.set_objectives(inner_objectives);
     }
 
     #[wasm_bindgen(getter = currentState)]
@@ -167,7 +165,10 @@ impl JsSolver {
 
     #[wasm_bindgen(getter = currentGoals)]
     pub fn current_goals(&self) -> JsValue {
-        let goals: Vec<Option<Goal>> = self.0.objective_set.objectives.iter().map(|o| o.get_goal()).collect();
+        let mut goals: HashMap<String,Option<Goal>> = HashMap::new();
+        for (k,v) in self.0.objective_set.objectives.iter() {
+            goals.insert(k.clone(),v.get_goal());
+        }
         JsValue::from_serde(&goals).unwrap()
     }
 
@@ -187,7 +188,7 @@ impl JsSolver {
         weights: &JsValue,
     ) {
         let inner_state:State = state.into_serde().unwrap();
-        let inner_weights:Option<Vec<Option<f64>>> = weights.into_serde().unwrap();
+        let inner_weights:HashMap<String,f64> = weights.into_serde().unwrap();
         self.0.reset(inner_state,inner_weights);
     }
 
@@ -198,8 +199,8 @@ impl JsSolver {
         time: f64,
         shape_updates: &JsValue
     ) -> JsValue {
-        let inner_goals: Option<Vec<Option<Goal>>> = goals.into_serde().unwrap();
-        let inner_weights:Option<Vec<Option<f64>>> = weights.into_serde().unwrap();
+        let inner_goals: HashMap<String,Goal> = goals.into_serde().unwrap();
+        let inner_weights:HashMap<String,f64> = weights.into_serde().unwrap();
         let inner_updates: Option<Vec<ShapeUpdate>> = shape_updates.into_serde().unwrap();
         let state:State = self.0.solve(inner_goals,inner_weights,time,inner_updates);
         return JsValue::from_serde(&state).unwrap();
@@ -230,8 +231,8 @@ extern "C" {
 #[cfg(feature = "jsbindings")]
 #[wasm_bindgen]
 pub fn solve(solver: &mut JsSolver, goals: &JsValue, weights: &JsValue, time: f64, shape_updates: &JsValue) -> JsValue {
-    let inner_goals: Option<Vec<Option<Goal>>> = goals.into_serde().unwrap();
-    let inner_weights:Option<Vec<Option<f64>>> = weights.into_serde().unwrap();
+    let inner_goals: HashMap<String,Goal> = goals.into_serde().unwrap();
+    let inner_weights:HashMap<String,f64> = weights.into_serde().unwrap();
     let inner_updates: Option<Vec<ShapeUpdate>> = shape_updates.into_serde().unwrap();
     // console_log!("Received Goals: {:?}",inner_goals);
     // console_log!("Received Weights: {:?}",inner_weights);
@@ -245,6 +246,6 @@ pub fn solve(solver: &mut JsSolver, goals: &JsValue, weights: &JsValue, time: f6
 #[wasm_bindgen]
 pub fn reset(solver: &mut JsSolver, state: &JsValue, weights: &JsValue) {
     let inner_state:State = state.into_serde().unwrap();
-    let inner_weights:Option<Vec<Option<f64>>> = weights.into_serde().unwrap();
+    let inner_weights:HashMap<String,f64> = weights.into_serde().unwrap();
     solver.0.reset(inner_state,inner_weights);
 }
