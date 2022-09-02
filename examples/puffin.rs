@@ -573,6 +573,15 @@ fn main() {
             id : 2.to_string(),
             shape : box_20.clone() //new robot frame
         },
+         // box
+         ShapeUpdate::Add{
+            id : 1.to_string(),
+            shape : box_20.clone() //new "world"
+        },
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_19.clone() //new robot frame
+        },
         ShapeUpdate::Move{
             id : 1.to_string(),
             pose: iso_20.clone() //new robot frame
@@ -582,8 +591,19 @@ fn main() {
             pose: iso_19.clone() //new robot frame
         },
 
-        ShapeUpdate::Delete(2.to_string()),
-        ShapeUpdate::Delete(1.to_string())
+        ShapeUpdate::Move{
+            id : 3.to_string(),
+            pose: iso_20.clone() //new robot frame
+        },
+        ShapeUpdate::Move{
+            id : 4.to_string(),
+            pose: iso_19.clone() //new robot frame
+        },
+
+        // ShapeUpdate::Delete(2.to_string()),
+        // ShapeUpdate::Delete(1.to_string()),
+        // ShapeUpdate::Delete(3.to_string()),
+        // ShapeUpdate::Delete(4.to_string())
 
        
         // ShapeUpdate::Add{

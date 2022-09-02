@@ -21,7 +21,8 @@ const ACCURACY_BUDGET: f64 = 0.1;
 #[derive(Clone)]
 pub struct CollisionManager {
     scene_collision_shapes_list: Vec<(String, Compound, f64, Isometry3<f64>, String, bool)>,
-    scene_optima_transient_shapes_look_up: IndexMap<String, (String, String, Option<usize>,SharedShape,bool)>,
+    scene_optima_transient_shapes_look_up:
+        IndexMap<String, (String, String, Option<usize>, SharedShape, bool)>,
     scene_group_truth_distance_hashmap: IndexMap<
         String,
         IndexMap<
@@ -784,7 +785,6 @@ impl CollisionManager {
                                 mut_shapes_pair.0 = new_proximity.clone();
                                 mut_shapes_pair.1 = new_shape1.clone();
                                 mut_shapes_pair.3 = new_shape1_radius;
-
                             }
                             None => {
                                 continue;
@@ -795,15 +795,15 @@ impl CollisionManager {
                         }
                     }
                 }
-                self.scene_optima_transient_shapes_look_up
-                .insert(id.to_string(), (frame, name.to_string(), Some(index), collider.clone(),true));
-            println!(
-                "id : {:?} , robot_link transient shape for {:?} is added",
-                id,
-                name.to_string()
-            );
-
-
+                self.scene_optima_transient_shapes_look_up.insert(
+                    id.to_string(),
+                    (frame, name.to_string(), Some(index), collider.clone(), true),
+                );
+                println!(
+                    "id : {:?} , robot_link transient shape for {:?} is added",
+                    id,
+                    name.to_string()
+                );
             }
             None => {
                 println!(
@@ -812,7 +812,6 @@ impl CollisionManager {
                 );
             }
         }
-        
     }
 
     pub fn add_world_transient_shape(
@@ -824,7 +823,8 @@ impl CollisionManager {
         physical: bool,
     ) {
         let shape2_transform = TransformInfo::default().world;
-        let shape_vec: Vec<(Isometry3<f64>, SharedShape)> = vec![(local_transform, collider.clone())];
+        let shape_vec: Vec<(Isometry3<f64>, SharedShape)> =
+            vec![(local_transform, collider.clone())];
         let shape2 = Compound::new(shape_vec);
         let shape2_radius = shape2.local_bounding_sphere().radius;
         let mut added = false;
@@ -886,7 +886,13 @@ impl CollisionManager {
         if added == true {
             self.scene_optima_transient_shapes_look_up.insert(
                 id.to_string(),
-                ("world".to_string(), name.to_string(), None, collider,physical),
+                (
+                    "world".to_string(),
+                    name.to_string(),
+                    None,
+                    collider,
+                    physical,
+                ),
             );
             println!(
                 "id : {:?} , world transient shape for {:?} is added",
@@ -897,7 +903,7 @@ impl CollisionManager {
 
     pub fn remove_transient_shape(&mut self, id: &String) {
         match self.scene_optima_transient_shapes_look_up.clone().get(id) {
-            Some((frame, delete_name, index,_,_)) => {
+            Some((frame, delete_name, index, _, _)) => {
                 if frame == "world" {
                     for (shape1_frame, _) in self.scene_group_truth_distance_hashmap.clone() {
                         let mut_shapes_hashmap = self
@@ -905,10 +911,9 @@ impl CollisionManager {
                             .get_mut(&shape1_frame)
                             .unwrap();
                         mut_shapes_hashmap.remove_entry(delete_name);
-                        
                     }
                     self.scene_optima_transient_shapes_look_up.remove_entry(id);
-                    println!("removal for transient shape of id {:?} is successful" , id);
+                    println!("removal for transient shape of id {:?} is successful", id);
                 } else {
                     match self.scene_group_truth_distance_hashmap.clone().get(frame) {
                         Some(shapes_hashmap) => {
@@ -998,7 +1003,10 @@ impl CollisionManager {
                                             .unwrap();
                                         self.scene_group_truth_distance_hashmap
                                             .insert(frame.to_string(), replace_hashmap);
-                                        println!("removal for transient shape of id {:?} is successful" , id);
+                                        println!(
+                                            "removal for transient shape of id {:?} is successful",
+                                            id
+                                        );
                                     }
                                 }
                                 None => {}
@@ -1016,17 +1024,28 @@ impl CollisionManager {
         }
     }
 
-    pub fn move_transient_shape(&mut self, id: &String, pose: Isometry3<f64>,) {
+    pub fn move_transient_shape(&mut self, id: &String, pose: Isometry3<f64>) {
         match self.scene_optima_transient_shapes_look_up.clone().get(id) {
-            Some((frame, name, index , collider,physical)) => {
+            Some((frame, name, index, collider, physical)) => {
                 self.remove_transient_shape(&id);
-                if frame == "world"{
-                    
-                    self.add_world_transient_shape(id, name.to_string(), pose, collider.clone(), *physical);
-                    println!("transient shape moved for id of {:?}" , id);
-                }else{
-                    self.add_robot_link_transient_shape(id, name.to_string(), frame.to_string(), pose, collider.clone());
-                    println!("transient shape moved for id of {:?}" , id);
+                if frame == "world" {
+                    self.add_world_transient_shape(
+                        id,
+                        name.to_string(),
+                        pose,
+                        collider.clone(),
+                        *physical,
+                    );
+                    println!("transient shape moved for id of {:?}", id);
+                } else {
+                    self.add_robot_link_transient_shape(
+                        id,
+                        name.to_string(),
+                        frame.to_string(),
+                        pose,
+                        collider.clone(),
+                    );
+                    println!("transient shape moved for id of {:?}", id);
                 }
             }
             None => {
@@ -1047,6 +1066,27 @@ impl CollisionManager {
                             .clone()
                             .contains_key(id)
                         {
+                            println!("WARNING: overwriting the shape [{:?}] because another transient shape with the same id already exist in the scene" , id);
+                            self.remove_transient_shape(id);
+                            if object.frame == "world" {
+                                // if replace shape is world frame
+                                self.add_world_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.local_transform,
+                                    box_collider,
+                                    object.physical,
+                                );
+                            } else {
+                                // if replace shape is robot link frame
+                                self.add_robot_link_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.frame.to_string(),
+                                    object.local_transform,
+                                    box_collider,
+                                )
+                            }
                         } else {
                             if object.frame == "world" {
                                 // adding a brand new world transient shape
@@ -1070,10 +1110,230 @@ impl CollisionManager {
                         }
                     }
 
-                    shapes::Shape::Cylinder(object) => {}
-                    shapes::Shape::Capsule(object) => {}
-                    shapes::Shape::Sphere(object) => {}
-                    shapes::Shape::Hull(object) => {}
+                    shapes::Shape::Cylinder(object) => {
+                        let new_length = object.length / 2.0;
+                        let collider = SharedShape::cylinder(new_length, object.radius);
+                        if self
+                            .scene_optima_transient_shapes_look_up
+                            .clone()
+                            .contains_key(id)
+                        {
+                            println!("WARNING: overwriting the shape [{:?}] because another transient shape with the same id already exist in the scene" , id);
+                            self.remove_transient_shape(id);
+                            if object.frame == "world" {
+                                // if replace shape is world frame
+                                self.add_world_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                    object.physical,
+                                );
+                            } else {
+                                // if replace shape is robot link frame
+                                self.add_robot_link_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.frame.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                )
+                            }
+                        } else {
+                            if object.frame == "world" {
+                                // adding a brand new world transient shape
+                                self.add_world_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                    object.physical,
+                                );
+                            } else {
+                                // addinng a brand new robot link shape
+                                self.add_robot_link_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.frame.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                )
+                            }
+                        }
+                    }
+                    shapes::Shape::Capsule(object) => {
+                        let point_a = Point3::new(
+                            object.length * vector![0.0, 1.0, 0.0][0],
+                            object.length * vector![0.0, 1.0, 0.0][1],
+                            object.length * vector![0.0, 1.0, 0.0][2],
+                        );
+                        let point_b = Point3::new(
+                            object.length * vector![0.0, -1.0, 0.0][0],
+                            object.length * vector![0.0, -1.0, 0.0][1],
+                            object.length * vector![0.0, -1.0, 0.0][2],
+                        );
+                        let collider = SharedShape::capsule(point_a, point_b, object.radius);
+
+                        if self
+                            .scene_optima_transient_shapes_look_up
+                            .clone()
+                            .contains_key(id)
+                        {
+                            println!("WARNING: overwriting the shape [{:?}] because another transient shape with the same id already exist in the scene" , id);
+                            self.remove_transient_shape(id);
+                            if object.frame == "world" {
+                                // if replace shape is world frame
+                                self.add_world_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                    object.physical,
+                                );
+                            } else {
+                                // if replace shape is robot link frame
+                                self.add_robot_link_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.frame.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                )
+                            }
+                        } else {
+                            if object.frame == "world" {
+                                // adding a brand new world transient shape
+                                self.add_world_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                    object.physical,
+                                );
+                            } else {
+                                // addinng a brand new robot link shape
+                                self.add_robot_link_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.frame.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                )
+                            }
+                        }
+                    }
+                    shapes::Shape::Sphere(object) => {
+                        let collider = SharedShape::ball(object.radius);
+                        if self
+                            .scene_optima_transient_shapes_look_up
+                            .clone()
+                            .contains_key(id)
+                        {
+                            println!("WARNING: overwriting the shape [{:?}] because another transient shape with the same id already exist in the scene" , id);
+                            self.remove_transient_shape(id);
+                            if object.frame == "world" {
+                                // if replace shape is world frame
+                                self.add_world_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                    object.physical,
+                                );
+                            } else {
+                                // if replace shape is robot link frame
+                                self.add_robot_link_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.frame.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                )
+                            }
+                        } else {
+                            if object.frame == "world" {
+                                // adding a brand new world transient shape
+                                self.add_world_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                    object.physical,
+                                );
+                            } else {
+                                // addinng a brand new robot link shape
+                                self.add_robot_link_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.frame.to_string(),
+                                    object.local_transform,
+                                    collider,
+                                )
+                            }
+                        }
+                    }
+                    shapes::Shape::Hull(object) => {
+                        let hull_points: Vec<Point3<f64>> = object
+                            .points
+                            .iter()
+                            .map(|p| Point3::new(p.x, p.y, p.z))
+                            .collect();
+
+                        match SharedShape::convex_hull(hull_points.as_slice()) {
+                            Some(collider) => {
+                                if self
+                                    .scene_optima_transient_shapes_look_up
+                                    .clone()
+                                    .contains_key(id)
+                                {
+                                    println!("WARNING: overwriting the shape [{:?}] because another transient shape with the same id already exist in the scene" , id);
+                                    self.remove_transient_shape(id);
+                                    if object.frame == "world" {
+                                        // if replace shape is world frame
+                                        self.add_world_transient_shape(
+                                            id,
+                                            object.name.to_string(),
+                                            object.local_transform,
+                                            collider,
+                                            object.physical,
+                                        );
+                                    } else {
+                                        // if replace shape is robot link frame
+                                        self.add_robot_link_transient_shape(
+                                            id,
+                                            object.name.to_string(),
+                                            object.frame.to_string(),
+                                            object.local_transform,
+                                            collider,
+                                        )
+                                    }
+                                } else {
+                                    if object.frame == "world" {
+                                        // adding a brand new world transient shape
+                                        self.add_world_transient_shape(
+                                            id,
+                                            object.name.to_string(),
+                                            object.local_transform,
+                                            collider,
+                                            object.physical,
+                                        );
+                                    } else {
+                                        // addinng a brand new robot link shape
+                                        self.add_robot_link_transient_shape(
+                                            id,
+                                            object.name.to_string(),
+                                            object.frame.to_string(),
+                                            object.local_transform,
+                                            collider,
+                                        )
+                                    }
+                                }
+                            }
+                            None => {
+                                println!("cannot form a valid hull");
+                            }
+                        }
+                    }
                     shapes::Shape::Mesh(_) => {}
                 },
                 ShapeUpdate::Move { id, pose } => {
@@ -1085,7 +1345,12 @@ impl CollisionManager {
             }
         }
     }
-    pub fn clear_all_transient_shapes(&mut self) {}
+    pub fn clear_all_transient_shapes(&mut self) {
+        for (id, _) in self.scene_optima_transient_shapes_look_up.clone() {
+            self.remove_transient_shape(&id);
+        }
+        println!("ALL transient shapes removed");
+    }
 
     pub fn compute_relative_change_in_transform(
         &self,
