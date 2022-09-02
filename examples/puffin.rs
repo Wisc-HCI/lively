@@ -665,6 +665,62 @@ fn main() {
             shape : eroor_box.clone() //error frame
         },
 
+         // box
+         ShapeUpdate::Add{
+            id : 1.to_string(),
+            shape : box_19.clone() //new "world"
+        },
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_20.clone() //new robot frame
+        },
+
+       
+        ShapeUpdate::Add{
+            id : 1.to_string(),
+            shape : box_16.clone() //replace world to world
+        },
+
+        ShapeUpdate::Add{
+            id : 1.to_string(),
+            shape : box_18.clone() //replace world to robot frame
+        },
+
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_18.clone() //replace robot frame to robot frame
+        },
+
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_16.clone() //replace robot frame to world
+        },
+
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_16.clone() //replace robot frame to world
+        },
+
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_16.clone() //replace robot frame to world
+        },
+
+        ShapeUpdate::Add{
+            id : 10.to_string(),
+            shape : eroor_box.clone() //error frame
+        },
+
+        ShapeUpdate::Add{
+            id : 1.to_string(),
+            shape : eroor_box.clone() //error frame
+        },
+
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : eroor_box.clone() //error frame
+        },
+
         // //sphere
         // ShapeUpdate::Add{
         //     id : "5".to_string(),
@@ -856,7 +912,10 @@ fn main() {
 
     // let vec = temp.compute_average_distance_table();
     let instant = Instant::now();
-    temp.solve(goals, weights, 0.0, Some(shape_update.clone()));
+    temp.solve(goals, weights, 0.0, 
+        //Some(shape_update.clone()
+        None
+    );
     println!("{:?}",instant.elapsed());
     // println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     //temp.solve(None, None, 0.0, Some(shape_update));
