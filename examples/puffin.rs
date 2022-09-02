@@ -473,7 +473,7 @@ fn main() {
         data.clone(),
         objectives,
         Some(scalar_range_vec.clone()),
-        None,
+        Some(box_shapes_vec),
         None,
         None,
         None,
@@ -556,19 +556,30 @@ fn main() {
         // box
         ShapeUpdate::Add{
             id : 1.to_string(),
-            shape : box_19.clone() //"world"
+            shape : box_19.clone() //new "world"
         },
         ShapeUpdate::Add{
             id : 2.to_string(),
-            shape : box_20.clone() // existing
+            shape : box_20.clone() //new robot frame
         },
         ShapeUpdate::Add{
             id : 1.to_string(),
-            shape : box_16.clone() // world
+            shape : box_16.clone() //replace world to world
         },
+
+        ShapeUpdate::Add{
+            id : 1.to_string(),
+            shape : box_18.clone() //replace world to robot frame
+        },
+
         ShapeUpdate::Add{
             id : 2.to_string(),
-            shape : box_18.clone() // existing
+            shape : box_18.clone() //replace robot frame to robot frame
+        },
+
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_16.clone() //replace robot frame to world
         },
         //cylinder
         // ShapeUpdate::Add{
