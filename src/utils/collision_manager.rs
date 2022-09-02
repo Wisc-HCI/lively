@@ -1016,15 +1016,17 @@ impl CollisionManager {
         }
     }
 
-    pub fn move_world_transient_shape(&mut self, id: &String, pose: Isometry3<f64>,) {
+    pub fn move_transient_shape(&mut self, id: &String, pose: Isometry3<f64>,) {
         match self.scene_optima_transient_shapes_look_up.clone().get(id) {
             Some((frame, name, index , collider,physical)) => {
                 self.remove_transient_shape(&id);
                 if frame == "world"{
                     
                     self.add_world_transient_shape(id, name.to_string(), pose, collider.clone(), *physical);
+                    println!("transient shape moved for id of {:?}" , id);
                 }else{
                     self.add_robot_link_transient_shape(id, name.to_string(), frame.to_string(), pose, collider.clone());
+                    println!("transient shape moved for id of {:?}" , id);
                 }
             }
             None => {
@@ -1074,7 +1076,9 @@ impl CollisionManager {
                     shapes::Shape::Hull(object) => {}
                     shapes::Shape::Mesh(_) => {}
                 },
-                ShapeUpdate::Move { id, pose } => {}
+                ShapeUpdate::Move { id, pose } => {
+                    self.move_transient_shape(id, *pose);
+                }
                 ShapeUpdate::Delete(id) => {
                     self.remove_transient_shape(id);
                 }

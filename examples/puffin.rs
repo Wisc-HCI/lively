@@ -378,7 +378,7 @@ fn main() {
         0.4,
         0.25,
         0.25,
-        iso_20,
+        iso_20.clone(),
     ));
 
     let eroor_box = Shape::Box(BoxShape::new(
@@ -573,7 +573,15 @@ fn main() {
             id : 2.to_string(),
             shape : box_20.clone() //new robot frame
         },
-        
+        ShapeUpdate::Move{
+            id : 1.to_string(),
+            pose: iso_20.clone() //new robot frame
+        },
+        ShapeUpdate::Move{
+            id : 2.to_string(),
+            pose: iso_19.clone() //new robot frame
+        },
+
         ShapeUpdate::Delete(2.to_string()),
         ShapeUpdate::Delete(1.to_string())
 
