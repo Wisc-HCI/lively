@@ -746,8 +746,6 @@ impl CollisionManager {
                 index = old_shape1_vec.len() - 1;
                 let new_shape1 = Compound::new(old_shape1_vec);
 
-                
-
                 let new_shape1_radius = new_shape1.local_bounding_sphere().radius;
 
                 for (shape2_name, item) in shapes_hashmap {
@@ -807,7 +805,11 @@ impl CollisionManager {
         if added {
             self.scene_optima_transient_shapes_look_up
                 .insert(id.to_string(), (frame, name.to_string(), Some(index)));
-            println!("id : {:?} , robot_link transient shape for {:?} is added" , id, name.to_string() );
+            println!(
+                "id : {:?} , robot_link transient shape for {:?} is added",
+                id,
+                name.to_string()
+            );
         }
     }
 
@@ -884,17 +886,139 @@ impl CollisionManager {
                 id.to_string(),
                 ("world".to_string(), name.to_string(), None),
             );
-            println!("id : {:?} , world transient shape for {:?} is added" , id, name );
+            println!(
+                "id : {:?} , world transient shape for {:?} is added",
+                id, name
+            );
         }
     }
 
-    pub fn move_world_transient_shape (&mut self) {
-        
+    pub fn remove_transient_shape(&mut self, id: &String) {
+        match self.scene_optima_transient_shapes_look_up.clone().get(id) {
+            Some((frame, delete_name, index)) => {
+                if frame == "world" {
+                    for (shape1_frame, _) in self.scene_group_truth_distance_hashmap.clone() {
+                        let mut_shapes_hashmap = self
+                            .scene_group_truth_distance_hashmap
+                            .get_mut(&shape1_frame)
+                            .unwrap();
+                        mut_shapes_hashmap.remove_entry(delete_name);
+                    }
+                    self.scene_optima_transient_shapes_look_up.remove_entry(id);
+                } else {
+                    match self.scene_group_truth_distance_hashmap.clone().get(frame) {
+                        Some(shapes_hashmap) => {
+                            let (_, pair_info) = shapes_hashmap.first().unwrap();
+                            let mut old_shape1_vec = pair_info.1.shapes().to_vec();
+
+                            match index {
+                                Some(index) => {
+                                    if *index < old_shape1_vec.len() {
+                                        let mut replace_hashmap: IndexMap<
+                                            String,
+                                            (
+                                                ProximityInfo,
+                                                Compound,
+                                                Compound,
+                                                f64,
+                                                f64,
+                                                Isometry3<f64>,
+                                                Isometry3<f64>,
+                                                String,
+                                                String,
+                                            ),
+                                        > = IndexMap::new();
+                                        old_shape1_vec.remove(*index);
+                                        let shape1 = Compound::new(old_shape1_vec.clone());
+                                        let shape1_rad = shape1.local_bounding_sphere().radius;
+                                        let shape1_transform = pair_info.5;
+
+                                        for (shape2_frame, pair_info) in shapes_hashmap {
+                                            let shape2_transform = pair_info.6;
+                                            let shape2 = &pair_info.2;
+                                            match parry3d_f64::query::contact(
+                                                &shape1_transform,
+                                                &shape1.clone(),
+                                                &shape2_transform,
+                                                &shape2.clone(),
+                                                self.d_max,
+                                            ) {
+                                                Ok(contact) => match contact {
+                                                    Some(valid_contact) => {
+                                                        let proximity = ProximityInfo::new(
+                                                            pair_info.0.shape1.to_string(),
+                                                            pair_info.0.shape2.to_string(),
+                                                            valid_contact.dist,
+                                                            Some((
+                                                                valid_contact.point1,
+                                                                valid_contact.point2,
+                                                            )),
+                                                            pair_info.0.physical,
+                                                            self.compute_loss_with_cutoff(
+                                                                &valid_contact.dist,
+                                                                &pair_info
+                                                                    .0
+                                                                    .average_distance
+                                                                    .unwrap_or(1.0),
+                                                            ),
+                                                            pair_info.0.average_distance,
+                                                        );
+
+                                                        replace_hashmap.insert(
+                                                            shape2_frame.to_string(),
+                                                            (
+                                                                proximity,
+                                                                shape1.clone(),
+                                                                shape2.clone(),
+                                                                shape1_rad,
+                                                                pair_info.4,
+                                                                shape1_transform,
+                                                                shape2_transform,
+                                                                frame.to_string(),
+                                                                shape2_frame.to_string(),
+                                                            ),
+                                                        );
+                                                        self.scene_optima_transient_shapes_look_up
+                                                            .remove_entry(&id.to_string());
+                                                    }
+
+                                                    None => {}
+                                                },
+                                                Err(_) => {}
+                                            }
+                                        }
+
+                                        self.scene_group_truth_distance_hashmap
+                                            .clone()
+                                            .remove(frame)
+                                            .unwrap();
+                                        self.scene_group_truth_distance_hashmap
+                                            .insert(frame.to_string(), replace_hashmap);
+                                    }
+                                }
+                                None => {}
+                            }
+
+                            //let
+                        }
+                        None => {}
+                    }
+                }
+            }
+            None => {
+                println!("invalid id for removal: [{:?}]", id);
+            }
+        }
     }
 
-
-
-
+    pub fn move_world_transient_shape(&mut self, id: &String, pose: Isometry3<f64>) {
+        match self.scene_optima_transient_shapes_look_up.get(id) {
+            Some((frame, name, index)) => {}
+            None => {
+                println!("invalid id for move: [{:?}]", id);
+            }
+        }
+    }
 
     pub fn perform_updates(&mut self, shape_updates: &Vec<ShapeUpdate>) {
         for update in shape_updates {
@@ -918,13 +1042,16 @@ impl CollisionManager {
                                     box_collider,
                                     object.physical,
                                 );
-                            } else { // addinng a brand new robot link shape
-                                self.add_robot_link_transient_shape(id, object.name.to_string(), object.frame.to_string(),
-                                object.local_transform,
-                                box_collider,
+                            } else {
+                                // addinng a brand new robot link shape
+                                self.add_robot_link_transient_shape(
+                                    id,
+                                    object.name.to_string(),
+                                    object.frame.to_string(),
+                                    object.local_transform,
+                                    box_collider,
                                 )
                             }
-
                         }
                     }
 
@@ -1376,12 +1503,12 @@ impl CollisionManager {
                 // }
             }
 
-                println!("-----------------------------------------------------------------------------------");
-                for item in result_vector.clone() {
-                    println!("the info is : {:?}", item);
-                }
+            println!("-----------------------------------------------------------------------------------");
+            for item in result_vector.clone() {
+                println!("the info is : {:?}", item);
+            }
 
-               println!("-----------------------------------------------------------------------------------");
+            println!("-----------------------------------------------------------------------------------");
 
             return result_vector;
         } else {
