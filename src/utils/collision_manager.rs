@@ -21,7 +21,7 @@ const ACCURACY_BUDGET: f64 = 0.1;
 #[derive(Clone)]
 pub struct CollisionManager {
     scene_collision_shapes_list: Vec<(String, Compound, f64, Isometry3<f64>, String, bool)>,
-    scene_optima_transient_shapes_look_up: IndexMap<String, (String, String, Option<usize>)>,
+    scene_optima_transient_shapes_look_up: IndexMap<String, (String, String, Option<usize>,SharedShape,bool)>,
     scene_group_truth_distance_hashmap: IndexMap<
         String,
         IndexMap<
@@ -742,7 +742,7 @@ impl CollisionManager {
                 let shape1_transform = &item.5.clone();
                 let old_shape1 = &item.1;
                 let mut old_shape1_vec = old_shape1.shapes().to_vec();
-                old_shape1_vec.push((local_transform, collider));
+                old_shape1_vec.push((local_transform, collider.clone()));
                 index = old_shape1_vec.len() - 1;
                 let new_shape1 = Compound::new(old_shape1_vec);
 
@@ -784,6 +784,7 @@ impl CollisionManager {
                                 mut_shapes_pair.0 = new_proximity.clone();
                                 mut_shapes_pair.1 = new_shape1.clone();
                                 mut_shapes_pair.3 = new_shape1_radius;
+
                             }
                             None => {
                                 continue;
@@ -794,6 +795,15 @@ impl CollisionManager {
                         }
                     }
                 }
+                self.scene_optima_transient_shapes_look_up
+                .insert(id.to_string(), (frame, name.to_string(), Some(index), collider.clone(),true));
+            println!(
+                "id : {:?} , robot_link transient shape for {:?} is added",
+                id,
+                name.to_string()
+            );
+
+
             }
             None => {
                 println!(
@@ -802,15 +812,7 @@ impl CollisionManager {
                 );
             }
         }
-        if added {
-            self.scene_optima_transient_shapes_look_up
-                .insert(id.to_string(), (frame, name.to_string(), Some(index)));
-            println!(
-                "id : {:?} , robot_link transient shape for {:?} is added",
-                id,
-                name.to_string()
-            );
-        }
+        
     }
 
     pub fn add_world_transient_shape(
@@ -822,7 +824,7 @@ impl CollisionManager {
         physical: bool,
     ) {
         let shape2_transform = TransformInfo::default().world;
-        let shape_vec: Vec<(Isometry3<f64>, SharedShape)> = vec![(local_transform, collider)];
+        let shape_vec: Vec<(Isometry3<f64>, SharedShape)> = vec![(local_transform, collider.clone())];
         let shape2 = Compound::new(shape_vec);
         let shape2_radius = shape2.local_bounding_sphere().radius;
         let mut added = false;
@@ -884,7 +886,7 @@ impl CollisionManager {
         if added == true {
             self.scene_optima_transient_shapes_look_up.insert(
                 id.to_string(),
-                ("world".to_string(), name.to_string(), None),
+                ("world".to_string(), name.to_string(), None, collider,physical),
             );
             println!(
                 "id : {:?} , world transient shape for {:?} is added",
@@ -895,7 +897,7 @@ impl CollisionManager {
 
     pub fn remove_transient_shape(&mut self, id: &String) {
         match self.scene_optima_transient_shapes_look_up.clone().get(id) {
-            Some((frame, delete_name, index)) => {
+            Some((frame, delete_name, index,_,_)) => {
                 if frame == "world" {
                     for (shape1_frame, _) in self.scene_group_truth_distance_hashmap.clone() {
                         let mut_shapes_hashmap = self
@@ -903,8 +905,10 @@ impl CollisionManager {
                             .get_mut(&shape1_frame)
                             .unwrap();
                         mut_shapes_hashmap.remove_entry(delete_name);
+                        
                     }
                     self.scene_optima_transient_shapes_look_up.remove_entry(id);
+                    println!("removal for transient shape of id {:?} is successful" , id);
                 } else {
                     match self.scene_group_truth_distance_hashmap.clone().get(frame) {
                         Some(shapes_hashmap) => {
@@ -994,6 +998,7 @@ impl CollisionManager {
                                             .unwrap();
                                         self.scene_group_truth_distance_hashmap
                                             .insert(frame.to_string(), replace_hashmap);
+                                        println!("removal for transient shape of id {:?} is successful" , id);
                                     }
                                 }
                                 None => {}
@@ -1011,9 +1016,17 @@ impl CollisionManager {
         }
     }
 
-    pub fn move_world_transient_shape(&mut self, id: &String, pose: Isometry3<f64>) {
-        match self.scene_optima_transient_shapes_look_up.get(id) {
-            Some((frame, name, index)) => {}
+    pub fn move_world_transient_shape(&mut self, id: &String, pose: Isometry3<f64>,) {
+        match self.scene_optima_transient_shapes_look_up.clone().get(id) {
+            Some((frame, name, index , collider,physical)) => {
+                self.remove_transient_shape(&id);
+                if frame == "world"{
+                    
+                    self.add_world_transient_shape(id, name.to_string(), pose, collider.clone(), *physical);
+                }else{
+                    self.add_robot_link_transient_shape(id, name.to_string(), frame.to_string(), pose, collider.clone());
+                }
+            }
             None => {
                 println!("invalid id for move: [{:?}]", id);
             }
@@ -1062,7 +1075,9 @@ impl CollisionManager {
                     shapes::Shape::Mesh(_) => {}
                 },
                 ShapeUpdate::Move { id, pose } => {}
-                ShapeUpdate::Delete(id) => {}
+                ShapeUpdate::Delete(id) => {
+                    self.remove_transient_shape(id);
+                }
             }
         }
     }

@@ -573,6 +573,9 @@ fn main() {
             id : 2.to_string(),
             shape : box_20.clone() //new robot frame
         },
+        
+        ShapeUpdate::Delete(2.to_string()),
+        ShapeUpdate::Delete(1.to_string())
 
        
         // ShapeUpdate::Add{
