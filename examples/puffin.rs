@@ -372,13 +372,13 @@ fn main() {
         UnitQuaternion::from_quaternion(Quaternion::new(0.0, 0.0, 0.0, 1.0)),
     );
     let box_20 = Shape::Box(BoxShape::new(
-        "mk2CollisionShapeSpool".to_string(),
+        "mk2CollisionShapeSpool1".to_string(),
         "shoulder_link".to_string(),
         false,
         0.4,
         0.25,
         0.25,
-        iso_20,
+        iso_20.clone(),
     ));
 
     let eroor_box = Shape::Box(BoxShape::new(
@@ -483,7 +483,8 @@ fn main() {
         data.clone(),
         objectives,
         Some(scalar_range_vec.clone()),
-        Some(box_shapes_vec),
+        None,
+        //Some(box_shapes_vec),
         None,
         None,
         None,
@@ -572,98 +573,132 @@ fn main() {
             id : 2.to_string(),
             shape : box_20.clone() //new robot frame
         },
+         // box
+         ShapeUpdate::Add{
+            id : 1.to_string(),
+            shape : box_20.clone() //new "world"
+        },
+        ShapeUpdate::Add{
+            id : 2.to_string(),
+            shape : box_19.clone() //new robot frame
+        },
+        ShapeUpdate::Move{
+            id : 1.to_string(),
+            pose: iso_20.clone() //new robot frame
+        },
+        ShapeUpdate::Move{
+            id : 2.to_string(),
+            pose: iso_19.clone() //new robot frame
+        },
+
+        ShapeUpdate::Move{
+            id : 3.to_string(),
+            pose: iso_20.clone() //new robot frame
+        },
+        ShapeUpdate::Move{
+            id : 4.to_string(),
+            pose: iso_19.clone() //new robot frame
+        },
+
+        // ShapeUpdate::Delete(2.to_string()),
+        // ShapeUpdate::Delete(1.to_string()),
+        // ShapeUpdate::Delete(3.to_string()),
+        // ShapeUpdate::Delete(4.to_string())
 
        
-        ShapeUpdate::Add{
-            id : 1.to_string(),
-            shape : box_16.clone() //replace world to world
-        },
+        // ShapeUpdate::Add{
+        //     id : 1.to_string(),
+        //     shape : box_16.clone() //replace world to world
+        // },
 
-        ShapeUpdate::Add{
-            id : 1.to_string(),
-            shape : box_18.clone() //replace world to robot frame
-        },
+        // ShapeUpdate::Add{
+        //     id : 1.to_string(),
+        //     shape : box_18.clone() //replace world to robot frame
+        // },
 
-        ShapeUpdate::Add{
-            id : 2.to_string(),
-            shape : box_18.clone() //replace robot frame to robot frame
-        },
+        // ShapeUpdate::Add{
+        //     id : 2.to_string(),
+        //     shape : box_18.clone() //replace robot frame to robot frame
+        // },
 
-        ShapeUpdate::Add{
-            id : 2.to_string(),
-            shape : box_16.clone() //replace robot frame to world
-        },
+        // ShapeUpdate::Add{
+        //     id : 2.to_string(),
+        //     shape : box_16.clone() //replace robot frame to world
+        // },
 
-        ShapeUpdate::Add{
-            id : 2.to_string(),
-            shape : box_16.clone() //replace robot frame to world
-        },
+        // ShapeUpdate::Add{
+        //     id : 2.to_string(),
+        //     shape : box_16.clone() //replace robot frame to world
+        // },
 
-        ShapeUpdate::Add{
-            id : 2.to_string(),
-            shape : box_16.clone() //replace robot frame to world
-        },
+        // ShapeUpdate::Add{
+        //     id : 2.to_string(),
+        //     shape : box_16.clone() //replace robot frame to world
+        // },
 
-        ShapeUpdate::Add{
-            id : 10.to_string(),
-            shape : eroor_box.clone() //error frame
-        },
+        // ShapeUpdate::Add{
+        //     id : 10.to_string(),
+        //     shape : eroor_box.clone() //error frame
+        // },
 
-        ShapeUpdate::Add{
-            id : 1.to_string(),
-            shape : eroor_box.clone() //error frame
-        },
+        // ShapeUpdate::Add{
+        //     id : 1.to_string(),
+        //     shape : eroor_box.clone() //error frame
+        // },
 
-        ShapeUpdate::Add{
-            id : 2.to_string(),
-            shape : eroor_box.clone() //error frame
-        },
+        // ShapeUpdate::Add{
+        //     id : 2.to_string(),
+        //     shape : eroor_box.clone() //error frame
+        // },
 
         //cylinder
-        ShapeUpdate::Add{
-            id : "3".to_string(),
-            shape : temp_cylinder1.clone() // world
-        },
+        // ShapeUpdate::Add{
+        //     id : "3".to_string(),
+        //     shape : temp_cylinder1.clone() // world
+        // },
 
-        ShapeUpdate::Add{
-            id : "4".to_string(),
-            shape : temp_cylinder2.clone() // existing
-        },
+        // ShapeUpdate::Add{
+        //     id : "4".to_string(),
+        //     shape : temp_cylinder2.clone() // existing
+        // },
 
-        ShapeUpdate::Add{
-            id : "3".to_string(),
-            shape : temp_cylinder1.clone() // replace world to world
-        },
+        // ShapeUpdate::Add{
+        //     id : "3".to_string(),
+        //     shape : temp_cylinder1.clone() // replace world to world
+        // },
 
-        ShapeUpdate::Add{
-            id : "3".to_string(),
-            shape : temp_cylinder2.clone() // replace world to robot frame
-        },
+        // ShapeUpdate::Add{
+        //     id : "3".to_string(),
+        //     shape : temp_cylinder2.clone() // replace world to robot frame
+        // },
 
-        ShapeUpdate::Add{
-            id : "4".to_string(),
-            shape : temp_cylinder1.clone() // replace robot frame to world
-        },
+        // ShapeUpdate::Add{
+        //     id : "4".to_string(),
+        //     shape : temp_cylinder1.clone() // replace robot frame to world
+        // },
 
-        ShapeUpdate::Add{
-            id : "4".to_string(),
-            shape : temp_cylinder2.clone() // replace robot frame to robot frame
-        },
+        // ShapeUpdate::Add{
+        //     id : "4".to_string(),
+        //     shape : temp_cylinder2.clone() // replace robot frame to robot frame
+        // },
 
-        ShapeUpdate::Add{
-            id : 11.to_string(),
-            shape : eroor_box.clone() //error frame
-        },
+        // ShapeUpdate::Add{
+        //     id : 11.to_string(),
+        //     shape : eroor_box.clone() //error frame
+        // },
 
-        ShapeUpdate::Add{
-            id : 3.to_string(),
-            shape : eroor_box.clone() //error frame
-        },
+        // ShapeUpdate::Add{
+        //     id : 3.to_string(),
+        //     shape : eroor_box.clone() //error frame
+        // },
 
-        ShapeUpdate::Add{
-            id : 4.to_string(),
-            shape : eroor_box.clone() //error frame
-        },
+        // ShapeUpdate::Add{
+        //     id : 4.to_string(),
+        //     shape : eroor_box.clone() //error frame
+        // },
+
+         // box
+       
 
         // //sphere
         // ShapeUpdate::Add{
@@ -856,7 +891,10 @@ fn main() {
 
     // let vec = temp.compute_average_distance_table();
     let instant = Instant::now();
-    temp.solve(goals, weights, 0.0, Some(shape_update.clone()));
+    temp.solve(goals, weights, 0.0, 
+        //Some(shape_update.clone()
+        Some(shape_update.clone())
+    );
     println!("{:?}",instant.elapsed());
     // println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     //temp.solve(None, None, 0.0, Some(shape_update));
