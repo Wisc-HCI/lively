@@ -1346,7 +1346,7 @@ impl CollisionManager {
         for (id, _) in self.scene_optima_transient_shapes_look_up.clone() {
             self.remove_transient_shape(&id);
         }
-        println!("ALL transient shapes removed");
+        //println!("ALL transient shapes removed");
     }
 
     pub fn compute_relative_change_in_transform(
