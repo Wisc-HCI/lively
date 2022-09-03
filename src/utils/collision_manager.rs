@@ -12,7 +12,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
-use std::ops::Index;
+
 //use std::time::{Duration, Instant};
 //use instant::{now};
 use instant::{Duration, Instant};
@@ -735,8 +735,6 @@ impl CollisionManager {
         local_transform: Isometry3<f64>,
         collider: SharedShape,
     ) {
-        let mut added = false;
-        let mut index: usize = 0;
         match self.scene_group_truth_distance_hashmap.clone().get(&frame) {
             Some(shapes_hashmap) => {
                 let (_, item) = shapes_hashmap.first().unwrap();
@@ -744,7 +742,7 @@ impl CollisionManager {
                 let old_shape1 = &item.1;
                 let mut old_shape1_vec = old_shape1.shapes().to_vec();
                 old_shape1_vec.push((local_transform, collider.clone()));
-                index = old_shape1_vec.len() - 1;
+                let index = old_shape1_vec.len() - 1;
                 let new_shape1 = Compound::new(old_shape1_vec);
 
                 let new_shape1_radius = new_shape1.local_bounding_sphere().radius;
@@ -771,7 +769,6 @@ impl CollisionManager {
                                     ),
                                     item.0.average_distance,
                                 );
-                                added = true;
 
                                 // let new_shapes_pair = &mut (new_proximity,new_shape1,item.2, new_shape1_radius, item.4, shape1_transform, item.6, item.7.to_string(),
                                 // item.8.to_string());
@@ -799,17 +796,17 @@ impl CollisionManager {
                     id.to_string(),
                     (frame, name.to_string(), Some(index), collider.clone(), true),
                 );
-                println!(
-                    "id : {:?} , robot_link transient shape for {:?} is added",
-                    id,
-                    name.to_string()
-                );
+                // println!(
+                //     "id : {:?} , robot_link transient shape for {:?} is added",
+                //     id,
+                //     name.to_string()
+                // );
             }
             None => {
-                println!(
-                    "the frame you provided for [{:?}] transient shape is not valid",
-                    name.to_string()
-                );
+                // println!(
+                //     "the frame you provided for [{:?}] transient shape is not valid",
+                //     name.to_string()
+                // );
             }
         }
     }
@@ -894,10 +891,10 @@ impl CollisionManager {
                     physical,
                 ),
             );
-            println!(
-                "id : {:?} , world transient shape for {:?} is added",
-                id, name
-            );
+            // println!(
+            //     "id : {:?} , world transient shape for {:?} is added",
+            //     id, name
+            // );
         }
     }
 
@@ -913,7 +910,7 @@ impl CollisionManager {
                         mut_shapes_hashmap.remove_entry(delete_name);
                     }
                     self.scene_optima_transient_shapes_look_up.remove_entry(id);
-                    println!("removal for transient shape of id {:?} is successful", id);
+                    // println!("removal for transient shape of id {:?} is successful", id);
                 } else {
                     match self.scene_group_truth_distance_hashmap.clone().get(frame) {
                         Some(shapes_hashmap) => {
@@ -1003,10 +1000,10 @@ impl CollisionManager {
                                             .unwrap();
                                         self.scene_group_truth_distance_hashmap
                                             .insert(frame.to_string(), replace_hashmap);
-                                        println!(
-                                            "removal for transient shape of id {:?} is successful",
-                                            id
-                                        );
+                                        // println!(
+                                        //     "removal for transient shape of id {:?} is successful",
+                                        //     id
+                                        // );
                                     }
                                 }
                                 None => {}
@@ -1019,14 +1016,14 @@ impl CollisionManager {
                 }
             }
             None => {
-                println!("invalid id for removal: [{:?}]", id);
+                // println!("invalid id for removal: [{:?}]", id);
             }
         }
     }
 
     pub fn move_transient_shape(&mut self, id: &String, pose: Isometry3<f64>) {
         match self.scene_optima_transient_shapes_look_up.clone().get(id) {
-            Some((frame, name, index, collider, physical)) => {
+            Some((frame, name, _, collider, physical)) => {
                 self.remove_transient_shape(&id);
                 if frame == "world" {
                     self.add_world_transient_shape(
@@ -1036,7 +1033,7 @@ impl CollisionManager {
                         collider.clone(),
                         *physical,
                     );
-                    println!("transient shape moved for id of {:?}", id);
+                    //println!("transient shape moved for id of {:?}", id);
                 } else {
                     self.add_robot_link_transient_shape(
                         id,
@@ -1045,11 +1042,11 @@ impl CollisionManager {
                         pose,
                         collider.clone(),
                     );
-                    println!("transient shape moved for id of {:?}", id);
+                    // println!("transient shape moved for id of {:?}", id);
                 }
             }
             None => {
-                println!("invalid id for move: [{:?}]", id);
+                //println!("invalid id for move: [{:?}]", id);
             }
         }
     }
@@ -1330,7 +1327,7 @@ impl CollisionManager {
                                 }
                             }
                             None => {
-                                println!("cannot form a valid hull");
+                                // println!("cannot form a valid hull");
                             }
                         }
                     }
@@ -1645,7 +1642,7 @@ impl CollisionManager {
 
         for (_, valid_hashmap) in self.scene_group_truth_distance_hashmap.clone() {
             for (
-                name2,
+                _name2,
                 (
                     proximity,
                     shape1_compound,
@@ -1787,12 +1784,12 @@ impl CollisionManager {
                 // }
             }
 
-            println!("-----------------------------------------------------------------------------------");
-            for item in result_vector.clone() {
-                println!("the info is : {:?}", item);
-            }
+            // println!("-----------------------------------------------------------------------------------");
+            // for item in result_vector.clone() {
+            //     println!("the info is : {:?}", item);
+            // }
 
-            println!("-----------------------------------------------------------------------------------");
+            // println!("-----------------------------------------------------------------------------------");
 
             return result_vector;
         } else {
