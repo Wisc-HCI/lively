@@ -202,7 +202,7 @@ impl Solver {
         } else {
             self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
             let state = self.robot_model.get_state(&self.xopt,true);
-            println!("Solve with retries, prox: {:?}",state.proximity);
+            // println!("Solve with retries, prox: {:?}",state.proximity);
             self.vars.history.update(&state);
             return state
         }
