@@ -198,15 +198,12 @@ impl Solver {
 
         if self.only_core {
             self.vars.history.update(&self.vars.state_core);
-            //self.robot_model.collision_manager.lock().unwrap().update_ground_truth_table(&mut self.vars.state_core);
             return self.vars.state_core.clone()
         } else {
             self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
             let state = self.robot_model.get_state(&self.xopt,true);
+            println!("Solve with retries, prox: {:?}",state.proximity);
             self.vars.history.update(&state);
-            //self.robot_model.collision_manager.lock().unwrap().update_ground_truth_table(&mut state);
-            
-            
             return state
         }
     }
