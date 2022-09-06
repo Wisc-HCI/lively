@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 use nalgebra::geometry::{Isometry3};
 use nalgebra::Vector3;
+use bevy::prelude::*;
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
@@ -132,3 +133,28 @@ pub enum Shape {
     Mesh(MeshShape),
     Hull(HullShape)
 }
+
+// impl Into<Mesh> for Shape {
+//     fn into(self: &Shape) -> Mesh {
+//         match self {
+//             Shape::Box(boxShape) => {
+                
+//             },
+//             Shape::Cylinder(boxShape) => {
+                
+//             },
+//             Shape::Sphere(boxShape) => {
+                
+//             },
+//             Shape::Capsule(boxShape) => {
+                
+//             },
+//             Shape::Mesh(boxShape) => {
+                
+//             },
+//             Shape::Hull(hullShape) => {
+
+//             }
+//         }
+//     }
+// }
