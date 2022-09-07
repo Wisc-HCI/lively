@@ -3,8 +3,7 @@ use nalgebra::geometry::{Isometry3};
 use nalgebra::Vector3;
 use bevy::prelude::*;
 use bevy::prelude::shape::CapsuleUvProfile;
-use bevy::render::mesh::PrimitiveTopology;
-use bevy::render::mesh::Indices;
+
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
