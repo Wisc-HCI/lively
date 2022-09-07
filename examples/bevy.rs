@@ -295,7 +295,7 @@ impl Plugin for LivelyTKPlugin {
         //--------persistent shapes
         let iso_1 = Isometry3::from_parts(
             Translation3::new(
-                1.7497281999999998,
+                0.6497281999999998,
                 -0.24972819999999987,
                 0.050000000000000044,
             ),
@@ -311,9 +311,9 @@ impl Plugin for LivelyTKPlugin {
             "table".to_string(),
             "world".to_string(),
             true,
-            1.0,
-            1.0,
-            1.0,
+            0.5,
+            0.5,
+            0.5,
             iso_1,
         ));
         //--------
