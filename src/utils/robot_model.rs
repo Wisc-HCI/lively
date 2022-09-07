@@ -21,7 +21,8 @@ pub struct RobotModel {
     pub dims: usize,
     pub origin_link: String,
     pub links: Vec<LinkInfo>,
-    pub joints: Vec<JointInfo>
+    pub joints: Vec<JointInfo>,
+    pub collision_objects : Vec<Shape>
 }
 
 impl RobotModel {
@@ -151,9 +152,12 @@ impl RobotModel {
             }
         }
 
-        Self { description, chain, collision_manager, child_map, joint_names, joints, links, joint_converters, dims, origin_link }
+        Self { description, chain, collision_manager, child_map, joint_names, joints, links, joint_converters, dims, origin_link,collision_objects }
     }
 
+    pub fn get_environmental_objects(&self) -> Vec<Shape>{
+        return self.collision_objects.clone();
+    }
     pub fn get_state(&self, x: &Vec<f64>,include_proximity: bool) -> State {
         let translation: Translation3<f64> = Translation3::new(x[0],x[1],x[2]);
         let rotation: UnitQuaternion<f64> = UnitQuaternion::from_euler_angles(x[3],x[4],x[5]);

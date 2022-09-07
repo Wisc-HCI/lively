@@ -128,6 +128,7 @@ impl Solver {
         }
     }
 
+   
     pub fn reset(
         &mut self, 
         state: State,

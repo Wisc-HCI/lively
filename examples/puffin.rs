@@ -3,23 +3,23 @@ use lively_tk::objectives::core::base::CollisionAvoidanceObjective;
 use lively_tk::objectives::core::base::SmoothnessMacroObjective;
 use lively_tk::objectives::core::matching::PositionMatchObjective;
 use lively_tk::objectives::objective::Objective;
+use lively_tk::utils::goals::Goal;
 use lively_tk::utils::goals::Goal::ScalarRange;
-use lively_tk::utils::shapes::*;
-use lively_tk::utils::info::{*};
+use lively_tk::utils::info::*;
 use lively_tk::utils::shapes::Shape;
-use nalgebra::base::Vector4;
+use lively_tk::utils::shapes::*;
 use nalgebra::base::Vector3;
+use nalgebra::base::Vector4;
 use nalgebra::geometry::Isometry3;
 use nalgebra::geometry::Quaternion;
 use nalgebra::geometry::Translation3;
 use nalgebra::geometry::UnitQuaternion;
-use lively_tk::utils::goals::{Goal};
-use std::collections::HashMap;
 use rand::Rng;
+use std::collections::HashMap;
 
 use std::fs;
 
-use std::time::{Instant};
+use std::time::Instant;
 
 // mod imgui_support;
 // use imgui_support::ImguiManager;
@@ -27,7 +27,6 @@ use std::time::{Instant};
 // mod renderer;
 // use puffin::set_scopes_on;
 // use renderer::Renderer;
-
 
 fn main() {
     let data =
@@ -201,7 +200,7 @@ fn main() {
     let box_8 = Shape::Box(BoxShape::new(
         "conveyorDispatcherCollisionShapeRightSplit".to_string(),
         "world".to_string(),
-     false,
+        false,
         0.29,
         0.275,
         0.175,
@@ -392,27 +391,44 @@ fn main() {
     ));
 
     let mut box_shapes_vec: Vec<Shape> = vec![
-        box_1, box_2, box_3, box_4, box_5, box_6, box_7, box_8, box_9, box_10, box_11, box_12,
-        box_13, box_14, box_15, box_16.clone(), box_17.clone(), box_18.clone(), box_19.clone(),box_20.clone()
+        box_1,
+        box_2,
+        box_3,
+        box_4,
+        box_5,
+        box_6,
+        box_7,
+        box_8,
+        box_9,
+        box_10,
+        box_11,
+        box_12,
+        box_13,
+        box_14,
+        box_15,
+        box_16.clone(),
+        box_17.clone(),
+        box_18.clone(),
+        box_19.clone(),
+        box_20.clone(),
     ];
 
-    for i in 1..= 0{
-        
+    for i in 1..=0 {
         let mut rng = rand::thread_rng();
-        let n : f64 = rng.gen_range(-2.0..2.0);
-        let n1 : f64 = rng.gen_range(-2.0..2.0);
-        let n2 : f64 = rng.gen_range(-2.0..2.0);
-        let temp_translate = Translation3::new(n,n1,n2);
-        let n8 : f64 = rng.gen_range(-10.0..10.0);
-        let n6 : f64 = rng.gen_range(-10.0..10.0);
-        let n7 : f64 = rng.gen_range(-10.0..10.0);
-        let temp_quat = UnitQuaternion::new(Vector3::new(n7,n8,n6));
+        let n: f64 = rng.gen_range(-2.0..2.0);
+        let n1: f64 = rng.gen_range(-2.0..2.0);
+        let n2: f64 = rng.gen_range(-2.0..2.0);
+        let temp_translate = Translation3::new(n, n1, n2);
+        let n8: f64 = rng.gen_range(-10.0..10.0);
+        let n6: f64 = rng.gen_range(-10.0..10.0);
+        let n7: f64 = rng.gen_range(-10.0..10.0);
+        let temp_quat = UnitQuaternion::new(Vector3::new(n7, n8, n6));
         let iso = Isometry3::from_parts(temp_translate, temp_quat);
-        let n3 : usize = rng.gen_range(0..4);
-        if n3 == 0{
-            let n4 : f64 = rng.gen_range(0.0..1.0);
-            let n5 : f64 = rng.gen_range(0.0..1.0);
-            let n6 : f64 = rng.gen_range(0.0..1.0);
+        let n3: usize = rng.gen_range(0..4);
+        if n3 == 0 {
+            let n4: f64 = rng.gen_range(0.0..1.0);
+            let n5: f64 = rng.gen_range(0.0..1.0);
+            let n6: f64 = rng.gen_range(0.0..1.0);
             let temp_box = Shape::Box(BoxShape::new(
                 "shape".to_string(),
                 "world".to_string(),
@@ -423,11 +439,10 @@ fn main() {
                 iso,
             ));
             box_shapes_vec.push(temp_box);
+        } else if n3 == 1 {
+            let n4: f64 = rng.gen_range(0.0..1.0);
+            let n5: f64 = rng.gen_range(0.0..1.0);
 
-        }else if n3 == 1 {
-            let n4 : f64 = rng.gen_range(0.0..1.0);
-            let n5 : f64 = rng.gen_range(0.0..1.0);
-            
             let temp_cylinder = Shape::Cylinder(CylinderShape::new(
                 "shape".to_string(),
                 "world".to_string(),
@@ -437,11 +452,9 @@ fn main() {
                 iso,
             ));
             box_shapes_vec.push(temp_cylinder);
+        } else if n3 == 2 {
+            let n4: f64 = rng.gen_range(0.0..1.0);
 
-
-        }else if n3 ==2 {
-            let n4 : f64 = rng.gen_range(0.0..1.0);
-            
             let temp_sphere = Shape::Sphere(SphereShape::new(
                 "shape".to_string(),
                 "world".to_string(),
@@ -450,12 +463,11 @@ fn main() {
                 iso,
             ));
             box_shapes_vec.push(temp_sphere);
+        } else if n3 == 3 {
+            let n4: f64 = rng.gen_range(0.0..1.0);
+            let n5: f64 = rng.gen_range(0.0..1.0);
 
-        }else if n3 == 3{
-            let n4 : f64 = rng.gen_range(0.0..1.0);
-            let n5 : f64 = rng.gen_range(0.0..1.0);
-            
-            let temp_capsule= Shape::Capsule(CapsuleShape::new(
+            let temp_capsule = Shape::Capsule(CapsuleShape::new(
                 "shape".to_string(),
                 "world".to_string(),
                 true,
@@ -464,22 +476,21 @@ fn main() {
                 iso,
             ));
             box_shapes_vec.push(temp_capsule);
-
-
         }
-        
-
     }
 
-   
-    
-    let mut objectives: HashMap<String,Objective> = HashMap::new();
-    objectives.insert("iowsdsfhwe".into(),Objective::PositionMatch(pos_match_obj));
-    objectives.insert("sdfsddsfes".into(),Objective::CollisionAvoidance(col_avoid_obj));
-    objectives.insert("dfawdaseas".into(),Objective::SmoothnessMacro(smooth_macro_obj));
+    let mut objectives: HashMap<String, Objective> = HashMap::new();
+    objectives.insert("iowsdsfhwe".into(), Objective::PositionMatch(pos_match_obj));
+    objectives.insert(
+        "sdfsddsfes".into(),
+        Objective::CollisionAvoidance(col_avoid_obj),
+    );
+    objectives.insert(
+        "dfawdaseas".into(),
+        Objective::SmoothnessMacro(smooth_macro_obj),
+    );
 
-    let mut 
-    temp = Solver::new(
+    let mut temp = Solver::new(
         data.clone(),
         objectives,
         Some(scalar_range_vec.clone()),
@@ -495,18 +506,18 @@ fn main() {
 
     let mut rng = rand::thread_rng();
 
-    let n4 : f64 = rng.gen_range(0.0..1.0);
-            let n5 : f64 = rng.gen_range(0.0..1.0);
-            let n6 : f64 = rng.gen_range(0.0..1.0);
-            let n : f64 = rng.gen_range(-2.0..2.0);
-            let n1 : f64 = rng.gen_range(-2.0..2.0);
-            let n2 : f64 = rng.gen_range(-2.0..2.0);
-            let temp_translate = Translation3::new(n,n1,n2);
-            let n8 : f64 = rng.gen_range(-10.0..10.0);
-            let n6 : f64 = rng.gen_range(-10.0..10.0);
-            let n7 : f64 = rng.gen_range(-10.0..10.0);
-            let temp_quat = UnitQuaternion::new(Vector3::new(n7,n8,n6));
-            let iso = Isometry3::from_parts(temp_translate, temp_quat);
+    let n4: f64 = rng.gen_range(0.0..1.0);
+    let n5: f64 = rng.gen_range(0.0..1.0);
+    let n6: f64 = rng.gen_range(0.0..1.0);
+    let n: f64 = rng.gen_range(-2.0..2.0);
+    let n1: f64 = rng.gen_range(-2.0..2.0);
+    let n2: f64 = rng.gen_range(-2.0..2.0);
+    let temp_translate = Translation3::new(n, n1, n2);
+    let n8: f64 = rng.gen_range(-10.0..10.0);
+    let n6: f64 = rng.gen_range(-10.0..10.0);
+    let n7: f64 = rng.gen_range(-10.0..10.0);
+    let temp_quat = UnitQuaternion::new(Vector3::new(n7, n8, n6));
+    let iso = Isometry3::from_parts(temp_translate, temp_quat);
 
     let temp_cylinder1 = Shape::Cylinder(CylinderShape::new(
         "shape".to_string(),
@@ -542,7 +553,7 @@ fn main() {
         iso,
     ));
 
-    let temp_capsule1= Shape::Capsule(CapsuleShape::new(
+    let temp_capsule1 = Shape::Capsule(CapsuleShape::new(
         "shape".to_string(),
         "world".to_string(),
         true,
@@ -551,7 +562,7 @@ fn main() {
         iso,
     ));
 
-    let temp_capsule2= Shape::Capsule(CapsuleShape::new(
+    let temp_capsule2 = Shape::Capsule(CapsuleShape::new(
         "shape".to_string(),
         "wrist_2_link".to_string(),
         true,
@@ -559,53 +570,47 @@ fn main() {
         n5,
         iso,
     ));
-    
 
-
-
-    let shape_update : Vec<ShapeUpdate> = vec![
+    let shape_update: Vec<ShapeUpdate> = vec![
         // box
-        ShapeUpdate::Add{
-            id : 1.to_string(),
-            shape : box_19.clone() //new "world"
+        ShapeUpdate::Add {
+            id: 1.to_string(),
+            shape: box_19.clone(), //new "world"
         },
-        ShapeUpdate::Add{
-            id : 2.to_string(),
-            shape : box_20.clone() //new robot frame
+        ShapeUpdate::Add {
+            id: 2.to_string(),
+            shape: box_20.clone(), //new robot frame
         },
-         // box
-         ShapeUpdate::Add{
-            id : 1.to_string(),
-            shape : box_20.clone() //new "world"
+        // box
+        ShapeUpdate::Add {
+            id: 1.to_string(),
+            shape: box_20.clone(), //new "world"
         },
-        ShapeUpdate::Add{
-            id : 2.to_string(),
-            shape : box_19.clone() //new robot frame
+        ShapeUpdate::Add {
+            id: 2.to_string(),
+            shape: box_19.clone(), //new robot frame
         },
-        ShapeUpdate::Move{
-            id : 1.to_string(),
-            pose: iso_20.clone() //new robot frame
+        ShapeUpdate::Move {
+            id: 1.to_string(),
+            pose: iso_20.clone(), //new robot frame
         },
-        ShapeUpdate::Move{
-            id : 2.to_string(),
-            pose: iso_19.clone() //new robot frame
+        ShapeUpdate::Move {
+            id: 2.to_string(),
+            pose: iso_19.clone(), //new robot frame
         },
-
-        ShapeUpdate::Move{
-            id : 3.to_string(),
-            pose: iso_20.clone() //new robot frame
+        ShapeUpdate::Move {
+            id: 3.to_string(),
+            pose: iso_20.clone(), //new robot frame
         },
-        ShapeUpdate::Move{
-            id : 4.to_string(),
-            pose: iso_19.clone() //new robot frame
+        ShapeUpdate::Move {
+            id: 4.to_string(),
+            pose: iso_19.clone(), //new robot frame
         },
-
         // ShapeUpdate::Delete(2.to_string()),
         // ShapeUpdate::Delete(1.to_string()),
         // ShapeUpdate::Delete(3.to_string()),
         // ShapeUpdate::Delete(4.to_string())
 
-       
         // ShapeUpdate::Add{
         //     id : 1.to_string(),
         //     shape : box_16.clone() //replace world to world
@@ -697,8 +702,7 @@ fn main() {
         //     shape : eroor_box.clone() //error frame
         // },
 
-         // box
-       
+        // box
 
         // //sphere
         // ShapeUpdate::Add{
@@ -804,10 +808,6 @@ fn main() {
         //     shape : temp_sphere2.clone() // existing
         // },
 
-
-        
-
-       
         // ShapeUpdate::Move{
         //     id : "1".to_string(),
         //     pose : iso_18.clone()
@@ -870,46 +870,36 @@ fn main() {
         //     id : "9".to_string(),
         //     pose : iso_3.clone()
         // },
-
-
-
-
-
-
-       
-
-
-
     ];
 
-
-    let mut goals: HashMap<String,Goal> = HashMap::new();
-    let mut weights: HashMap<String,f64> = HashMap::new();
-    goals.insert("iowsdsfhwe".into(),Goal::Translation(Translation3::new(0.5,0.0,0.5)));
-    weights.insert("iowsdsfhwe".into(),10.0);
-
+    let mut goals: HashMap<String, Goal> = HashMap::new();
+    let mut weights: HashMap<String, f64> = HashMap::new();
+    goals.insert(
+        "iowsdsfhwe".into(),
+        Goal::Translation(Translation3::new(0.5, 0.0, 0.5)),
+    );
+    weights.insert("iowsdsfhwe".into(), 10.0);
 
     // let vec = temp.compute_average_distance_table();
     let instant = Instant::now();
-    temp.solve(goals, weights, 0.0, 
+    temp.solve(
+        goals,
+        weights,
+        0.0,
         //Some(shape_update.clone()
-        Some(shape_update.clone())
+        Some(shape_update.clone()),
     );
-    println!("{:?}",instant.elapsed());
+    println!("{:?}", instant.elapsed());
     // println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     //temp.solve(None, None, 0.0, Some(shape_update));
-    println!("{:?}",instant.elapsed());
-
+    println!("{:?}", instant.elapsed());
 
     // for item in temp_solve.proximity {
     //     println!("the result getting from temp_solve is {:?}" , item);
     // }
-   
-
-
 
     // println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    // let mut 
+    // let mut
     // temp2 = Solver::new(
     //     data,
     //     objective_vec,
@@ -923,7 +913,6 @@ fn main() {
     // );
 
     // let temp_solve2 = temp2.solve(None, None, 0.0, None);
-
 
     //temp.reset(temp_solve,None);
     //temp.dele

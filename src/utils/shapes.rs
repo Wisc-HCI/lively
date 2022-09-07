@@ -222,6 +222,29 @@ pub enum Shape {
 }
 
 impl Shape {
+    pub fn get_frame_name(self) -> String {
+        match self {
+            Self::Mesh(object) => {
+                return object.frame;
+            }
+            Self::Box(object) => {
+                return object.frame;
+            }
+            Self::Cylinder(object) => {
+                return object.frame;
+            }
+            Self::Capsule(object) => {
+                return object.frame;
+            }
+            Self::Hull(object) => {
+                return object.frame;
+            }
+            Self::Sphere(object) => {
+                return object.frame;
+            }
+        }
+    }
+
     pub fn get_transform(self) -> Transform {
         match self {
             Self::Box(box_object) => {
@@ -316,25 +339,26 @@ impl Shape {
             }
             Self::Hull(hull_object) => {
                 let translation = Vec3::new(
-                hull_object.local_transform.translation.vector.x as f32,
-                hull_object.local_transform.translation.vector.y as f32,
-                hull_object.local_transform.translation.vector.z as f32,
-            );
+                    hull_object.local_transform.translation.vector.x as f32,
+                    hull_object.local_transform.translation.vector.y as f32,
+                    hull_object.local_transform.translation.vector.z as f32,
+                );
 
-            let scale = Vec3::new(1.0, 1.0, 1.0);
+                let scale = Vec3::new(1.0, 1.0, 1.0);
 
-            let rotation: Quat = Quat::from_xyzw(
-                hull_object.local_transform.rotation.coords[0] as f32,
-                hull_object.local_transform.rotation.coords[1] as f32,
-                hull_object.local_transform.rotation.coords[2] as f32,
-                hull_object.local_transform.rotation.coords[3] as f32,
-            );
+                let rotation: Quat = Quat::from_xyzw(
+                    hull_object.local_transform.rotation.coords[0] as f32,
+                    hull_object.local_transform.rotation.coords[1] as f32,
+                    hull_object.local_transform.rotation.coords[2] as f32,
+                    hull_object.local_transform.rotation.coords[3] as f32,
+                );
 
-            return Transform {
-                translation: translation,
-                rotation: rotation,
-                scale: scale,
-            };},
+                return Transform {
+                    translation: translation,
+                    rotation: rotation,
+                    scale: scale,
+                };
+            }
             Self::Mesh(_) => return Transform::identity(),
         }
     }

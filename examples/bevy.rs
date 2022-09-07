@@ -1,6 +1,9 @@
 //! A simple 3D scene with light shining over a cube sitting on a plane.
 
-use bevy::{prelude::*,time::{FixedTimestep,FixedTimesteps}};
+use bevy::{
+    prelude::*,
+    time::{FixedTimestep, FixedTimesteps},
+};
 use bevy_transform_gizmo::TransformGizmoPlugin;
 use lively_tk::lively_tk::Solver;
 use lively_tk::objectives::core::base::CollisionAvoidanceObjective;
@@ -9,7 +12,7 @@ use lively_tk::objectives::core::matching::PositionMatchObjective;
 use lively_tk::objectives::objective::Objective;
 use lively_tk::utils::goals::Goal;
 use lively_tk::utils::info::TransformInfo;
-use lively_tk::utils::shapes::Shape;
+use lively_tk::utils::shapes::*;
 use nalgebra::geometry::Translation3;
 use nalgebra::Isometry3;
 use smooth_bevy_cameras::{
@@ -18,6 +21,10 @@ use smooth_bevy_cameras::{
 };
 use std::collections::HashMap;
 use std::fs;
+
+use nalgebra::geometry::Quaternion;
+
+use nalgebra::geometry::UnitQuaternion;
 // use bevy_mod_picking::*;
 
 const POSITION_OBJECTIVE: &str = "PositionObjective";
@@ -48,7 +55,6 @@ struct ObjectiveBundle {
     objective: ObjectiveName,
 }
 
-
 #[derive(Component)]
 struct Children;
 
@@ -75,7 +81,12 @@ fn setup(
     // plane
     commands.spawn_bundle(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
-        transform:Transform::from_rotation(Quat::from_euler(EulerRot::XYZ,std::f32::consts::PI/2.0,0.0,0.0)),
+        transform: Transform::from_rotation(Quat::from_euler(
+            EulerRot::XYZ,
+            std::f32::consts::PI / 2.0,
+            0.0,
+            0.0,
+        )),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
@@ -111,35 +122,35 @@ fn setup(
 pub fn solve(
     time: Res<Time>,
     mut solver: ResMut<Solver>,
-    mut frame_query: Query<(&mut FrameName, &mut Transform), (With<FrameName>,Without<ObjectiveName>)>,
-    objective_query: Query<(&ObjectiveName, &Transform), (With<ObjectiveName>,Without<FrameName>)>
+    mut frame_query: Query<
+        (&mut FrameName, &mut Transform),
+        (With<FrameName>, Without<ObjectiveName>),
+    >,
+    objective_query: Query<(&ObjectiveName, &Transform), (With<ObjectiveName>, Without<FrameName>)>,
 ) {
     let mut goals: HashMap<String, Goal> = HashMap::new();
     let mut weights: HashMap<String, f64> = HashMap::new();
-    
+
     // println!("x {:?}",x);
     for (_objective_name, transform) in &objective_query {
         goals.insert(
             // For now, just insert everything as a position objective
             POSITION_OBJECTIVE.to_string(),
-            Goal::Translation(Translation3::new(transform.translation.x as f64, transform.translation.y as f64, transform.translation.z as f64)),
+            Goal::Translation(Translation3::new(
+                transform.translation.x as f64,
+                transform.translation.y as f64,
+                transform.translation.z as f64,
+            )),
         );
     }
 
-    
     weights.insert(POSITION_OBJECTIVE.to_string(), 30.0);
-    
-    let state = solver.solve(
-        goals, 
-        weights, 
-        time.seconds_since_startup(), 
-        None
-    );
+
+    let state = solver.solve(goals, weights, time.seconds_since_startup(), None);
     // Iterate through transforms and update their locations/rotations from the iso
     // println!("goal {:?} {:?}", x, solver.get_goals().get(POSITION_OBJECTIVE.into()));
     // println!("pos {:?} {:?}",Translation3::new(x, y, 0.5),solver.get_current_state().frames.get("tool0".into()).unwrap_or(&TransformInfo::default()).world.translation);
     for (frame_name, mut transform) in &mut frame_query {
-        
         // println!("frame {:?}",frame_name.0);
         let frame_state: Isometry3<f64> = state
             .frames
@@ -174,17 +185,20 @@ fn setup_lively_tk(
 ) {
     // Goal Visualization/Updating
     commands
-    .spawn_bundle(ObjectiveBundle {
-        pbr: PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Icosphere { radius: 0.1, subdivisions: 32 })),
-            material: materials.add(Color::rgba(0.1, 0.9, 0.3,0.5).into()),
-            transform: Transform::from_xyz(0.0, 0.5, 0.5),
-            ..Default::default()
-        },
-        objective: ObjectiveName(POSITION_OBJECTIVE.to_string())
-    })
-    .insert_bundle(bevy_mod_picking::PickableBundle::default())
-    .insert(bevy_transform_gizmo::GizmoTransformable);
+        .spawn_bundle(ObjectiveBundle {
+            pbr: PbrBundle {
+                mesh: meshes.add(Mesh::from(shape::Icosphere {
+                    radius: 0.1,
+                    subdivisions: 32,
+                })),
+                material: materials.add(Color::rgba(0.1, 0.9, 0.3, 0.5).into()),
+                transform: Transform::from_xyz(0.0, 0.5, 0.5),
+                ..Default::default()
+            },
+            objective: ObjectiveName(POSITION_OBJECTIVE.to_string()),
+        })
+        .insert_bundle(bevy_mod_picking::PickableBundle::default())
+        .insert(bevy_transform_gizmo::GizmoTransformable);
 
     for link in &solver.robot_model.links {
         let id = commands
@@ -208,6 +222,37 @@ fn setup_lively_tk(
                 });
             });
         }
+    }
+
+    //------------ adding persistent shapes to the scene
+    for shape in &solver.robot_model.get_environmental_objects() {
+        println!("{:?}", shape);
+        let temp: Mesh = lively_tk::utils::shapes::Shape::into(shape.clone());
+        let mesh = meshes.add(temp);
+
+        commands
+            .spawn_bundle(LinkBundle {
+                pbr: PbrBundle {
+                    transform: Transform::default(),
+                    //mesh: mesh.clone(),
+                    ..default()
+                },
+                frame: FrameName(shape.clone().get_frame_name()),
+                ..default()
+            })
+            .insert(Children)
+            .with_children(|p| {
+                p.spawn_bundle(PbrBundle {
+                    transform: shape.clone().get_transform(),
+                    mesh: mesh.clone(),
+                    material: materials.add(StandardMaterial {
+                        base_color: Color::ORANGE_RED,
+                        emissive: (Color::ORANGE_RED * 2.),
+                        ..default()
+                    }),
+                    ..default()
+                });
+            });
     }
 }
 
@@ -235,8 +280,8 @@ impl Plugin for LivelyTKPlugin {
 
         let mut objectives: HashMap<String, Objective> = HashMap::new();
         objectives.insert(
-            POSITION_OBJECTIVE.to_string(), 
-            Objective::PositionMatch(pos_match_obj)
+            POSITION_OBJECTIVE.to_string(),
+            Objective::PositionMatch(pos_match_obj),
         );
         objectives.insert(
             COLLISION_OBJECTIVE.to_string(),
@@ -247,11 +292,37 @@ impl Plugin for LivelyTKPlugin {
             Objective::SmoothnessMacro(smooth_macro_obj),
         );
 
+        //--------persistent shapes
+        let iso_1 = Isometry3::from_parts(
+            Translation3::new(
+                1.7497281999999998,
+                -0.24972819999999987,
+                0.050000000000000044,
+            ),
+            UnitQuaternion::from_quaternion(Quaternion::new(
+                0.0,
+                0.0,
+                -0.7069999677447771,
+                0.7072135784958345,
+            )),
+        );
+
+        let box_1 = Shape::Box(BoxShape::new(
+            "table".to_string(),
+            "world".to_string(),
+            true,
+            1.0,
+            1.0,
+            1.0,
+            iso_1,
+        ));
+        //--------
+
         let mut solver = Solver::new(
             urdf_string.clone(),
             objectives.clone(),
             Some(root_bounds),
-            None,
+            Some(vec![box_1]),
             None,
             Some(true),
             None,
@@ -285,7 +356,7 @@ impl Plugin for LivelyTKPlugin {
                     )
                     .with_system(solve),
             );
-            // .add_system(solve);
+        // .add_system(solve);
     }
 }
 
