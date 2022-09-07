@@ -1,6 +1,7 @@
 //! A simple 3D scene with light shining over a cube sitting on a plane.
 
 use bevy::{prelude::*,time::{FixedTimestep,FixedTimesteps}};
+use bevy_transform_gizmo::TransformGizmoPlugin;
 use lively_tk::lively_tk::Solver;
 use lively_tk::objectives::core::base::CollisionAvoidanceObjective;
 use lively_tk::objectives::core::base::SmoothnessMacroObjective;
@@ -17,6 +18,7 @@ use smooth_bevy_cameras::{
 };
 use std::collections::HashMap;
 use std::fs;
+use bevy_mod_picking::*;
 
 const POSITION_OBJECTIVE: &str = "PositionObjective";
 const SMOOTHNESS_OBJECTIVE: &str = "SmoothnessObjective";
@@ -45,6 +47,10 @@ fn main() {
         .add_plugin(LookTransformPlugin)
         .add_plugin(OrbitCameraPlugin::default())
         .add_plugin(LivelyTKPlugin)
+        .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
+        .add_plugin(bevy_transform_gizmo::TransformGizmoPlugin::default(
+            // Align the gizmo to a different coordinate system.
+        )) // Use TransformGizmoPlugin::default() to align to the scene's coordinate system.
         .add_startup_system(setup)
         .run();
 }
@@ -56,7 +62,15 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // LivelyTK setup
-
+    commands
+    .spawn_bundle(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1 })),
+        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+        transform: Transform::from_xyz(0.0, 0.5, 0.0),
+        ..Default::default()
+    })
+    .insert_bundle(bevy_mod_picking::PickableBundle::default())
+    .insert(bevy_transform_gizmo::GizmoTransformable);
     // plane
     commands.spawn_bundle(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
@@ -78,6 +92,8 @@ fn setup(
     // Orbit Controls
     commands
         .spawn_bundle(Camera3dBundle::default())
+        .insert_bundle(bevy_mod_picking::PickingCameraBundle::default())
+        .insert(bevy_transform_gizmo::GizmoPickSource::default())
         .insert_bundle(OrbitCameraBundle::new(
             OrbitCameraController::default(),
             Vec3::new(-2.0, 5.0, 5.0),
