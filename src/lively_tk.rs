@@ -258,6 +258,14 @@ impl Solver {
         self.objective_set.objectives = objectives;
     }
 
+    pub fn get_goals(&self) -> HashMap<String,Option<Goal>> {
+        let mut goals: HashMap<String,Option<Goal>> = HashMap::new();
+        for (k,v) in self.objective_set.objectives.iter() {
+            goals.insert(k.clone(),v.get_goal());
+        }
+        return goals;
+    }
+
     pub fn compute_average_distance_table(&mut self) -> Vec<ProximityInfo> {
 
         let mut sampled_states: Vec<HashMap<String,TransformInfo>> = vec![];
