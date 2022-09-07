@@ -68,6 +68,6 @@ debug = true
 codegen-units = 1
 
 [lib]
-name = "lively_tk_lib"
+name = "lively_tk"
 path = "src/lib.rs"
 crate-type = ["rlib", "cdylib"]
