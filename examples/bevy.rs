@@ -7,6 +7,9 @@ use lively_tk::objectives::core::base::SmoothnessMacroObjective;
 use lively_tk::objectives::core::matching::PositionMatchObjective;
 use lively_tk::objectives::objective::Objective;
 use lively_tk::utils::goals::Goal;
+use lively_tk::utils::info::TransformInfo;
+use lively_tk::utils::shapes::Shape;
+use nalgebra::Isometry3;
 use smooth_bevy_cameras::{
     controllers::orbit::{OrbitCameraBundle, OrbitCameraController, OrbitCameraPlugin},
     LookTransformPlugin,
@@ -14,6 +17,16 @@ use smooth_bevy_cameras::{
 use std::fs;
 use std::collections::HashMap;
 use nalgebra::geometry::Translation3;
+
+#[derive(Component, Default)]
+struct FrameName(String);
+
+#[derive(Bundle, Default)]
+struct LinkBundle {
+    #[bundle]
+    pbr: PbrBundle,
+    frame: FrameName
+}
 
 fn main() {
     App::new()
@@ -39,13 +52,7 @@ fn setup(
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
-    // cube
-    commands.spawn_bundle(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-        transform: Transform::from_xyz(0.0, 0.5, 0.0),
-        ..default()
-    });
+    
     // light
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
@@ -67,7 +74,11 @@ fn setup(
         ));
 }
 
-pub fn solve(time: Res<Time>, mut solver: ResMut<Solver>) {
+pub fn solve(
+    time: Res<Time>, 
+    mut solver: ResMut<Solver>, 
+    mut query: Query<(&mut FrameName, &mut Transform)>
+) {
     let mut goals: HashMap<String, Goal> = HashMap::new();
     let mut weights: HashMap<String, f64> = HashMap::new();
     goals.insert(
@@ -76,7 +87,54 @@ pub fn solve(time: Res<Time>, mut solver: ResMut<Solver>) {
     );
     weights.insert("iowsdsfhwe".into(), 10.0);
     // This runs the solver. Right now this has no effect, but it will shortly
-    solver.solve(goals, weights, time.seconds_since_startup(), None);
+    let state = solver.solve(goals, weights, time.seconds_since_startup(), None);
+    // Iterate through transforms and update their locations/rotations from the iso
+    for (frameName, mut transform) in &mut query {
+        // verlet integration
+        // x(t+dt) = 2x(t) - x(t-dt) + a(t)dt^2 + O(dt^4)
+        let frame_state: Isometry3<f64> = state.frames.get(&frameName.0).unwrap_or(&TransformInfo::default()).world;
+
+        let translation = Vec3::new(
+            frame_state.translation.vector.x as f32,
+            frame_state.translation.vector.y as f32,
+            frame_state.translation.vector.z as f32
+        );
+
+        let rotation: Quat = Quat::from_xyzw(
+            frame_state.rotation.coords[0] as f32,
+            frame_state.rotation.coords[1] as f32,
+            frame_state.rotation.coords[2] as f32,
+            frame_state.rotation.coords[3] as f32,
+        );
+
+        transform.rotation = rotation;
+    }
+}
+
+fn setup_lively_tk(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    solver: Res<Solver>
+) {
+    for link in &solver.robot_model.links {
+        for collision in &link.collisions {
+            commands.spawn_bundle(LinkBundle {
+                pbr: PbrBundle {
+                    mesh: <Shape as Into<Mesh>>::into(*collision),
+                    material: materials.add(
+                        Color::rgb(
+                            100.0,
+                            100.0,
+                            100.0,
+                        )
+                        .into()
+                    ),
+                    ..default()
+                },
+                frame: FrameName(collision.frame)})
+        };
+    };
 }
 
 pub struct LivelyTKPlugin;
@@ -131,7 +189,7 @@ impl Plugin for LivelyTKPlugin {
         solver.compute_average_distance_table();
 
         app.insert_resource(solver)
-            // .add_startup_system(add_people)
+            .add_startup_system(setup_lively_tk)
             .add_system(solve);
     }
 }
