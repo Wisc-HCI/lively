@@ -18,7 +18,7 @@ use smooth_bevy_cameras::{
 };
 use std::collections::HashMap;
 use std::fs;
-use bevy_mod_picking::*;
+// use bevy_mod_picking::*;
 
 const POSITION_OBJECTIVE: &str = "PositionObjective";
 const SMOOTHNESS_OBJECTIVE: &str = "SmoothnessObjective";
@@ -31,12 +31,23 @@ struct FixedUpdateStage;
 #[derive(Component, Default)]
 pub struct FrameName(String);
 
+#[derive(Component, Default)]
+pub struct ObjectiveName(String);
+
 #[derive(Bundle, Default)]
 struct LinkBundle {
     #[bundle]
     pbr: PbrBundle,
     frame: FrameName,
 }
+
+#[derive(Bundle, Default)]
+struct ObjectiveBundle {
+    #[bundle]
+    pbr: PbrBundle,
+    objective: ObjectiveName,
+}
+
 
 #[derive(Component)]
 struct Children;
@@ -61,19 +72,10 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // LivelyTK setup
-    commands
-    .spawn_bundle(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.1 })),
-        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-        transform: Transform::from_xyz(0.0, 0.5, 0.0),
-        ..Default::default()
-    })
-    .insert_bundle(bevy_mod_picking::PickableBundle::default())
-    .insert(bevy_transform_gizmo::GizmoTransformable);
     // plane
     commands.spawn_bundle(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
+        transform:Transform::from_rotation(Quat::from_euler(EulerRot::XYZ,std::f32::consts::PI/2.0,0.0,0.0)),
         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
         ..default()
     });
@@ -85,8 +87,13 @@ fn setup(
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(4.0, 8.0, 4.0),
+        transform: Transform::from_xyz(4.0, -8.0, 4.0),
         ..default()
+    });
+
+    commands.insert_resource(AmbientLight {
+        color: Color::ANTIQUE_WHITE,
+        brightness: 0.3,
     });
     // camera
     // Orbit Controls
@@ -104,17 +111,22 @@ fn setup(
 pub fn solve(
     time: Res<Time>,
     mut solver: ResMut<Solver>,
-    mut query: Query<(&mut FrameName, &mut Transform)>
+    mut frame_query: Query<(&mut FrameName, &mut Transform), (With<FrameName>,Without<ObjectiveName>)>,
+    objective_query: Query<(&ObjectiveName, &Transform), (With<ObjectiveName>,Without<FrameName>)>
 ) {
     let mut goals: HashMap<String, Goal> = HashMap::new();
     let mut weights: HashMap<String, f64> = HashMap::new();
-    let x = (time.seconds_since_startup()/10.0).sin()/2.0;
-    let y = (time.seconds_since_startup()/10.0).cos()/2.0;
+    
     // println!("x {:?}",x);
-    goals.insert(
-        POSITION_OBJECTIVE.to_string(),
-        Goal::Translation(Translation3::new(x, y, 0.5)),
-    );
+    for (_objective_name, transform) in &objective_query {
+        goals.insert(
+            // For now, just insert everything as a position objective
+            POSITION_OBJECTIVE.to_string(),
+            Goal::Translation(Translation3::new(transform.translation.x as f64, transform.translation.y as f64, transform.translation.z as f64)),
+        );
+    }
+
+    
     weights.insert(POSITION_OBJECTIVE.to_string(), 30.0);
     
     let state = solver.solve(
@@ -126,7 +138,7 @@ pub fn solve(
     // Iterate through transforms and update their locations/rotations from the iso
     // println!("goal {:?} {:?}", x, solver.get_goals().get(POSITION_OBJECTIVE.into()));
     // println!("pos {:?} {:?}",Translation3::new(x, y, 0.5),solver.get_current_state().frames.get("tool0".into()).unwrap_or(&TransformInfo::default()).world.translation);
-    for (frame_name, mut transform) in &mut query {
+    for (frame_name, mut transform) in &mut frame_query {
         
         // println!("frame {:?}",frame_name.0);
         let frame_state: Isometry3<f64> = state
@@ -160,6 +172,20 @@ fn setup_lively_tk(
     mut materials: ResMut<Assets<StandardMaterial>>,
     solver: Res<Solver>,
 ) {
+    // Goal Visualization/Updating
+    commands
+    .spawn_bundle(ObjectiveBundle {
+        pbr: PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Icosphere { radius: 0.1, subdivisions: 32 })),
+            material: materials.add(Color::rgba(0.1, 0.9, 0.3,0.5).into()),
+            transform: Transform::from_xyz(0.0, 0.5, 0.5),
+            ..Default::default()
+        },
+        objective: ObjectiveName(POSITION_OBJECTIVE.to_string())
+    })
+    .insert_bundle(bevy_mod_picking::PickableBundle::default())
+    .insert(bevy_transform_gizmo::GizmoTransformable);
+
     for link in &solver.robot_model.links {
         let id = commands
             .spawn_bundle(LinkBundle {
@@ -234,7 +260,7 @@ impl Plugin for LivelyTKPlugin {
         );
         solver.compute_average_distance_table();
 
-        println!("{:?}",solver.objective_set.objectives);
+        // println!("{:?}",solver.objective_set.objectives);
 
         let mut goals: HashMap<String, Goal> = HashMap::new();
         let mut weights: HashMap<String, f64> = HashMap::new();
