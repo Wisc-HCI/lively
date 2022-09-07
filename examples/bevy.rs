@@ -18,15 +18,19 @@ use std::fs;
 use std::collections::HashMap;
 use nalgebra::geometry::Translation3;
 
+
 #[derive(Component, Default)]
-struct FrameName(String);
+pub struct FrameName(String);
 
 #[derive(Bundle, Default)]
 struct LinkBundle {
     #[bundle]
     pbr: PbrBundle,
-    frame: FrameName
+    frame: FrameName,
 }
+
+#[derive(Component)]
+struct Children;
 
 fn main() {
     App::new()
@@ -34,26 +38,92 @@ fn main() {
         .add_plugin(LookTransformPlugin)
         .add_plugin(OrbitCameraPlugin::default())
         .add_plugin(LivelyTKPlugin)
-        .add_startup_system(setup)
+        .add_startup_system(setup_lively_tk)
         .run();
 }
 
 /// set up a simple 3D scene
-fn setup(
+// fn setup(
+//     mut commands: Commands,
+//     mut meshes: ResMut<Assets<Mesh>>,
+//     mut materials: ResMut<Assets<StandardMaterial>>,
+// ) {
+//     // LivelyTK setup
+
+//     // plane
+//     commands.spawn_bundle(PbrBundle {
+//         mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
+//         material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+//         ..default()
+//     });
+    
+//     // light
+//     commands.spawn_bundle(PointLightBundle {
+//         point_light: PointLight {
+//             intensity: 1500.0,
+//             shadows_enabled: true,
+//             ..default()
+//         },
+//         transform: Transform::from_xyz(4.0, 8.0, 4.0),
+//         ..default()
+//     });
+//     // camera
+//     // Orbit Controls
+//     commands
+//         .spawn_bundle(Camera3dBundle::default())
+//         .insert_bundle(OrbitCameraBundle::new(
+//             OrbitCameraController::default(),
+//             Vec3::new(-2.0, 5.0, 5.0),
+//             Vec3::new(0., 0., 0.),
+//         ));
+// }
+
+pub fn solve(
+    time: Res<Time>, 
+    mut solver: ResMut<Solver>, 
+    mut query: Query<(&mut FrameName, &mut Transform)>
+) {
+    let mut goals: HashMap<String, Goal> = HashMap::new();
+    let mut weights: HashMap<String, f64> = HashMap::new();
+    goals.insert(
+        "iowsdsfhwe".into(),
+        Goal::Translation(Translation3::new(0.5, 0.0, 0.5)),
+    );
+    weights.insert("iowsdsfhwe".into(), 10.0);
+    // This runs the solver. Right now this has no effect, but it will shortly
+    let state = solver.solve(goals, weights, time.seconds_since_startup(), None);
+    // Iterate through transforms and update their locations/rotations from the iso
+    for (frame_name, mut transform) in &mut query {
+        // verlet integration
+        // x(t+dt) = 2x(t) - x(t-dt) + a(t)dt^2 + O(dt^4)
+        let frame_state: Isometry3<f64> = state.frames.get(&frame_name.0).unwrap_or(&TransformInfo::default()).world;
+
+        let translation = Vec3::new(
+            frame_state.translation.vector.x as f32,
+            frame_state.translation.vector.y as f32,
+            frame_state.translation.vector.z as f32
+        );
+
+        let rotation: Quat = Quat::from_xyzw(
+            frame_state.rotation.coords[0] as f32,
+            frame_state.rotation.coords[1] as f32,
+            frame_state.rotation.coords[2] as f32,
+            frame_state.rotation.coords[3] as f32,
+        );
+
+        transform.translation = translation;
+
+        transform.rotation = rotation;
+       
+    }
+}
+
+fn setup_lively_tk(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    solver: Res<Solver>
 ) {
-    // LivelyTK setup
-
-    // plane
-    commands.spawn_bundle(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
-        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
-        ..default()
-    });
-    
-    // light
     commands.spawn_bundle(PointLightBundle {
         point_light: PointLight {
             intensity: 1500.0,
@@ -72,56 +142,28 @@ fn setup(
             Vec3::new(-2.0, 5.0, 5.0),
             Vec3::new(0., 0., 0.),
         ));
-}
-
-pub fn solve(
-    time: Res<Time>, 
-    mut solver: ResMut<Solver>, 
-    mut query: Query<(&mut FrameName, &mut Transform)>
-) {
-    let mut goals: HashMap<String, Goal> = HashMap::new();
-    let mut weights: HashMap<String, f64> = HashMap::new();
-    goals.insert(
-        "iowsdsfhwe".into(),
-        Goal::Translation(Translation3::new(0.5, 0.0, 0.5)),
-    );
-    weights.insert("iowsdsfhwe".into(), 10.0);
-    // This runs the solver. Right now this has no effect, but it will shortly
-    let state = solver.solve(goals, weights, time.seconds_since_startup(), None);
-    // Iterate through transforms and update their locations/rotations from the iso
-    for (frameName, mut transform) in &mut query {
-        // verlet integration
-        // x(t+dt) = 2x(t) - x(t-dt) + a(t)dt^2 + O(dt^4)
-        let frame_state: Isometry3<f64> = state.frames.get(&frameName.0).unwrap_or(&TransformInfo::default()).world;
-
-        let translation = Vec3::new(
-            frame_state.translation.vector.x as f32,
-            frame_state.translation.vector.y as f32,
-            frame_state.translation.vector.z as f32
-        );
-
-        let rotation: Quat = Quat::from_xyzw(
-            frame_state.rotation.coords[0] as f32,
-            frame_state.rotation.coords[1] as f32,
-            frame_state.rotation.coords[2] as f32,
-            frame_state.rotation.coords[3] as f32,
-        );
-
-        transform.rotation = rotation;
-    }
-}
-
-fn setup_lively_tk(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    solver: Res<Solver>
-) {
+    
     for link in &solver.robot_model.links {
-        for collision in &link.collisions {
-            commands.spawn_bundle(LinkBundle {
+        
+           
+            let id = commands.spawn_bundle(LinkBundle {
                 pbr: PbrBundle {
-                    mesh: <Shape as Into<Mesh>>::into(*collision),
+                   
+                  
+                    ..default()
+                },
+                frame: FrameName(link.name.to_string())}).id();
+
+        for collision in &link.collisions {
+            let mut command = commands.get_or_spawn(id);
+            let temp : Mesh = lively_tk::utils::shapes::Shape::into(collision.clone());
+            let mesh = meshes.add(temp);
+           
+            command.insert(Children).with_children(|p| {
+              p.spawn_bundle(LinkBundle {
+                pbr: PbrBundle {
+                    mesh : mesh.clone(),
+                    transform : collision.clone().get_transform(),
                     material: materials.add(
                         Color::rgb(
                             100.0,
@@ -132,7 +174,10 @@ fn setup_lively_tk(
                     ),
                     ..default()
                 },
-                frame: FrameName(collision.frame)})
+                frame: FrameName(link.name.to_string())});
+            });
+          
+            
         };
     };
 }
