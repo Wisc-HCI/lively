@@ -2,6 +2,9 @@ use serde::{Serialize, Deserialize};
 use nalgebra::geometry::{Isometry3};
 use nalgebra::Vector3;
 use bevy::prelude::*;
+use bevy::prelude::shape::CapsuleUvProfile;
+use bevy::render::mesh::PrimitiveTopology;
+use bevy::render::mesh::Indices;
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,PartialEq)]
@@ -134,27 +137,44 @@ pub enum Shape {
     Hull(HullShape)
 }
 
-// impl Into<Mesh> for Shape {
-//     fn into(self: &Shape) -> Mesh {
-//         match self {
-//             Shape::Box(boxShape) => {
+impl Into<Mesh> for Shape {
+    fn into(self: Shape) -> Mesh {
+        match self {
+            Shape::Box(box_object) => {
+                return Mesh::from(shape::Box::new(box_object.x as f32 ,box_object.y as f32, box_object.z as f32));
+            },
+            Shape::Cylinder(cylinder_object) => {
+                return Mesh::from(shape::Capsule { radius: cylinder_object.radius as f32, rings:0, depth: cylinder_object.length as f32,
+                    latitudes : 0, longitudes : 32 , uv_profile : CapsuleUvProfile::Aspect});
+               
+            },
+            Shape::Sphere(sphere_object) => {
+                return Mesh::from(shape::Icosphere {radius : sphere_object.radius as f32, subdivisions : 32});
+            },
+            Shape::Capsule(capsule_object) => {
+                return Mesh::from(shape::Capsule { radius: capsule_object.radius as f32, rings:0, depth: capsule_object.length as f32,
+                    latitudes : 16, longitudes : 32 , uv_profile : CapsuleUvProfile::Aspect});
                 
-//             },
-//             Shape::Cylinder(boxShape) => {
-                
-//             },
-//             Shape::Sphere(boxShape) => {
-                
-//             },
-//             Shape::Capsule(boxShape) => {
-                
-//             },
-//             Shape::Mesh(boxShape) => {
-                
-//             },
-//             Shape::Hull(hullShape) => {
+            },
+            Shape::Mesh(_) => {
+                return Mesh::from(shape::Cube{size : 1.0});
+            },
+            Shape::Hull(_) => {
+                // for points in hull_object.points{
 
-//             }
-//         }
-//     }
-// }
+                // }
+                // let hull_points: Vec<Vec<f32>> = hull_object
+                //         .points
+                //         .iter()
+                //         .map(|p| vec![p.x, p.y, p.z])
+                //         .collect();
+                // let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+                // mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION,  vec![[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [1.0, 1.0, 0.0]]);
+                // mesh.set_indices(Some(Indices::U32(vec![0,1,2])));
+                // return mesh;
+                return Mesh::from(shape::Cube{size : 1.0});
+                 
+            }
+        }
+    }
+}
