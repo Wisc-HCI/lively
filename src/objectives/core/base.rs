@@ -4,6 +4,7 @@ use crate::objectives::objective::groove_loss;
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 
+const Y_OFFSET:f64 = 0.8808;//1.0 / (1.0 as f64 + (-2.0 as f64).exp());
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
@@ -25,11 +26,22 @@ impl CollisionAvoidanceObjective {
         _is_core: bool
     ) -> f64 {
         let mut score: f64 = 0.0;
+        // for proximity_info in &state.proximity {
+        //     if proximity_info.physical {
+        //         score += proximity_info.loss
+        //     }
+        // }
         for proximity_info in &state.proximity {
             if proximity_info.physical {
-                score += proximity_info.loss
+                if proximity_info.distance < 0.0 {
+                    score += -1.0 * proximity_info.distance + Y_OFFSET;
+                } else {
+                    score += 1.0 / (1.0 + (10.0 * (proximity_info.distance / 1.0) - 2.0).exp())
+                }
+                score += proximity_info.distance
             }
         }
+
         //  println!("score is : {:?}" , score);
         return self.weight * score;
        

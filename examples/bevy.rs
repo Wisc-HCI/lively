@@ -222,8 +222,8 @@ impl Plugin for LivelyTKPlugin {
         let pos_match_obj =
             PositionMatchObjective::new("EE Position".to_string(), 40.0, "tool0".to_string());
         let col_avoid_obj =
-            CollisionAvoidanceObjective::new("Collision Avoidance".to_string(), 0.00000000001);
-        let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 15.0);
+            CollisionAvoidanceObjective::new("Collision Avoidance".to_string(), 5.0);
+        let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 20.0);
         let root_bounds: Vec<(f64, f64)> = vec![
             (0.0, 0.0),
             (0.0, 0.0),
@@ -278,7 +278,7 @@ impl Plugin for LivelyTKPlugin {
                 FixedUpdateStage,
                 SystemStage::parallel()
                     .with_run_criteria(
-                        FixedTimestep::steps_per_second(40.0)
+                        FixedTimestep::steps_per_second(30.0)
                             // labels are optional. they provide a way to access the current
                             // FixedTimestep state from within a system
                             .with_label(TIME_LABEL),
