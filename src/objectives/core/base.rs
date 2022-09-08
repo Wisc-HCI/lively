@@ -34,9 +34,9 @@ impl CollisionAvoidanceObjective {
         for proximity_info in &state.proximity {
             if proximity_info.physical {
                 if proximity_info.distance < 0.0 {
-                    score += -1.0 * proximity_info.distance + Y_OFFSET;
+                    score += -10.0 * proximity_info.distance + Y_OFFSET;
                 } else {
-                    score += 1.0 / (1.0 + (10.0 * (proximity_info.distance / 1.0) - 2.0).exp())
+                    score += 1.0 / (1.0 + (100.0 * (proximity_info.distance / 1.0) - 2.0).exp())
                 }
                 score += proximity_info.distance
             }
