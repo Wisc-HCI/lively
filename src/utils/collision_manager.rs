@@ -1736,7 +1736,7 @@ impl CollisionManager {
                 //if timed_timer.elapsed().as_micros() < Duration::from_micros(self.time_budget).as_micros() {
 
                 let contact =
-                    parry3d_f64::query::contact(&pos1, &shape1, &pos2, &shape2, self.d_max);
+                    parry3d_f64::query::contact(&pos1, &shape1, &pos2, &shape2, 0.3);
                 match contact {
                     Ok(contact) => match contact {
                         Some(valid_contact) => {
@@ -1784,12 +1784,15 @@ impl CollisionManager {
                 // }
             }
 
-            // println!("-----------------------------------------------------------------------------------");
-            // for item in result_vector.clone() {
-            //     println!("the info is : {:?}", item);
-            // }
+            println!("-----------------------------------------------------------------------------------");
+            for item in result_vector.clone() {
+                if item.shape2 == "table" {
+                    println!("the info is : {:?}", item);
+                }
+                
+            }
 
-            // println!("-----------------------------------------------------------------------------------");
+            println!("-----------------------------------------------------------------------------------");
 
             return result_vector;
         } else {
