@@ -116,7 +116,7 @@ impl CollisionManager {
                         robot_shapes_list.push((sphere_object.local_transform, sphere_shape));
                     }
                     shapes::Shape::Box(object) => {
-                        let box_shape = SharedShape::cuboid(object.y, object.x, object.z);
+                        let box_shape = SharedShape::cuboid(object.y / 2.0, object.x / 2.0, object.z / 2.0);
                         robot_shapes_list.push((object.local_transform, box_shape));
                     }
                     shapes::Shape::Capsule(capsule_object) => {
@@ -149,7 +149,7 @@ impl CollisionManager {
         for shape in &persistent_shapes {
             match shape {
                 shapes::Shape::Box(object) => {
-                    let box_shape = SharedShape::cuboid(object.y, object.x, object.z);
+                    let box_shape = SharedShape::cuboid(object.y / 2.0, object.x / 2.0, object.z / 2.0);
                     if object.frame == "world" {
                         let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
                             vec![(object.local_transform, box_shape)];

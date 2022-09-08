@@ -226,7 +226,7 @@ fn setup_lively_tk(
 
     //------------ adding persistent shapes to the scene
     for shape in &solver.robot_model.get_environmental_objects() {
-        println!("{:?}", shape);
+      // println!("{:?}", shape);
         let temp: Mesh = lively_tk::utils::shapes::Shape::into(shape.clone());
         let mesh = meshes.add(temp);
 
@@ -253,7 +253,37 @@ fn setup_lively_tk(
                     ..default()
                 });
             });
+
+        //     commands
+        // .spawn_bundle(LinkBundle {
+        //     pbr: PbrBundle {
+        //         transform: Transform::default(),
+        //         //mesh: mesh.clone(),
+        //         ..default()
+        //     },
+        //     frame: FrameName(shape.clone().get_frame_name()),
+        //     ..default()
+        // })
+        // .insert(Children)
+        // .with_children(|p| {
+        //     p.spawn_bundle(PbrBundle {
+        //         transform: shape.clone().get_transform(),
+        //         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        //         material: materials.add(StandardMaterial {
+        //             base_color: Color::ORANGE_RED,
+        //             emissive: (Color::ORANGE_RED * 2.),
+        //             ..default()
+        //         }),
+        //         ..default()
+        //     });
+        // });
+
+        
     }
+
+   
+
+    
 }
 
 pub struct LivelyTKPlugin;
