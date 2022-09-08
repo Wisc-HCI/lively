@@ -144,7 +144,7 @@ pub fn solve(
         );
     }
 
-    weights.insert(POSITION_OBJECTIVE.to_string(), 30.0);
+    weights.insert(POSITION_OBJECTIVE.to_string(), 40.0);
 
     let state = solver.solve(goals, weights, time.seconds_since_startup(), None);
     // Iterate through transforms and update their locations/rotations from the iso
@@ -265,10 +265,10 @@ impl Plugin for LivelyTKPlugin {
             fs::read_to_string("./tests/ur3e.xml").expect("Something went wrong reading the file");
 
         let pos_match_obj =
-            PositionMatchObjective::new("EE Position".to_string(), 40.0, "tool0".to_string());
+            PositionMatchObjective::new("EE Position".to_string(), 0.0, "tool0".to_string());
         let col_avoid_obj =
             CollisionAvoidanceObjective::new("Collision Avoidance".to_string(), 20.0);
-        let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 20.0);
+        let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 30.0);
         let root_bounds: Vec<(f64, f64)> = vec![
             (0.0, 0.0),
             (0.0, 0.0),

@@ -31,12 +31,20 @@ impl CollisionAvoidanceObjective {
         //         score += proximity_info.loss
         //     }
         // }
+        
         for proximity_info in &state.proximity {
+            //let score_offset = proximity_info.average_distance.unwrap_or(1.0);
+            //let score_offset = 1.0 / (1.0 + (-(100.0 * proximity_info.average_distance.unwrap_or(1.0) - 18.0)).exp());
+            let score_offset = 1.0 / (1.0 + (-200.0 * proximity_info.average_distance.unwrap_or(1.0) + 8.0).exp());
+            //let score_offset = 1.0 / (1.0 + (-(10.0 * proximity_info.average_distance.unwrap_or(1.0) - 8.0)).exp());
+            //let score_offset = 1.0 / (1.0 + (-(50.0 * proximity_info.average_distance.unwrap_or(1.0) - 50.0)).exp());
+            //println!("average is {:?}" , proximity_info.average_distance.unwrap_or(1.0));
+            //println!("score_offset is {:?}" , score_offset);
             if proximity_info.physical {
                 if proximity_info.distance < 0.0 {
-                    score += -10.0 * proximity_info.distance + Y_OFFSET;
+                    score += -10.0 * proximity_info.distance + Y_OFFSET * score_offset;
                 } else {
-                    score += 1.0 / (1.0 + (100.0 * (proximity_info.distance / 1.0) - 2.0).exp())
+                    score += 1.0 / (1.0 + (100.0 * (proximity_info.distance / 1.0) - 2.0).exp()) * score_offset;
                 }
                 score += proximity_info.distance
             }

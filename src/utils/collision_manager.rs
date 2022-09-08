@@ -702,6 +702,7 @@ impl CollisionManager {
                                 Some(valid_hashmap) => {
                                     valid_hashmap.get_mut(name2).unwrap().0.average_distance =
                                         a_value;
+                                    
                                     break;
                                 }
                                 None => {
@@ -1733,7 +1734,7 @@ impl CollisionManager {
             //let timed_timer = Instant::now();
 
             for (shape1_frame, shape1, _, shape2, _, pos1, pos2, proximity_info) in ranking_vector {
-                //if timed_timer.elapsed().as_micros() < Duration::from_micros(self.time_budget).as_micros() {
+                //if timed_timer.elapsed().as_micros() < Duration::from_micros(500).as_micros() {
 
                 let contact =
                     parry3d_f64::query::contact(&pos1, &shape1, &pos2, &shape2, 0.3);
@@ -1743,7 +1744,7 @@ impl CollisionManager {
                             let dist = valid_contact.dist;
                             let loss = self.compute_loss_with_cutoff(
                                 &dist,
-                                &proximity_info.average_distance.unwrap_or(0.0),
+                                &proximity_info.average_distance.unwrap_or(1.0),
                             );
 
                             let proximity = ProximityInfo::new(
@@ -1786,9 +1787,10 @@ impl CollisionManager {
 
             // println!("-----------------------------------------------------------------------------------");
             // for item in result_vector.clone() {
-            //     if item.shape2 == "table" {
-            //         println!("the info is : {:?}", item);
-            //     }
+                
+            //         //println!("the info is : {:?}", item);
+            //         println!("{:?} and {:?},and the average distance is {:?}" , item.shape1, item.shape2, item.average_distance.unwrap_or(1.0));
+                
                 
             // }
 
