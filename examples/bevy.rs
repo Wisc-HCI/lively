@@ -254,6 +254,8 @@ fn setup_lively_tk(
                 });
             });
 
+
+
         //     commands
         // .spawn_bundle(LinkBundle {
         //     pbr: PbrBundle {
@@ -338,21 +340,101 @@ impl Plugin for LivelyTKPlugin {
         );
 
         let box_1 = Shape::Box(BoxShape::new(
-            "table".to_string(),
+            "box".to_string(),
             "world".to_string(),
             true,
-            0.5,
+            0.75,
             0.5,
             0.5,
             iso_1,
         ));
+
+        let iso_2 = Isometry3::from_parts(
+            Translation3::new(
+                -0.7,
+                -0.24972819999999987,
+                -0.050000000000000044,
+            ),
+            UnitQuaternion::from_quaternion(Quaternion::new(
+                0.0,
+                0.0,
+                -0.7069999677447771,
+                0.7072135784958345,
+            )),
+        );
+
+        // let rec_1 = Shape::Box(BoxShape::new(
+        //     "rectangle".to_string(),
+        //     "world".to_string(),
+        //     true,
+        //     0.5,
+        //     0.75,
+        //     0.25,
+        //     iso_2,
+        // ));
+        let sphere_1 = Shape::Sphere(SphereShape::new(
+                "sphere".to_string(),
+                "world".to_string(),
+                true,
+                0.25,
+                iso_2,
+            ));
+
+
+            let iso_3 = Isometry3::from_parts(
+                Translation3::new(
+                    -0.20,
+                    -0.84972819999999987,
+                    0.0,
+                ),
+                UnitQuaternion::from_quaternion(Quaternion::new(
+                    0.0,
+                    0.0,
+                    0.7069999677447771,
+                    0.7072135784958345,
+                )),
+            );
+
+            let cylinder_1 =  Shape::Cylinder(CylinderShape::new(
+                "cylinder".to_string(),
+                "world".to_string(),
+                true,
+                0.5,
+                0.25,
+                iso_3,
+            ));
+
+            let iso_5 = Isometry3::from_parts(
+                Translation3::new(
+                    -0.20,
+                    0.60,
+                    0.0,
+                ),
+                UnitQuaternion::from_quaternion(Quaternion::new(
+                    0.0,
+                    0.0,
+                    -0.7069999677447771,
+                    0.7072135784958345,
+                )),
+            );
+
+            let capsule_1 =  Shape::Capsule(CapsuleShape::new(
+                "capsule".to_string(),
+                "world".to_string(),
+                true,
+                0.5,
+                0.25,
+                iso_5,
+            ));
+
+
         //--------
 
         let mut solver = Solver::new(
             urdf_string.clone(),
             objectives.clone(),
             Some(root_bounds),
-            Some(vec![box_1]),
+            Some(vec![box_1,sphere_1,cylinder_1,capsule_1]),
             None,
             Some(true),
             None,
