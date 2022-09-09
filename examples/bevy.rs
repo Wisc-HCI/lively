@@ -343,8 +343,8 @@ impl Plugin for LivelyTKPlugin {
             "box".to_string(),
             "world".to_string(),
             true,
-            0.75,
             0.5,
+            0.75,
             0.5,
             iso_1,
         ));
@@ -352,7 +352,7 @@ impl Plugin for LivelyTKPlugin {
         let iso_2 = Isometry3::from_parts(
             Translation3::new(
                 -0.7,
-                -0.24972819999999987,
+                -0.44972819999999987,
                 -0.050000000000000044,
             ),
             UnitQuaternion::from_quaternion(Quaternion::new(
@@ -384,7 +384,7 @@ impl Plugin for LivelyTKPlugin {
             let iso_3 = Isometry3::from_parts(
                 Translation3::new(
                     -0.20,
-                    -0.84972819999999987,
+                    -0.74972819999999987,
                     0.0,
                 ),
                 UnitQuaternion::from_quaternion(Quaternion::new(

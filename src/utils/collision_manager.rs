@@ -1785,18 +1785,18 @@ impl CollisionManager {
                 // }
             }
 
-            println!("-----------------------------------------------------------------------------------");
-            for item in result_vector.clone() {
-                    //if item.shape2 == "sphere" {
-                        println!("the info is : {:?}", item);
-                    //}
+            // println!("-----------------------------------------------------------------------------------");
+            // for item in result_vector.clone() {
+            //        //if item.shape2 == "sphere" {
+            //             println!("the info is : {:?}", item);
+            //         //}
                    
-                    //println!("{:?} and {:?},and the average distance is {:?}" , item.shape1, item.shape2, item.average_distance.unwrap_or(1.0));
+            //         //println!("{:?} and {:?},and the average distance is {:?}" , item.shape1, item.shape2, item.average_distance.unwrap_or(1.0));
                 
                 
-            }
+            // }
 
-            println!("-----------------------------------------------------------------------------------");
+            // println!("-----------------------------------------------------------------------------------");
 
             return result_vector;
         } else {
