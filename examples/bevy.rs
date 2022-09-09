@@ -2,9 +2,9 @@
 
 use bevy::{
     prelude::*,
-    time::{FixedTimestep, FixedTimesteps},
+    time::{FixedTimestep},
 };
-use bevy_transform_gizmo::TransformGizmoPlugin;
+
 use lively_tk::lively_tk::Solver;
 use lively_tk::objectives::core::base::CollisionAvoidanceObjective;
 use lively_tk::objectives::core::base::SmoothnessMacroObjective;
@@ -19,6 +19,7 @@ use smooth_bevy_cameras::{
     controllers::orbit::{OrbitCameraBundle, OrbitCameraController, OrbitCameraPlugin},
     LookTransformPlugin,
 };
+
 use std::collections::HashMap;
 use std::fs;
 
@@ -114,8 +115,10 @@ fn setup(
         .insert(bevy_transform_gizmo::GizmoPickSource::default())
         .insert_bundle(OrbitCameraBundle::new(
             OrbitCameraController::default(),
-            Vec3::new(-2.0, 5.0, 5.0),
-            Vec3::new(0., 0., 0.),
+            // Vec3::new(-2.0, 5.0, 5.0),
+            // Vec3::new(0., 0., 0.),
+            Vec3::new(0.0, -5.0, 4.0),
+             Vec3::new(0.0, 0.00, 0.0),
         ));
 }
 

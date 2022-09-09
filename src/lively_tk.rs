@@ -285,7 +285,7 @@ impl Solver {
                     x[i] = rng.gen_range(lower..upper);
                 }
             }
-            println!("x: {:?}",x);
+           // println!("x: {:?}",x);
             let state = self.robot_model.get_state(&x, false);
             sampled_states.push(state.frames);
         }

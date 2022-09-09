@@ -116,7 +116,8 @@ impl CollisionManager {
                         robot_shapes_list.push((sphere_object.local_transform, sphere_shape));
                     }
                     shapes::Shape::Box(object) => {
-                        let box_shape = SharedShape::cuboid(object.x / 2.0, object.y / 2.0, object.z / 2.0);
+                        let box_shape =
+                            SharedShape::cuboid(object.x / 2.0, object.y / 2.0, object.z / 2.0);
                         robot_shapes_list.push((object.local_transform, box_shape));
                     }
                     shapes::Shape::Capsule(capsule_object) => {
@@ -149,7 +150,8 @@ impl CollisionManager {
         for shape in &persistent_shapes {
             match shape {
                 shapes::Shape::Box(object) => {
-                    let box_shape = SharedShape::cuboid(object.x / 2.0, object.y / 2.0, object.z / 2.0);
+                    let box_shape =
+                        SharedShape::cuboid(object.x / 2.0, object.y / 2.0, object.z / 2.0);
                     if object.frame == "world" {
                         let temp_list: Vec<(Isometry3<f64>, SharedShape)> =
                             vec![(object.local_transform, box_shape)];
@@ -597,7 +599,67 @@ impl CollisionManager {
                                             );
                                         }
                                     }
-                                    None => {}
+                                    None => {
+                                        if proximity_info.len() != 0 {
+                                            'f: for item in proximity_info {
+                                                if shape1_name.to_string() == item.shape1
+                                                    && shape2_name.to_string() == item.shape2
+                                                {
+                                                    proximity = ProximityInfo::new(
+                                                        shape1_name.to_string(),
+                                                        shape2_name.to_string(),
+                                                        self.d_max,
+                                                        None,
+                                                        *shape1_physical && *shape2_physical,
+                                                        self.compute_loss_with_cutoff(
+                                                            &self.d_max,
+                                                            &item.average_distance.unwrap_or(1.0),
+                                                        ),
+                                                        item.average_distance,
+                                                    );
+                                                    value_hashmap.insert(
+                                                        shape2_name.to_string(),
+                                                        (
+                                                            proximity,
+                                                            shape1.clone(),
+                                                            shape2.clone(),
+                                                            *rad1,
+                                                            *rad2,
+                                                            shape1_transform.world,
+                                                            shape2_transform.world,
+                                                            shape1_frame.to_string(),
+                                                            shape2_frame.to_string(),
+                                                        ),
+                                                    );
+                                                    break 'f;
+                                                }
+                                            }
+                                        } else {
+                                            proximity = ProximityInfo::new(
+                                                shape1_name.to_string(),
+                                                shape2_name.to_string(),
+                                                self.d_max,
+                                                None,
+                                                *shape1_physical && *shape2_physical,
+                                                self.compute_loss_with_cutoff(&self.d_max, &1.0),
+                                                Some(1.0),
+                                            );
+                                            value_hashmap.insert(
+                                                shape2_name.to_string(),
+                                                (
+                                                    proximity,
+                                                    shape1.clone(),
+                                                    shape2.clone(),
+                                                    *rad1,
+                                                    *rad2,
+                                                    shape1_transform.world,
+                                                    shape2_transform.world,
+                                                    shape1_frame.to_string(),
+                                                    shape2_frame.to_string(),
+                                                ),
+                                            );
+                                        }
+                                    }
                                 },
                                 Err(_) => {}
                             }
@@ -666,7 +728,22 @@ impl CollisionManager {
                                         }
                                     }
                                 }
-                                None => {}
+                                None => {
+                                    match proximity_look_up.get_mut(&(
+                                        shape1_name.to_string(),
+                                        shape2_name.to_string(),
+                                    )) {
+                                        Some(valid_vec) => {
+                                            valid_vec.push(self.d_max);
+                                        }
+                                        None => {
+                                            proximity_look_up.insert(
+                                                (shape1_name.to_string(), shape2_name.to_string()),
+                                                vec![self.d_max],
+                                            );
+                                        }
+                                    }
+                                }
                             },
                             Err(_) => {}
                         }
@@ -702,7 +779,7 @@ impl CollisionManager {
                                 Some(valid_hashmap) => {
                                     valid_hashmap.get_mut(name2).unwrap().0.average_distance =
                                         a_value;
-                                    
+
                                     break;
                                 }
                                 None => {
@@ -771,9 +848,6 @@ impl CollisionManager {
                                     item.0.average_distance,
                                 );
 
-                                // let new_shapes_pair = &mut (new_proximity,new_shape1,item.2, new_shape1_radius, item.4, shape1_transform, item.6, item.7.to_string(),
-                                // item.8.to_string());
-
                                 let mut_shapes_hashmap = self
                                     .scene_group_truth_distance_hashmap
                                     .get_mut(&frame)
@@ -785,7 +859,28 @@ impl CollisionManager {
                                 mut_shapes_pair.3 = new_shape1_radius;
                             }
                             None => {
-                                continue;
+                                let new_proximity = ProximityInfo::new(
+                                    item.0.shape1.to_string(),
+                                    item.0.shape2.to_string(),
+                                    self.d_max,
+                                    None,
+                                    item.0.physical,
+                                    self.compute_loss_with_cutoff(
+                                        &self.d_max,
+                                        &item.0.average_distance.unwrap_or(1.0),
+                                    ),
+                                    item.0.average_distance,
+                                );
+
+                                let mut_shapes_hashmap = self
+                                    .scene_group_truth_distance_hashmap
+                                    .get_mut(&frame)
+                                    .unwrap();
+                                let mut_shapes_pair =
+                                    mut_shapes_hashmap.get_mut(shape2_name).unwrap();
+                                mut_shapes_pair.0 = new_proximity.clone();
+                                mut_shapes_pair.1 = new_shape1.clone();
+                                mut_shapes_pair.3 = new_shape1_radius;
                             }
                         },
                         Err(_) => {
@@ -876,7 +971,37 @@ impl CollisionManager {
                             ),
                         );
                     }
-                    None => {}
+                    None => {
+                        added = true;
+                        let proximity = ProximityInfo::new(
+                            shape1_name.to_string(),
+                            name.to_string(),
+                            self.d_max,
+                            None,
+                            true && physical,
+                            self.compute_loss_with_cutoff(&self.d_max, &1.0),
+                            None,
+                        );
+                        let mut_hashmap = self
+                            .scene_group_truth_distance_hashmap
+                            .get_mut(&shape1_name.clone())
+                            .unwrap();
+
+                        mut_hashmap.insert(
+                            name.to_string(),
+                            (
+                                proximity,
+                                shape1.clone(),
+                                shape2.clone(),
+                                *shape1_radius,
+                                shape2_radius,
+                                *shape1_transform,
+                                shape2_transform,
+                                shape1_frame.to_string(),
+                                "world".to_string(),
+                            ),
+                        );
+                    }
                 },
                 Err(_) => {}
             }
@@ -989,7 +1114,40 @@ impl CollisionManager {
                                                             .remove_entry(&id.to_string());
                                                     }
 
-                                                    None => {}
+                                                    None => {
+                                                        let proximity = ProximityInfo::new(
+                                                            pair_info.0.shape1.to_string(),
+                                                            pair_info.0.shape2.to_string(),
+                                                            self.d_max,
+                                                            None,
+                                                            pair_info.0.physical,
+                                                            self.compute_loss_with_cutoff(
+                                                                &self.d_max,
+                                                                &pair_info
+                                                                    .0
+                                                                    .average_distance
+                                                                    .unwrap_or(1.0),
+                                                            ),
+                                                            pair_info.0.average_distance,
+                                                        );
+
+                                                        replace_hashmap.insert(
+                                                            shape2_frame.to_string(),
+                                                            (
+                                                                proximity,
+                                                                shape1.clone(),
+                                                                shape2.clone(),
+                                                                shape1_rad,
+                                                                pair_info.4,
+                                                                shape1_transform,
+                                                                shape2_transform,
+                                                                frame.to_string(),
+                                                                shape2_frame.to_string(),
+                                                            ),
+                                                        );
+                                                        self.scene_optima_transient_shapes_look_up
+                                                            .remove_entry(&id.to_string());
+                                                    }
                                                 },
                                                 Err(_) => {}
                                             }
@@ -1737,7 +1895,7 @@ impl CollisionManager {
                 //if timed_timer.elapsed().as_micros() < Duration::from_micros(500).as_micros() {
 
                 let contact =
-                    parry3d_f64::query::contact(&pos1, &shape1, &pos2, &shape2, 0.3);
+                    parry3d_f64::query::contact(&pos1, &shape1, &pos2, &shape2, self.d_max);
                 match contact {
                     Ok(contact) => match contact {
                         Some(valid_contact) => {
@@ -1790,10 +1948,9 @@ impl CollisionManager {
             //        //if item.shape2 == "sphere" {
             //             println!("the info is : {:?}", item);
             //         //}
-                   
+
             //         //println!("{:?} and {:?},and the average distance is {:?}" , item.shape1, item.shape2, item.average_distance.unwrap_or(1.0));
-                
-                
+
             // }
 
             // println!("-----------------------------------------------------------------------------------");
