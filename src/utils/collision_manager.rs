@@ -1931,7 +1931,9 @@ impl CollisionManager {
                             }
                             result_vector.push(proximity.clone());
                         }
-                        None => {}
+                        None => {
+                            result_vector.push(proximity_info);
+                        }
                     },
 
                     Err(_) => {}
