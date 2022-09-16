@@ -168,6 +168,14 @@ impl PyJointInfo {
             None => return Ok(None)
         }
     }
+    #[getter]
+    pub fn get_parent_link(&self) -> PyResult<String> {
+        Ok(self.0.parent_link.clone())
+    }
+    #[getter]
+    pub fn get_child_link(&self) -> PyResult<String> {
+        Ok(self.0.parent_link.clone())
+    }
     fn __str__(&self) -> PyResult<String> {
         Ok(format!("<Joint (name: {}, type: {}, bounds: [{},{}], max_vel: {}, axis: [{},{},{}], mimic: {})>", 
                     self.0.name, self.0.joint_type, self.0.lower_bound, self.0.upper_bound, 

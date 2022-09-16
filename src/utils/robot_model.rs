@@ -57,6 +57,8 @@ impl RobotModel {
             };
             let lower_bound: f64;
             let upper_bound: f64;
+            let mut parent_link: String = "".into();
+            let mut child_link: String = "".into();
             let mut max_velocity: f64 = 0.0;
             let mut mimic: Option<MimicInfo> = None;
             match joint.limits {
@@ -71,6 +73,8 @@ impl RobotModel {
             }
             for idx in 0..description.joints.len() {
                     if description.joints[idx].name == joint.name {
+                        parent_link = description.joints[idx].parent.link.clone();
+                        child_link = description.joints[idx].child.link.clone();
                         max_velocity = description.joints[idx].limit.velocity;
                         match &description.joints[idx].mimic {
                             Some(mimic_info) => {
@@ -80,19 +84,22 @@ impl RobotModel {
                                 mimic = None;
                             }
                         }
+                        break;
                     }
             };
 
-            let joint_info = JointInfo{
+            let joint_info = JointInfo {
                 name:joint.name.clone(), 
                 joint_type: type_string, 
-                lower_bound: lower_bound, 
-                upper_bound: upper_bound,
-                max_velocity: max_velocity,
+                lower_bound, 
+                upper_bound,
+                max_velocity,
                 axis: axis_vec,
                 mimic: mimic.clone(),
-                idx: 6 + non_mimic_count
-                };
+                idx: 6 + non_mimic_count,
+                parent_link,
+                child_link
+            };
             joints.push(joint_info);
 
             if mimic.is_none() {

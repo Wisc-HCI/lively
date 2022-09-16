@@ -69,6 +69,8 @@ pub struct JointInfo {
     pub max_velocity: f64,
     pub axis: [f64; 3],
     pub mimic: Option<MimicInfo>,
+    pub parent_link: String,
+    pub child_link: String,
 
     // Pure utility value
     pub idx: usize,
@@ -83,6 +85,8 @@ impl JointInfo {
         max_velocity: f64,
         axis: [f64; 3],
         mimic: Option<MimicInfo>,
+        parent_link: String,
+        child_link: String
     ) -> Self {
         Self {
             name,
@@ -93,6 +97,8 @@ impl JointInfo {
             axis,
             mimic,
             idx: 0,
+            parent_link,
+            child_link
         }
     }
 }
