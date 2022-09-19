@@ -39,11 +39,11 @@ impl PositionBoundingObjective {
     ) -> f64 {
         let position = state.get_link_transform(&self.link).translation.vector;
         let pos = self.goal.0.inverse_transform_vector(&position);
-        let x_val = (pos[0].powi(2) / self.goal.1[0].powi(2)
+        let dist = pos[0].powi(2) / self.goal.1[0].powi(2)
                     + pos[1].powi(2) / self.goal.1[1].powi(2)
-                    + pos[2].powi(2) / self.goal.1[2].powi(2))
-                .powi(2);
-        return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
+                    + pos[2].powi(2) / self.goal.1[2].powi(2);
+        let cost = 1.0/(1.0+(-2.0*dist+4.0).exp()) + dist/10.0;
+        return self.weight * cost;//groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
 
