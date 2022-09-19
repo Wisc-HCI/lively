@@ -39,7 +39,7 @@ impl PositionBoundingObjective {
     ) -> f64 {
         let position = state.get_link_transform(&self.link).translation.vector;
         let pos = self.goal.0.inverse_transform_vector(&position);
-        let x_val = (pos[0].powi(1) / self.goal.1[0].powi(2)
+        let x_val = (pos[0].powi(2) / self.goal.1[0].powi(2)
                     + pos[1].powi(2) / self.goal.1[1].powi(2)
                     + pos[2].powi(2) / self.goal.1[2].powi(2))
                 .powi(2);
