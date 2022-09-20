@@ -9,6 +9,7 @@ use crate::utils::objective_set::ObjectiveSet;
 use crate::objectives::objective::Objective;
 use rand::{thread_rng, Rng};
 use rand::rngs::ThreadRng;
+use std::f32::INFINITY;
 use std::f64::consts::{PI};
 use std::collections::HashMap;
 
@@ -45,9 +46,32 @@ impl Solver {
         max_iterations: Option<usize>,
         collision_settings: Option<CollisionSettingInfo>
     ) -> Self {
-        
+
+        // Parse the bounds that were given
+
+        let displacement_bounds: Vec<(f64,f64)> = root_bounds.unwrap_or(vec![
+            (0.0,INFINITY.into()),
+            (0.0,INFINITY.into()),
+            (0.0,INFINITY.into()),
+            (0.0,PI/-2.0),
+            (0.0,PI/-2.0),
+            (0.0,PI/-2.0),
+        ]);
+        let mut lower_bounds: Vec<f64> = vec![];
+        let mut upper_bounds: Vec<f64> = vec![];
+
+        for bound in &displacement_bounds {
+            lower_bounds.push(bound.0 - bound.1);
+            upper_bounds.push(bound.0 + bound.1);
+        }
+
         // Define the robot model, which is used for kinematics and handling collisions
-        let robot_model = RobotModel::new(urdf, shapes.unwrap_or(vec![]),&collision_settings);
+        let robot_model = RobotModel::new(
+            urdf, 
+            shapes.unwrap_or(vec![]),
+            &collision_settings,
+            displacement_bounds
+        );
 
         let current_state: State;
         let average_distance: Vec<ProximityInfo>;
@@ -69,35 +93,7 @@ impl Solver {
         // Panoc_Cache is a PANOCCache
         let panoc_cache = PANOCCache::new(robot_model.dims.clone(), 1e-14, 10);
         // Bounds is defined by the robot root bounds and the joint limits
-        let mut lower_bounds: Vec<f64>;
-        let mut upper_bounds: Vec<f64>;
         
-        match root_bounds {
-            Some(bounds) => {
-                lower_bounds = Vec::new();
-                upper_bounds = Vec::new();
-                for bound in bounds {
-                    lower_bounds.push(bound.0 + bound.1);
-                    upper_bounds.push(bound.0 - bound.1);
-                }
-            },
-            None => {
-                lower_bounds = vec![
-                    f64::NEG_INFINITY,
-                    f64::NEG_INFINITY,
-                    f64::NEG_INFINITY,
-                    PI/-2.0,
-                    PI/-2.0,
-                    PI/-2.0];
-                upper_bounds = vec![
-                    f64::INFINITY,
-                    f64::INFINITY,
-                    f64::INFINITY,
-                    PI/2.0,
-                    PI/2.0,
-                    PI/2.0];
-            }
-        }
         for joint in &robot_model.joints {
             // Only include non-mimic joints
             match joint.mimic {

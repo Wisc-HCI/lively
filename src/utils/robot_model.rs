@@ -22,12 +22,13 @@ pub struct RobotModel {
     pub origin_link: String,
     pub links: Vec<LinkInfo>,
     pub joints: Vec<JointInfo>,
-    pub collision_objects : Vec<Shape>
+    pub collision_objects : Vec<Shape>,
+    pub start_vec: Vec<f64>,
 }
 
 impl RobotModel {
     
-    pub fn new(urdf: String, collision_objects: Vec<Shape>, collision_settings: &Option<CollisionSettingInfo>) -> Self {
+    pub fn new(urdf: String, collision_objects: Vec<Shape>, collision_settings: &Option<CollisionSettingInfo>, displacement_bounds: Vec<(f64,f64)>) -> Self {
         
         let description: Robot = read_from_string(&urdf.as_str()).unwrap();
         let chain: Chain<f64> = Chain::from(description.clone());
@@ -159,7 +160,12 @@ impl RobotModel {
             }
         }
 
-        Self { description, chain, collision_manager, child_map, joint_names, joints, links, joint_converters, dims, origin_link,collision_objects }
+        let mut start_vec = vec![];
+        for bound in displacement_bounds {
+            start_vec.push(bound.0)
+        }
+
+        Self { description, chain, collision_manager, child_map, joint_names, joints, links, joint_converters, dims, origin_link,collision_objects,start_vec }
     }
 
     pub fn get_environmental_objects(&self) -> Vec<Shape>{
@@ -222,7 +228,7 @@ impl RobotModel {
 
     pub fn get_default_state(&self) -> State {
 
-        let mut x = vec![0.0,0.0,0.0,0.0,0.0,0.0];
+        let mut x = self.start_vec.clone();
 
         for joint in &self.joints {
             match &joint.mimic {
