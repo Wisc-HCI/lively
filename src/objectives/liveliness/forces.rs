@@ -32,7 +32,7 @@ impl GravityObjective {
         }
         let current_position = state.get_link_transform(&self.link).translation.vector;
         let x = current_position[2]-prev_position[2];
-        let x_val = 1.0/(1.0+E.powf(4.0*x-2.0));
+        let x_val = 1.0/(1.0+(-4.0*x+2.0).exp());
         return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
     }
 }
