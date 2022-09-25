@@ -1,8 +1,7 @@
 use serde::{Serialize, Deserialize};
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
-use crate::objectives::objective::groove_loss;
-use std::f64::consts::{E};
+use crate::objectives::objective::{groove_loss,Callable};
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
@@ -17,8 +16,11 @@ impl GravityObjective {
     pub fn new(name: String, weight: f64, link: String) -> Self {
         Self { name, weight, link}
     }
+}
 
-    pub fn call(
+impl Callable<bool> for GravityObjective {
+
+    fn call(
         &self,
         v: &Vars,
         state: &State,
@@ -34,5 +36,9 @@ impl GravityObjective {
         let x = current_position[2]-prev_position[2];
         let x_val = 1.0/(1.0+(-4.0*x+2.0).exp());
         return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2)
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
     }
 }

@@ -1,4 +1,4 @@
-use crate::objectives::objective::Objective;
+use crate::objectives::objective::{Objective,Callable};
 use crate::objectives::core::base::VelocityMinimizationObjective;
 use crate::utils::robot_model::RobotModel;
 use crate::utils::vars::Vars;

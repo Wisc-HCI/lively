@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use crate::utils::general::{quaternion_exp};
-use crate::objectives::objective::groove_loss;
+use crate::objectives::objective::{groove_loss,Callable};
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
 use noise::{NoiseFn, Perlin, Seedable};
@@ -61,8 +61,11 @@ impl PositionLivelinessObjective {
         ];
         Self { name, weight, link, frequency, goal:vector![0.0,0.0,0.0], noise: vector![0.0,0.0,0.0], perlin, offsets}
     }
+}
 
-    pub fn call(
+impl Callable<Vector3<f64>> for PositionLivelinessObjective {
+
+    fn call(
         &self,
         v: &Vars,
         state: &State,
@@ -80,11 +83,20 @@ impl PositionLivelinessObjective {
         }
     }
 
-    pub fn update(&mut self, time:f64) {
+    fn update(&mut self, time:f64) {
         for i in 0..3 {
             self.noise[i] = self.goal[i] * self.perlin.get([time / self.frequency, self.offsets[i]])
-        }
+        };
     }
+
+    fn set_goal(&mut self, goal: Vector3<f64>) {
+        self.goal = goal;
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
+    }
+
 }
 
 #[repr(C)]
@@ -122,8 +134,11 @@ impl OrientationLivelinessObjective {
         ];
         Self { name, weight, link, frequency, goal:vector![0.0,0.0,0.0], noise: UnitQuaternion::identity(), perlin, offsets}
     }
+}
 
-    pub fn call(
+impl Callable<Vector3<f64>> for OrientationLivelinessObjective {
+
+    fn call(
         &self,
         v: &Vars,
         state: &State,
@@ -139,13 +154,21 @@ impl OrientationLivelinessObjective {
         }
     }
 
-    pub fn update(&mut self, time:f64) {
+    fn update(&mut self, time:f64) {
         let noise_vec = vector![
             self.goal[0] * self.perlin.get([time / self.frequency, self.offsets[0]]),
             self.goal[1] * self.perlin.get([time / self.frequency, self.offsets[1]]),
             self.goal[2] * self.perlin.get([time / self.frequency, self.offsets[2]])
         ];
         self.noise = quaternion_exp(noise_vec)
+    }
+
+    fn set_goal(&mut self, goal: Vector3<f64>) {
+        self.goal = goal;
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
     }
 }
 
@@ -177,8 +200,11 @@ impl JointLivelinessObjective {
         let perlin: Perlin = Perlin::new().set_seed(seed);
         Self { name, weight, joint, frequency, goal:0.0, noise: 0.0, perlin}
     }
+}
 
-    pub fn call(
+impl Callable<f64> for JointLivelinessObjective {
+
+    fn call(
         &self,
         v: &Vars,
         state: &State,
@@ -196,8 +222,16 @@ impl JointLivelinessObjective {
         }
     }
 
-    pub fn update(&mut self, time:f64) {
+    fn update(&mut self, time:f64) {
         self.noise = self.goal * self.perlin.get([time / self.frequency,0.0])
+    }
+
+    fn set_goal(&mut self, goal: f64) {
+        self.goal = goal;
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
     }
 }
 
@@ -229,8 +263,11 @@ impl RelativeMotionLivelinessObjective {
         let perlin: Perlin = Perlin::new().set_seed(seed);
         Self { name, weight, link1, link2, frequency, goal:0.0, noise: 0.0, perlin}
     }
+}
 
-    pub fn call(
+impl Callable<f64> for RelativeMotionLivelinessObjective {
+
+    fn call(
         &self,
         v: &Vars,
         state: &State,
@@ -254,7 +291,15 @@ impl RelativeMotionLivelinessObjective {
         }
     }
 
-    pub fn update(&mut self, time:f64) {
+    fn update(&mut self, time:f64) {
         self.noise = self.goal * self.perlin.get([time / self.frequency,0.0])
+    }
+
+    fn set_goal(&mut self, goal: f64) {
+        self.goal = goal;
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
     }
 }

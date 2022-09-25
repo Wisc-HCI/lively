@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
-use crate::objectives::objective::groove_loss;
+use crate::objectives::objective::{groove_loss,Callable};
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
 
@@ -23,8 +23,11 @@ impl PositionMirroringObjective {
     pub fn new(name: String, weight: f64, link1: String, link2: String) -> Self {
         Self { name, weight, link1, link2, goal: vector![0.0,0.0,0.0]}
     }
+}
 
-    pub fn call(
+impl Callable<Vector3<f64>> for PositionMirroringObjective {
+
+    fn call(
         &self,
         _v: &Vars,
         state: &State,
@@ -34,6 +37,14 @@ impl PositionMirroringObjective {
         let link2_translation = state.get_link_transform(&self.link2).translation.vector;
         let x_val = ((link1_translation - link2_translation) - self.goal).norm();
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+
+    fn set_goal(&mut self, goal: Vector3<f64>) {
+        self.goal = goal;
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
     }
 }
 
@@ -55,8 +66,11 @@ impl OrientationMirroringObjective {
     pub fn new(name: String, weight: f64, link1: String, link2: String) -> Self {
         Self { name, weight, link1, link2, goal: UnitQuaternion::identity()}
     }
+}
 
-    pub fn call(
+impl Callable<UnitQuaternion<f64>> for OrientationMirroringObjective {
+
+    fn call(
         &self,
         _v: &Vars,
         state: &State,
@@ -66,6 +80,14 @@ impl OrientationMirroringObjective {
         let link2_rotation = state.get_link_transform(&self.link2).rotation;
         let x_val = link1_rotation.rotation_to(&link2_rotation).angle_to(&self.goal);
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2)
+    }
+
+    fn set_goal(&mut self, goal: UnitQuaternion<f64>) {
+        self.goal = goal;
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
     }
 }
 
@@ -87,8 +109,11 @@ impl JointMirroringObjective {
     pub fn new(name: String, weight: f64, joint1: String, joint2: String) -> Self {
         Self { name, weight, joint1, joint2, goal: 0.0}
     }
+}
 
-    pub fn call(
+impl Callable<f64> for JointMirroringObjective {
+
+    fn call(
         &self,
         _v: &Vars,
         state: &State,
@@ -98,5 +123,13 @@ impl JointMirroringObjective {
         let joint2_position = state.get_joint_position(&self.joint2);
         let x_val = ((joint1_position+self.goal)-joint2_position).abs();
         return self.weight * groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2)
+    }
+
+    fn set_goal(&mut self, goal: f64) {
+        self.goal = goal;
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
     }
 }
