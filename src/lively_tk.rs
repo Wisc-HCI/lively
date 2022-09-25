@@ -159,7 +159,7 @@ impl Solver {
     ) -> State {
         
         let xopt = self.xopt.clone();
-        let xopt_core = self.xopt_core.clone();
+        // let xopt_core = self.xopt_core.clone();
 
         if self.objective_set.objectives.len() == 0 {
             return self.get_current_state();
@@ -187,22 +187,22 @@ impl Solver {
         }
 
         // First, do xopt_core to develop a non-lively baseline
-        self.xopt_core = self.solve_with_retries(xopt_core,true,self.only_core,&mut rng);
-        self.vars.state_core = self.robot_model.get_state(&self.xopt_core,self.only_core);
+        self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
+        let state = self.robot_model.get_state(&self.xopt,true);
         // println!("State Core Frames {:?}",self.vars.state_core.frames);
-        self.vars.history_core.update(&self.vars.state_core);
+        self.vars.history.update(&state);
 
-
-        if self.only_core {
-            self.vars.history.update(&self.vars.state_core);
-            return self.vars.state_core.clone()
-        } else {
-            self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
-            let state = self.robot_model.get_state(&self.xopt,true);
-            // println!("Solve with retries, prox: {:?}",state.proximity);
-            self.vars.history.update(&state);
-            return state
-        }
+        return state;
+        // if self.only_core {
+        //     self.vars.history.update(&self.vars.state_core);
+        //     return self.vars.state_core.clone()
+        // } else {
+        //     self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
+        //     let state = self.robot_model.get_state(&self.xopt,true);
+        //     // println!("Solve with retries, prox: {:?}",state.proximity);
+        //     self.vars.history.update(&state);
+        //     return state
+        // }
     }
     
     pub fn solve_with_retries(
