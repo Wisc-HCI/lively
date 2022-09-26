@@ -37,6 +37,8 @@ pub struct PositionLivelinessObjective {
     // Goal Value (shape of noise)
     #[serde(skip)]
     pub goal: Vector3<f64>,
+    #[serde(skip)]
+    pub time: Option<f64>,
 
     // Inaccessible
     #[serde(skip)]
@@ -63,6 +65,7 @@ impl PositionLivelinessObjective {
             link,
             frequency,
             goal: vector![0.0, 0.0, 0.0],
+            time: None,
             noise: vector![0.0, 0.0, 0.0],
             perlin,
             offsets,
@@ -87,13 +90,15 @@ impl Callable<Vector3<f64>> for PositionLivelinessObjective {
     }
 
     fn update(&mut self, time: f64) {
+        let last_time = self.time.unwrap_or(time);
         for i in 0..3 {
             self.noise[i] = self.goal[i]
                 * (self.perlin.get([time / self.frequency, self.offsets[i]])
                     - self
                         .perlin
-                        .get([(time - 0.01) / self.frequency, self.offsets[i]]))
+                        .get([last_time / self.frequency, self.offsets[i]]))
         }
+        self.time = Some(time);
     }
 
     fn set_goal(&mut self, goal: Vector3<f64>) {
