@@ -99,6 +99,7 @@ impl Callable<Vector3<f64>> for PositionLivelinessObjective {
                         .get([last_time / self.frequency, self.offsets[i]]))
         }
         self.time = Some(time);
+        println!("noise {:?}",self.noise);
     }
 
     fn set_goal(&mut self, goal: Vector3<f64>) {
