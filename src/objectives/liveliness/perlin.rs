@@ -192,7 +192,7 @@ impl Callable<Vector3<f64>> for OrientationLivelinessObjective {
                         .perlin
                         .get([last_time / self.frequency, self.offsets[2]])),
         );
-        println!("noise {:?}",self.noise);
+        println!("noise {:?} {:?}",self.noise,self.goal);
         self.time = Some(time);
     }
 
