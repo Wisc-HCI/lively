@@ -316,6 +316,7 @@ impl RelativeMotionLivelinessObjective {
 impl Callable<f64> for RelativeMotionLivelinessObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         // The error is the difference between the current value and the position along the source-target vector.
+        let link1_translation = state.get_link_transform(&self.link1).translation.vector;
         let link2_translation = state.get_link_transform(&self.link2).translation.vector;
         let prev1_translation = v
             .history
@@ -331,16 +332,18 @@ impl Callable<f64> for RelativeMotionLivelinessObjective {
             .vector;
         // Calculate the unit vector. We scale this by the current noise value
         // and add it to the core_translation to create the goal
-        let unit_vector = (prev2_translation - prev1_translation).normalize();
-        let goal = unit_vector * self.noise + prev1_translation;
+        let prev_distance = (prev2_translation - prev1_translation).norm();
+        let curr_distance = (link2_translation - link1_translation).norm();
+        // let goal = unit_vector * self.noise + prev1_translation;
         // cost is the distance between the offset position (goal) and the link's translation
-        let x_val = (link2_translation - goal).norm();
+        let x_val = (curr_distance - prev_distance) - self.noise;
 
         return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2);
     }
 
     fn update(&mut self, time: f64) {
         self.noise = self.goal
+            * self.frequency
             * (self.perlin.get([time / self.frequency, 0.0])
                 - self.perlin.get([(time - 0.01) / self.frequency, 0.0]))
     }
