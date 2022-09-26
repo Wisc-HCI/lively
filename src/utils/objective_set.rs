@@ -15,23 +15,23 @@ impl ObjectiveSet {
         Self { objectives: objectives.clone(), baseline: VelocityMinimizationObjective::new("Baseline".into(),0.1)}
     }
 
-    pub fn call(&self, robot_model: &RobotModel, vars: &Vars, x: &[f64], is_core: bool, is_last: bool) -> f64 {
-        let state = robot_model.get_state(&x.to_vec(),is_last);
-        let mut out = self.baseline.call(&vars,&state,is_core);
+    pub fn call(&self, robot_model: &RobotModel, vars: &Vars, x: &[f64]) -> f64 {
+        let state = robot_model.get_state(&x.to_vec(),true);
+        let mut out = self.baseline.call(&vars,&state);
         for (_,objective) in &self.objectives {
-            out += objective.call(&vars, &state, is_core);
+            out += objective.call(&vars, &state);
         }
         out
     }
 
-    pub fn gradient(&self, robot_model: &RobotModel, vars: &Vars, x: &[f64], is_core: bool, is_last: bool) -> (f64, Vec<f64>) {
+    pub fn gradient(&self, robot_model: &RobotModel, vars: &Vars, x: &[f64]) -> (f64, Vec<f64>) {
         // println!("Computing Gradient {:?}",x);
         let mut grad: Vec<f64> = vec![0.; x.len()];
-        let f_0 = self.call(robot_model, vars, x, is_core, is_last);
+        let f_0 = self.call(robot_model, vars, x);
         for i in 0..x.len() {
             let mut x_h = x.to_vec();
             x_h[i] += 0.000001;
-            let f_h = self.call(robot_model, vars, x_h.as_slice(), is_core, is_last);
+            let f_h = self.call(robot_model, vars, x_h.as_slice());
             grad[i] = (-f_0 + f_h) / 0.000001;
         }
         (f_0, grad)

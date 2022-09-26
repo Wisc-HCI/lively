@@ -37,7 +37,7 @@ impl PositionBoundingObjective {
 }
 
 impl Callable<(Isometry3<f64>, Vector3<f64>)> for PositionBoundingObjective {
-    fn call(&self, _v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
         let position = state.get_link_transform(&self.link).translation.vector;
         let pos = self.goal.0.inverse_transform_point(&position.into());
         let dist = pos[0].powi(2) / self.goal.1[0].powi(2)
@@ -80,7 +80,7 @@ impl OrientationBoundingObjective {
 }
 
 impl Callable<(UnitQuaternion<f64>, f64)> for OrientationBoundingObjective {
-    fn call(&self, _v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
         let orientation = state.get_link_transform(&self.link).rotation;
         let angle_dist = orientation.angle_to(&self.goal.0);
         let x_val = (angle_dist - self.goal.1).max(0.0);
@@ -120,7 +120,7 @@ impl JointBoundingObjective {
 }
 
 impl Callable<(f64, f64)> for JointBoundingObjective {
-    fn call(&self, _v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
         let joint_value = state.get_joint_position(&self.joint);
         let penalty_cutoff: f64 = 0.9;
         let a = 0.05 / (penalty_cutoff.powi(50));

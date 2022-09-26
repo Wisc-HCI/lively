@@ -26,10 +26,8 @@ pub struct Solver {
 
     // Optimization values
     pub xopt: Vec<f64>,
-    pub xopt_core: Vec<f64>,
 
     // Optimization Settings
-    pub only_core: bool,
     pub max_retries: usize,
     pub max_iterations: usize,
 }
@@ -41,7 +39,6 @@ impl Solver {
         root_bounds: Option<Vec<(f64,f64)>>,
         shapes: Option<Vec<Shape>>,
         initial_state: Option<State>,
-        only_core: Option<bool>,
         max_retries: Option<usize>,
         max_iterations: Option<usize>,
         collision_settings: Option<CollisionSettingInfo>
@@ -117,8 +114,6 @@ impl Solver {
             upper_bounds,
             lower_bounds,
             xopt: initial_x.clone(),
-            xopt_core: initial_x.clone(),
-            only_core: only_core.unwrap_or(false),
             max_retries: max_retries.unwrap_or(1),
             max_iterations: max_iterations.unwrap_or(150)
         }
@@ -136,7 +131,6 @@ impl Solver {
         
         // Handle updating the values in vars
         self.vars.history.reset(&current_state);
-        self.vars.history_core.reset(&current_state);
         self.robot_model.collision_manager.lock().unwrap().clear_all_transient_shapes();
 
         // Handle updating weights
@@ -159,7 +153,7 @@ impl Solver {
     ) -> State {
         
         let xopt = self.xopt.clone();
-        let xopt_core = self.xopt_core.clone();
+        // let xopt_core = self.xopt_core.clone();
 
         if self.objective_set.objectives.len() == 0 {
             return self.get_current_state();
@@ -187,29 +181,27 @@ impl Solver {
         }
 
         // First, do xopt_core to develop a non-lively baseline
-        self.xopt_core = self.solve_with_retries(xopt_core,true,self.only_core,&mut rng);
-        self.vars.state_core = self.robot_model.get_state(&self.xopt_core,self.only_core);
+        self.xopt = self.solve_with_retries(xopt,&mut rng);
+        let state = self.robot_model.get_state(&self.xopt,true);
         // println!("State Core Frames {:?}",self.vars.state_core.frames);
-        self.vars.history_core.update(&self.vars.state_core);
+        self.vars.history.update(&state);
 
-
-        if self.only_core {
-            self.vars.history.update(&self.vars.state_core);
-            return self.vars.state_core.clone()
-        } else {
-            self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
-            let state = self.robot_model.get_state(&self.xopt,true);
-            // println!("Solve with retries, prox: {:?}",state.proximity);
-            self.vars.history.update(&state);
-            return state
-        }
+        return state;
+        // if self.only_core {
+        //     self.vars.history.update(&self.vars.state_core);
+        //     return self.vars.state_core.clone()
+        // } else {
+        //     self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
+        //     let state = self.robot_model.get_state(&self.xopt,true);
+        //     // println!("Solve with retries, prox: {:?}",state.proximity);
+        //     self.vars.history.update(&state);
+        //     return state
+        // }
     }
     
     pub fn solve_with_retries(
         &mut self,
         x: Vec<f64>,
-        is_core: bool,
-        is_last: bool,
         rng: &mut ThreadRng
     ) -> Vec<f64> {
         
@@ -240,9 +232,7 @@ impl Solver {
                 &mut self.panoc_cache, 
                 &self.lower_bounds, 
                 &self.upper_bounds, 
-                self.max_iterations, 
-                is_core,
-                is_last
+                self.max_iterations
             );
             if try_cost < best_cost {
                 best_x = xopt.clone();
@@ -272,7 +262,7 @@ impl Solver {
         let mut rng: ThreadRng = thread_rng();
 
         for _ in 0..1000 {
-            let mut x = self.xopt_core.clone();
+            let mut x = self.xopt.clone();
             for i in 0..x.len() {
                 let upper = self.upper_bounds[i].min(50.0);
                 let lower = self.lower_bounds[i].max(-50.0);
@@ -302,13 +292,11 @@ pub fn optimize(
     cache: &mut PANOCCache,
     lower_bounds: &Vec<f64>,
     upper_bounds: &Vec<f64>,
-    max_iter: usize,
-    is_core: bool,
-    is_last: bool
+    max_iter: usize
 ) -> f64 {
 
     let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
-        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u, is_core, is_last);
+        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u);
         for i in 0..my_grad.len() {
             grad[i] = my_grad[i];
         }
@@ -316,7 +304,7 @@ pub fn optimize(
     };
 
     let f = |u: &[f64], c: &mut f64| -> Result<(), SolverError> {
-        *c = objective_set.call(&robot_model, &vars, u, is_core, is_last);
+        *c = objective_set.call(&robot_model, &vars, u);
         Ok(())
     };
 

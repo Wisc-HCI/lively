@@ -1,12 +1,12 @@
-use lively_tk_lib::lively_tk::Solver;
-use lively_tk_lib::objectives::core::base::CollisionAvoidanceObjective;
-use lively_tk_lib::objectives::core::base::SmoothnessMacroObjective;
-use lively_tk_lib::objectives::core::matching::PositionMatchObjective;
-use lively_tk_lib::objectives::objective::Objective;
-use lively_tk_lib::utils::goals::Goal::ScalarRange;
-use lively_tk_lib::utils::shapes::*;
-use lively_tk_lib::utils::info::{*};
-use lively_tk_lib::utils::shapes::Shape;
+use lively_tk::lively_tk::Solver;
+use lively_tk::objectives::core::base::CollisionAvoidanceObjective;
+use lively_tk::objectives::core::base::SmoothnessMacroObjective;
+use lively_tk::objectives::core::matching::PositionMatchObjective;
+use lively_tk::objectives::objective::Objective;
+use lively_tk::utils::goals::Goal::ScalarRange;
+use lively_tk::utils::shapes::*;
+use lively_tk::utils::info::{*};
+use lively_tk::utils::shapes::Shape;
 use nalgebra::base::Vector4;
 use nalgebra::base::Vector3;
 use nalgebra::geometry::Isometry3;
@@ -451,9 +451,9 @@ fn main() {
     }
 
     let objective_vec: Vec<Objective> = vec![
-        lively_tk_lib::objectives::objective::Objective::PositionMatch(pos_match_obj),
-        lively_tk_lib::objectives::objective::Objective::CollisionAvoidance(col_avoid_obj),
-        lively_tk_lib::objectives::objective::Objective::SmoothnessMacro(smooth_macro_obj),
+        lively_tk::objectives::objective::Objective::PositionMatch(pos_match_obj),
+        lively_tk::objectives::objective::Objective::CollisionAvoidance(col_avoid_obj),
+        lively_tk::objectives::objective::Objective::SmoothnessMacro(smooth_macro_obj),
     ];
     
 

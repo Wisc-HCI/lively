@@ -20,7 +20,7 @@ impl CollisionAvoidanceObjective {
 }
 
 impl Callable<bool> for CollisionAvoidanceObjective {
-    fn call(&self, _v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
         let mut score: f64 = 0.0;
 
         for proximity_info in &state.proximity {
@@ -59,7 +59,7 @@ impl JointLimitsObjective {
 }
 
 impl Callable<bool> for JointLimitsObjective {
-    fn call(&self, v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut sum = 0.0;
         let penalty_cutoff: f64 = 0.9;
         let a: f64 = 0.05 / (penalty_cutoff.powi(50));
@@ -101,16 +101,11 @@ impl VelocityMinimizationObjective {
 }
 
 impl Callable<bool> for VelocityMinimizationObjective {
-    fn call(&self, v: &Vars, state: &State, is_core: bool) -> f64 {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
-            if is_core {
-                x_val +=
-                    (joint_value - v.history_core.prev1.get_joint_position(&joint.name)).powi(2);
-            } else {
-                x_val += (joint_value - v.history.prev1.get_joint_position(&joint.name)).powi(2);
-            }
+            x_val += (joint_value - v.history.prev1.get_joint_position(&joint.name)).powi(2);
         }
         x_val = x_val.sqrt();
         // println!("VelocityMinimizationObjective error: {:?}",x_val);
@@ -136,15 +131,9 @@ impl OriginVelocityMinimizationObjective {
 }
 
 impl Callable<bool> for OriginVelocityMinimizationObjective {
-    fn call(&self, v: &Vars, state: &State, is_core: bool) -> f64 {
-        let past: Vector3<f64>;
-        let x_val: f64;
-        if is_core {
-            past = v.history_core.prev1.origin.translation.vector
-        } else {
-            past = v.history.prev1.origin.translation.vector
-        }
-        x_val = (state.origin.translation.vector - past).norm().powi(2);
+    fn call(&self, v: &Vars, state: &State) -> f64 {
+        let past: Vector3<f64> = v.history.prev1.origin.translation.vector;
+        let x_val: f64 = (state.origin.translation.vector - past).norm().powi(2);
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
     }
 
@@ -167,21 +156,13 @@ impl AccelerationMinimizationObjective {
 }
 
 impl Callable<bool> for AccelerationMinimizationObjective {
-    fn call(&self, v: &Vars, state: &State, is_core: bool) -> f64 {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
-            let v1: f64;
-            let v2: f64;
-            if is_core {
-                v1 = joint_value - v.history_core.prev1.get_joint_position(&joint.name);
-                v2 = v.history_core.prev1.get_joint_position(&joint.name)
-                    - v.history_core.prev2.get_joint_position(&joint.name);
-            } else {
-                v1 = joint_value - v.history.prev1.get_joint_position(&joint.name);
-                v2 = v.history.prev1.get_joint_position(&joint.name)
-                    - v.history.prev2.get_joint_position(&joint.name);
-            }
+            let v1: f64 = joint_value - v.history.prev1.get_joint_position(&joint.name);
+            let v2: f64 = v.history.prev1.get_joint_position(&joint.name)
+                - v.history.prev2.get_joint_position(&joint.name);
             x_val += (v1 - v2).powi(2);
         }
         x_val = x_val.sqrt();
@@ -208,19 +189,12 @@ impl OriginAccelerationMinimizationObjective {
 }
 
 impl Callable<bool> for OriginAccelerationMinimizationObjective {
-    fn call(&self, v: &Vars, state: &State, is_core: bool) -> f64 {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
         let pos1 = state.origin.translation.vector;
-        if is_core {
-            let pos2: Vector3<f64> = v.history_core.prev1.origin.translation.vector;
-            let pos3: Vector3<f64> = v.history_core.prev2.origin.translation.vector;
-            let x_val: f64 = ((pos1 - pos2) - (pos2 - pos3)).norm().powi(2);
-            return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
-        } else {
-            let pos2: Vector3<f64> = v.history.prev1.origin.translation.vector;
+        let pos2: Vector3<f64> = v.history.prev1.origin.translation.vector;
             let pos3: Vector3<f64> = v.history.prev2.origin.translation.vector;
             let x_val: f64 = ((pos1 - pos2) - (pos2 - pos3)).norm().powi(2);
             return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
-        }
     }
 
     fn set_weight(&mut self, weight: f64) {
@@ -242,26 +216,18 @@ impl JerkMinimizationObjective {
 }
 
 impl Callable<bool> for JerkMinimizationObjective {
-    fn call(&self, v: &Vars, state: &State, is_core: bool) -> f64 {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
             let v1: f64;
             let v2: f64;
             let v3: f64;
-            if is_core {
-                v1 = joint_value - v.history_core.prev1.get_joint_position(&joint.name);
-                v2 = v.history_core.prev1.get_joint_position(&joint.name)
-                    - v.history_core.prev2.get_joint_position(&joint.name);
-                v3 = v.history_core.prev2.get_joint_position(&joint.name)
-                    - v.history_core.prev3.get_joint_position(&joint.name);
-            } else {
-                v1 = joint_value - v.history.prev1.get_joint_position(&joint.name);
+            v1 = joint_value - v.history.prev1.get_joint_position(&joint.name);
                 v2 = v.history.prev1.get_joint_position(&joint.name)
                     - v.history.prev2.get_joint_position(&joint.name);
                 v3 = v.history.prev2.get_joint_position(&joint.name)
                     - v.history.prev3.get_joint_position(&joint.name);
-            }
             x_val += ((v1 - v2) - (v2 - v3)).powi(2);
         }
         x_val = x_val.sqrt();
@@ -288,21 +254,12 @@ impl OriginJerkMinimizationObjective {
 }
 
 impl Callable<bool> for OriginJerkMinimizationObjective {
-    fn call(&self, v: &Vars, state: &State, is_core: bool) -> f64 {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
         let x_val: f64;
         let pos1 = state.origin.translation.vector;
-        let pos2: Vector3<f64>;
-        let pos3: Vector3<f64>;
-        let pos4: Vector3<f64>;
-        if is_core {
-            pos2 = v.history_core.prev1.origin.translation.vector;
-            pos3 = v.history_core.prev2.origin.translation.vector;
-            pos4 = v.history_core.prev3.origin.translation.vector;
-        } else {
-            pos2 = v.history.prev1.origin.translation.vector;
-            pos3 = v.history.prev2.origin.translation.vector;
-            pos4 = v.history.prev3.origin.translation.vector;
-        }
+        let pos2: Vector3<f64> = v.history.prev1.origin.translation.vector;
+        let pos3: Vector3<f64> = v.history.prev2.origin.translation.vector;
+        let pos4: Vector3<f64> = v.history.prev3.origin.translation.vector;
         x_val = (((pos1 - pos2) - (pos2 - pos3)) - ((pos2 - pos3) - (pos3 - pos4)))
             .norm()
             .powi(2);
@@ -406,13 +363,13 @@ impl SmoothnessMacroObjective {
 }
 
 impl Callable<bool> for SmoothnessMacroObjective {
-    fn call(&self, v: &Vars, state: &State, is_core: bool) -> f64 {
-        let velocity_cost = self.velocity_objective.call(v, state, is_core);
-        let acceleration_cost = self.acceleration_objective.call(v, state, is_core);
-        let jerk_cost = self.jerk_objective.call(v, state, is_core);
-        let base_velocity_cost = self.base_velocity_objective.call(v, state, is_core);
-        let base_acceleration_cost = self.base_acceleration_objective.call(v, state, is_core);
-        let base_jerk_cost = self.base_jerk_objective.call(v, state, is_core);
+    fn call(&self, v: &Vars, state: &State) -> f64 {
+        let velocity_cost = self.velocity_objective.call(v, state);
+        let acceleration_cost = self.acceleration_objective.call(v, state);
+        let jerk_cost = self.jerk_objective.call(v, state);
+        let base_velocity_cost = self.base_velocity_objective.call(v, state);
+        let base_acceleration_cost = self.base_acceleration_objective.call(v, state);
+        let base_jerk_cost = self.base_jerk_objective.call(v, state);
         return self.weight
             * (velocity_cost
                 + acceleration_cost

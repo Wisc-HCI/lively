@@ -129,7 +129,6 @@ impl JsSolver {
         root_bounds: &JsValue,
         shapes: &JsValue,
         initial_state: &JsValue,
-        only_core: Option<bool>,
         max_retries: Option<usize>,
         max_iterations: Option<usize>,
         collision_settings: &JsValue
@@ -144,7 +143,7 @@ impl JsSolver {
             // let inner_retries: Option<u64> = max_retries.into_serde().unwrap();
             // let inner_iterations: Option<usize> = max_iterations.into_serde().unwrap();
             // let inner_core: Option<bool> = only_core.into_serde().unwrap();
-            Self(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, only_core, max_retries, max_iterations, inner_collision_settings))
+            Self(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, max_retries, max_iterations, inner_collision_settings))
     }
 
     #[wasm_bindgen(getter)]
