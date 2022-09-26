@@ -21,8 +21,8 @@ use crate::objectives::liveliness::perlin::*;
 pub enum PyObjective {
 	PositionMatch(PyPositionMatchObjective),
 	OrientationMatch(PyOrientationMatchObjective),
-	PositionLiveliness(PyPositionLivelinessObjective),
-	OrientationLiveliness(PyOrientationLivelinessObjective),
+	//PositionLiveliness(PyPositionLivelinessObjective),
+	//OrientationLiveliness(PyOrientationLivelinessObjective),
 	PositionMirroring(PyPositionMirroringObjective),
 	OrientationMirroring(PyOrientationMirroringObjective),
 	PositionBounding(PyPositionBoundingObjective),
@@ -40,10 +40,10 @@ pub enum PyObjective {
 	OriginAccelerationMinimization(PyOriginAccelerationMinimizationObjective),
 	OriginJerkMinimization(PyOriginJerkMinimizationObjective),
 	RelativeMotionLiveliness(PyRelativeMotionLivelinessObjective),
-	OriginPositionLiveliness(PyOriginPositionLivelinessObjective),
-	OriginOrientationLiveliness(PyOriginOrientationLivelinessObjective),
-	OriginPositionMatch(PyOriginPositionMatchObjective),
-	OriginOrientationMatch(PyOriginOrientationMatchObjective),
+	PositionLiveliness(PyPositionLivelinessObjective),
+	OrientationLiveliness(PyOrientationLivelinessObjective),
+	//OriginPositionMatch(PyOriginPositionMatchObjective),
+	//OriginOrientationMatch(PyOriginOrientationMatchObjective),
 	Gravity(PyGravityObjective),
 	SmoothnessMacro(PySmoothnessMacroObjective),
 	DistanceMatch(PyDistanceMatchObjective),
@@ -74,10 +74,10 @@ impl IntoPy<PyObject> for PyObjective {
 			Self::OriginAccelerationMinimization(obj) => obj.into_py(py),
 			Self::OriginJerkMinimization(obj) => obj.into_py(py),
 			Self::RelativeMotionLiveliness(obj) => obj.into_py(py),
-			Self::OriginPositionLiveliness(obj) => obj.into_py(py),
-			Self::OriginOrientationLiveliness(obj) => obj.into_py(py),
-			Self::OriginPositionMatch(obj) => obj.into_py(py),
-			Self::OriginOrientationMatch(obj) => obj.into_py(py),
+			//Self::PositionLiveliness(obj) => obj.into_py(py),
+			//Self::OriginOrientationLiveliness(obj) => obj.into_py(py),
+			//Self::OriginPositionMatch(obj) => obj.into_py(py),
+			//Self::OriginOrientationMatch(obj) => obj.into_py(py),
 			Self::Gravity(obj) => obj.into_py(py),
 			Self::SmoothnessMacro(obj) => obj.into_py(py),
 			Self::DistanceMatch(obj) => obj.into_py(py),
@@ -110,10 +110,10 @@ impl From<Objective> for PyObjective {
 			Objective::OriginAccelerationMinimization(obj) => Self::OriginAccelerationMinimization(PyOriginAccelerationMinimizationObjective(obj)),
 			Objective::OriginJerkMinimization(obj) => Self::OriginJerkMinimization(PyOriginJerkMinimizationObjective(obj)),
 			Objective::RelativeMotionLiveliness(obj) => Self::RelativeMotionLiveliness(PyRelativeMotionLivelinessObjective(obj)),
-			Objective::OriginPositionLiveliness(obj) => Self::OriginPositionLiveliness(PyOriginPositionLivelinessObjective(obj)),
-			Objective::OriginOrientationLiveliness(obj) => Self::OriginOrientationLiveliness(PyOriginOrientationLivelinessObjective(obj)),
-			Objective::OriginPositionMatch(obj) => Self::OriginPositionMatch(PyOriginPositionMatchObjective(obj)),
-			Objective::OriginOrientationMatch(obj) => Self::OriginOrientationMatch(PyOriginOrientationMatchObjective(obj)),
+			//Objective::PositionLiveliness(obj) => Self::PositionLiveliness(PyPositionLivelinessObjective(obj)),
+			//Objective::OriginOrientationLiveliness(obj) => Self::OriginOrientationLiveliness(PyOriginOrientationLivelinessObjective(obj)),
+			//Objective::OriginPositionMatch(obj) => Self::OriginPositionMatch(PyOriginPositionMatchObjective(obj)),
+			//Objective::OriginOrientationMatch(obj) => Self::OriginOrientationMatch(PyOriginOrientationMatchObjective(obj)),
 			Objective::Gravity(obj) => Self::Gravity(PyGravityObjective(obj)),
 			Objective::SmoothnessMacro(obj) => Self::SmoothnessMacro(PySmoothnessMacroObjective(obj)),
 			Objective::DistanceMatch(obj) => Self::DistanceMatch(PyDistanceMatchObjective(obj)),
@@ -146,10 +146,10 @@ impl From<PyObjective> for Objective {
 			PyObjective::OriginAccelerationMinimization(obj) => Self::OriginAccelerationMinimization(obj.0),
 			PyObjective::OriginJerkMinimization(obj) => Self::OriginJerkMinimization(obj.0),
 			PyObjective::RelativeMotionLiveliness(obj) => Self::RelativeMotionLiveliness(obj.0),
-			PyObjective::OriginPositionLiveliness(obj) => Self::OriginPositionLiveliness(obj.0),
-			PyObjective::OriginOrientationLiveliness(obj) => Self::OriginOrientationLiveliness(obj.0),
-			PyObjective::OriginPositionMatch(obj) => Self::OriginPositionMatch(obj.0),
-			PyObjective::OriginOrientationMatch(obj) => Self::OriginOrientationMatch(obj.0),
+			//PyObjective::PositionLiveliness(obj) => Self::PositionLiveliness(obj.0),
+			//PyObjective::OriginOrientationLiveliness(obj) => Self::OriginOrientationLiveliness(obj.0),
+			//PyObjective::OriginPositionMatch(obj) => Self::OriginPositionMatch(obj.0),
+			//PyObjective::OriginOrientationMatch(obj) => Self::OriginOrientationMatch(obj.0),
 			PyObjective::Gravity(obj) => Self::Gravity(obj.0),
 			PyObjective::SmoothnessMacro(obj) => Self::SmoothnessMacro(obj.0),
 			PyObjective::DistanceMatch(obj) => Self::DistanceMatch(obj.0),
@@ -809,118 +809,118 @@ impl PyRelativeMotionLivelinessObjective {
 }
 
 
-#[cfg(feature = "pybindings")]
-#[pyclass(name="OriginPositionLivelinessObjective")]
-#[derive(Clone,Debug)]
-pub struct PyOriginPositionLivelinessObjective(OriginPositionLivelinessObjective);
+// #[cfg(feature = "pybindings")]
+// #[pyclass(name="PositionLivelinessObjective")]
+// #[derive(Clone,Debug)]
+// pub struct PyPositionLivelinessObjective(PositionLivelinessObjective);
 
-#[cfg(feature = "pybindings")]
-#[pymethods]
-impl PyOriginPositionLivelinessObjective {
-    #[new]
-    pub fn new(name:String,weight:f64,frequency:f64) -> Self {
-        PyOriginPositionLivelinessObjective(OriginPositionLivelinessObjective::new(name,weight,frequency))
-    }
+// #[cfg(feature = "pybindings")]
+// #[pymethods]
+// impl PyPositionLivelinessObjective {
+//     #[new]
+//     pub fn new(name:String,weight:f64,frequency:f64) -> Self {
+//         PyPositionLivelinessObjective(PositionLivelinessObjective::new(name,weight,frequency))
+//     }
     
-    #[getter]
-    pub fn get_name(&self) -> PyResult<String> {
-        Ok(self.0.name.clone())
-    }
+//     #[getter]
+//     pub fn get_name(&self) -> PyResult<String> {
+//         Ok(self.0.name.clone())
+//     }
 
-    #[getter]
-    pub fn get_weight(&self) -> PyResult<f64> {
-        Ok(self.0.weight.clone())
-    }
+//     #[getter]
+//     pub fn get_weight(&self) -> PyResult<f64> {
+//         Ok(self.0.weight.clone())
+//     }
 
-    #[getter]
-    pub fn get_frequency(&self) -> PyResult<f64> {
-        Ok(self.0.frequency.clone())
-    }
+//     #[getter]
+//     pub fn get_frequency(&self) -> PyResult<f64> {
+//         Ok(self.0.frequency.clone())
+//     }
 
-}
+// }
 
 
-#[cfg(feature = "pybindings")]
-#[pyclass(name="OriginOrientationLivelinessObjective")]
-#[derive(Clone,Debug)]
-pub struct PyOriginOrientationLivelinessObjective(OriginOrientationLivelinessObjective);
+// #[cfg(feature = "pybindings")]
+// #[pyclass(name="OriginOrientationLivelinessObjective")]
+// #[derive(Clone,Debug)]
+// pub struct PyOriginOrientationLivelinessObjective(OriginOrientationLivelinessObjective);
 
-#[cfg(feature = "pybindings")]
-#[pymethods]
-impl PyOriginOrientationLivelinessObjective {
-    #[new]
-    pub fn new(name:String,weight:f64,frequency:f64) -> Self {
-        PyOriginOrientationLivelinessObjective(OriginOrientationLivelinessObjective::new(name,weight,frequency))
-    }
+// #[cfg(feature = "pybindings")]
+// #[pymethods]
+// impl PyOriginOrientationLivelinessObjective {
+//     #[new]
+//     pub fn new(name:String,weight:f64,frequency:f64) -> Self {
+//         PyOriginOrientationLivelinessObjective(OriginOrientationLivelinessObjective::new(name,weight,frequency))
+//     }
     
-    #[getter]
-    pub fn get_name(&self) -> PyResult<String> {
-        Ok(self.0.name.clone())
-    }
+//     #[getter]
+//     pub fn get_name(&self) -> PyResult<String> {
+//         Ok(self.0.name.clone())
+//     }
 
-    #[getter]
-    pub fn get_weight(&self) -> PyResult<f64> {
-        Ok(self.0.weight.clone())
-    }
+//     #[getter]
+//     pub fn get_weight(&self) -> PyResult<f64> {
+//         Ok(self.0.weight.clone())
+//     }
 
-    #[getter]
-    pub fn get_frequency(&self) -> PyResult<f64> {
-        Ok(self.0.frequency.clone())
-    }
+//     #[getter]
+//     pub fn get_frequency(&self) -> PyResult<f64> {
+//         Ok(self.0.frequency.clone())
+//     }
 
-}
+// }
 
 
-#[cfg(feature = "pybindings")]
-#[pyclass(name="OriginPositionMatchObjective")]
-#[derive(Clone,Debug)]
-pub struct PyOriginPositionMatchObjective(OriginPositionMatchObjective);
+// #[cfg(feature = "pybindings")]
+// #[pyclass(name="OriginPositionMatchObjective")]
+// #[derive(Clone,Debug)]
+// pub struct PyOriginPositionMatchObjective(OriginPositionMatchObjective);
 
-#[cfg(feature = "pybindings")]
-#[pymethods]
-impl PyOriginPositionMatchObjective {
-    #[new]
-    pub fn new(name:String,weight:f64) -> Self {
-        PyOriginPositionMatchObjective(OriginPositionMatchObjective::new(name,weight))
-    }
+// #[cfg(feature = "pybindings")]
+// #[pymethods]
+// impl PyOriginPositionMatchObjective {
+//     #[new]
+//     pub fn new(name:String,weight:f64) -> Self {
+//         PyOriginPositionMatchObjective(OriginPositionMatchObjective::new(name,weight))
+//     }
     
-    #[getter]
-    pub fn get_name(&self) -> PyResult<String> {
-        Ok(self.0.name.clone())
-    }
+//     #[getter]
+//     pub fn get_name(&self) -> PyResult<String> {
+//         Ok(self.0.name.clone())
+//     }
 
-    #[getter]
-    pub fn get_weight(&self) -> PyResult<f64> {
-        Ok(self.0.weight.clone())
-    }
+//     #[getter]
+//     pub fn get_weight(&self) -> PyResult<f64> {
+//         Ok(self.0.weight.clone())
+//     }
 
-}
+// }
 
 
-#[cfg(feature = "pybindings")]
-#[pyclass(name="OriginOrientationMatchObjective")]
-#[derive(Clone,Debug)]
-pub struct PyOriginOrientationMatchObjective(OriginOrientationMatchObjective);
+// #[cfg(feature = "pybindings")]
+// #[pyclass(name="OriginOrientationMatchObjective")]
+// #[derive(Clone,Debug)]
+// pub struct PyOriginOrientationMatchObjective(OriginOrientationMatchObjective);
 
-#[cfg(feature = "pybindings")]
-#[pymethods]
-impl PyOriginOrientationMatchObjective {
-    #[new]
-    pub fn new(name:String,weight:f64) -> Self {
-        PyOriginOrientationMatchObjective(OriginOrientationMatchObjective::new(name,weight))
-    }
+// #[cfg(feature = "pybindings")]
+// #[pymethods]
+// impl PyOriginOrientationMatchObjective {
+//     #[new]
+//     pub fn new(name:String,weight:f64) -> Self {
+//         PyOriginOrientationMatchObjective(OriginOrientationMatchObjective::new(name,weight))
+//     }
     
-    #[getter]
-    pub fn get_name(&self) -> PyResult<String> {
-        Ok(self.0.name.clone())
-    }
+//     #[getter]
+//     pub fn get_name(&self) -> PyResult<String> {
+//         Ok(self.0.name.clone())
+//     }
 
-    #[getter]
-    pub fn get_weight(&self) -> PyResult<f64> {
-        Ok(self.0.weight.clone())
-    }
+//     #[getter]
+//     pub fn get_weight(&self) -> PyResult<f64> {
+//         Ok(self.0.weight.clone())
+//     }
 
-}
+// }
 
 
 #[cfg(feature = "pybindings")]
