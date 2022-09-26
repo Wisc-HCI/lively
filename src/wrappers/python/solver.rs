@@ -24,7 +24,7 @@ use crate::wrappers::python::info::*;
 use crate::wrappers::python::geometry::*;
 #[cfg(feature = "pybindings")]
 use crate::wrappers::python::state::*;
-
+#[cfg(feature = "pybindings")]
 use std::collections::HashMap;
 
 
@@ -42,7 +42,6 @@ impl PySolver {
         root_bounds: Option<Vec<ScalarRange>>,
         shapes: Option<Vec<PyShape>>,
         initial_state: Option<PyState>,
-        only_core: Option<bool>,
         max_retries: Option<usize>,
         max_iterations: Option<usize>,
         collision_settings: Option<PyCollisionSettingInfo>
@@ -56,7 +55,7 @@ impl PySolver {
             let inner_bounds = root_bounds.map(|bs| bs.iter().map(|b| (b.value,b.delta)).collect());
             let inner_state = initial_state.map(|s| State::from(s));
             let inner_collision_settings = collision_settings.map(|cs| CollisionSettingInfo::from(cs));
-            PySolver(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, only_core, max_retries, max_iterations, inner_collision_settings))
+            PySolver(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, max_retries, max_iterations, inner_collision_settings))
     }
 
     #[getter]
