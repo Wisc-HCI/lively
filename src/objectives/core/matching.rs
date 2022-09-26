@@ -28,7 +28,7 @@ impl PositionMatchObjective {
 }
 
 impl Callable<Vector3<f64>> for PositionMatchObjective {
-    fn call(&self, _v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
         // Get the link transform from frames
         let link_translation = state.get_link_transform(&self.link).translation.vector;
 
@@ -69,7 +69,7 @@ impl OrientationMatchObjective {
 }
 
 impl Callable<UnitQuaternion<f64>> for OrientationMatchObjective {
-    fn call(&self, _v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
         // Get the link transform from frames
         let link_rotation = state.get_link_transform(&self.link).rotation;
 
@@ -111,7 +111,7 @@ impl JointMatchObjective {
 }
 
 impl Callable<f64> for JointMatchObjective {
-    fn call(&self, _v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
         let x_val = (self.goal - state.get_joint_position(&self.joint)).abs();
         return self.weight * groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2);
     }
@@ -151,7 +151,7 @@ impl DistanceMatchObjective {
 }
 
 impl Callable<f64> for DistanceMatchObjective {
-    fn call(&self, _v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
         let link1_translation = state.get_link_transform(&self.link1).translation.vector;
         let link2_translation = state.get_link_transform(&self.link2).translation.vector;
         let x_val = ((link1_translation - link2_translation).norm() - self.goal).abs();

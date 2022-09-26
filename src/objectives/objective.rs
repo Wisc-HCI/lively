@@ -73,34 +73,33 @@ impl Objective {
     pub fn call(
                 &self,
                 v: &Vars,
-                state: &State,
-                is_core: bool
+                state: &State
             ) -> f64 {
                 match self {
-                    Self::PositionMatch(obj) => obj.call(v,state,is_core),
-                    Self::OrientationMatch(obj) => obj.call(v,state,is_core),
-                    Self::PositionLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::OrientationLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::PositionMirroring(obj) => obj.call(v,state,is_core),
-                    Self::OrientationMirroring(obj) => obj.call(v,state,is_core),
-                    Self::PositionBounding(obj) => obj.call(v,state,is_core),
-                    Self::OrientationBounding(obj) => obj.call(v,state,is_core),
-                    Self::JointMatch(obj) => obj.call(v,state,is_core),
-                    Self::JointLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::JointMirroring(obj) => obj.call(v,state,is_core),
-                    Self::JointLimits(obj) => obj.call(v,state,is_core),
-                    Self::JointBounding(obj) => obj.call(v,state,is_core),
-                    Self::CollisionAvoidance(obj) => obj.call(v,state,is_core),
-                    Self::VelocityMinimization(obj) => obj.call(v,state,is_core),
-                    Self::AccelerationMinimization(obj) => obj.call(v,state,is_core),
-                    Self::JerkMinimization(obj) => obj.call(v,state,is_core),
-                    Self::OriginVelocityMinimization(obj) => obj.call(v,state,is_core),
-                    Self::OriginAccelerationMinimization(obj) => obj.call(v,state,is_core),
-                    Self::OriginJerkMinimization(obj) => obj.call(v,state,is_core),
-                    Self::RelativeMotionLiveliness(obj) => obj.call(v,state,is_core),
-                    Self::Gravity(obj) => obj.call(v,state,is_core),
-                    Self::SmoothnessMacro(obj) => obj.call(v,state,is_core),
-                    Self::DistanceMatch(obj) => obj.call(v,state,is_core)
+                    Self::PositionMatch(obj) => obj.call(v,state),
+                    Self::OrientationMatch(obj) => obj.call(v,state),
+                    Self::PositionLiveliness(obj) => obj.call(v,state),
+                    Self::OrientationLiveliness(obj) => obj.call(v,state),
+                    Self::PositionMirroring(obj) => obj.call(v,state),
+                    Self::OrientationMirroring(obj) => obj.call(v,state),
+                    Self::PositionBounding(obj) => obj.call(v,state),
+                    Self::OrientationBounding(obj) => obj.call(v,state),
+                    Self::JointMatch(obj) => obj.call(v,state),
+                    Self::JointLiveliness(obj) => obj.call(v,state),
+                    Self::JointMirroring(obj) => obj.call(v,state),
+                    Self::JointLimits(obj) => obj.call(v,state),
+                    Self::JointBounding(obj) => obj.call(v,state),
+                    Self::CollisionAvoidance(obj) => obj.call(v,state),
+                    Self::VelocityMinimization(obj) => obj.call(v,state),
+                    Self::AccelerationMinimization(obj) => obj.call(v,state),
+                    Self::JerkMinimization(obj) => obj.call(v,state),
+                    Self::OriginVelocityMinimization(obj) => obj.call(v,state),
+                    Self::OriginAccelerationMinimization(obj) => obj.call(v,state),
+                    Self::OriginJerkMinimization(obj) => obj.call(v,state),
+                    Self::RelativeMotionLiveliness(obj) => obj.call(v,state),
+                    Self::Gravity(obj) => obj.call(v,state),
+                    Self::SmoothnessMacro(obj) => obj.call(v,state),
+                    Self::DistanceMatch(obj) => obj.call(v,state)
                 }
     }
 
@@ -246,6 +245,5 @@ pub trait Callable<T> {
 
     fn call(&self,
         v: &Vars,
-        state: &State,
-        is_core: bool) -> f64;
+        state: &State) -> f64;
 }

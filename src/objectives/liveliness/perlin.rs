@@ -74,7 +74,7 @@ impl PositionLivelinessObjective {
 }
 
 impl Callable<Vector3<f64>> for PositionLivelinessObjective {
-    fn call(&self, v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
         let link_translation = state.get_link_transform(&self.link).translation.vector;
         let goal = v
             .history
@@ -92,7 +92,8 @@ impl Callable<Vector3<f64>> for PositionLivelinessObjective {
     fn update(&mut self, time: f64) {
         let last_time = self.time.unwrap_or(time);
         for i in 0..3 {
-            self.noise[i] = self.goal[i] * self.frequency
+            self.noise[i] = self.goal[i]
+                * self.frequency
                 * (self.perlin.get([time / self.frequency, self.offsets[i]])
                     - self
                         .perlin
@@ -123,6 +124,8 @@ pub struct OrientationLivelinessObjective {
     // Goal Value (shape of noise)
     #[serde(skip)]
     pub goal: Vector3<f64>,
+    #[serde(skip)]
+    pub time: Option<f64>,
 
     // Inaccessible
     #[serde(skip)]
@@ -149,6 +152,7 @@ impl OrientationLivelinessObjective {
             link,
             frequency,
             goal: vector![0.0, 0.0, 0.0],
+            time: None,
             noise: UnitQuaternion::identity(),
             perlin,
             offsets,
@@ -157,7 +161,7 @@ impl OrientationLivelinessObjective {
 }
 
 impl Callable<Vector3<f64>> for OrientationLivelinessObjective {
-    fn call(&self, v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
         let link_rotation = state.get_link_transform(&self.link).rotation;
         let prev_rotation = v.history.prev1.get_link_transform(&self.link).rotation;
         let x_val = link_rotation
@@ -167,28 +171,28 @@ impl Callable<Vector3<f64>> for OrientationLivelinessObjective {
     }
 
     fn update(&mut self, time: f64) {
-        // let noise_vec = vector![
-        //     self.goal[0] * self.perlin.get([time / self.frequency, self.offsets[0]]),
-        //     self.goal[1] * self.perlin.get([time / self.frequency, self.offsets[1]]),
-        //     self.goal[2] * self.perlin.get([time / self.frequency, self.offsets[2]])
-        // ];
+        let last_time = self.time.unwrap_or(time);
         self.noise = UnitQuaternion::from_euler_angles(
             self.goal[0]
+                * self.frequency
                 * (self.perlin.get([time / self.frequency, self.offsets[0]])
                     - self
                         .perlin
-                        .get([(time - 0.01) / self.frequency, self.offsets[0]])),
+                        .get([last_time / self.frequency, self.offsets[0]])),
             self.goal[1]
+                * self.frequency
                 * (self.perlin.get([time / self.frequency, self.offsets[1]])
                     - self
                         .perlin
-                        .get([(time - 0.01) / self.frequency, self.offsets[1]])),
+                        .get([last_time / self.frequency, self.offsets[1]])),
             self.goal[2]
+                * self.frequency
                 * (self.perlin.get([time / self.frequency, self.offsets[2]])
                     - self
                         .perlin
-                        .get([(time - 0.01) / self.frequency, self.offsets[2]])),
-        )
+                        .get([last_time / self.frequency, self.offsets[2]])),
+        );
+        self.time = Some(time);
     }
 
     fn set_goal(&mut self, goal: Vector3<f64>) {
@@ -212,6 +216,8 @@ pub struct JointLivelinessObjective {
     // Goal Value (shape of noise)
     #[serde(skip)]
     pub goal: f64,
+    #[serde(skip)]
+    pub time: Option<f64>,
 
     // Inaccessible
     #[serde(skip)]
@@ -231,6 +237,7 @@ impl JointLivelinessObjective {
             joint,
             frequency,
             goal: 0.0,
+            time: None,
             noise: 0.0,
             perlin,
         }
@@ -238,7 +245,7 @@ impl JointLivelinessObjective {
 }
 
 impl Callable<f64> for JointLivelinessObjective {
-    fn call(&self, v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
         let joint_value = state.get_joint_position(&self.joint);
         let goal = v.history.prev1.get_joint_position(&self.joint) + self.noise;
 
@@ -248,9 +255,12 @@ impl Callable<f64> for JointLivelinessObjective {
     }
 
     fn update(&mut self, time: f64) {
+        let last_time = self.time.unwrap_or(time);
         self.noise = self.goal
+            * self.frequency
             * (self.perlin.get([time / self.frequency, 0.0])
-                - self.perlin.get([(time - 0.01) / self.frequency, 0.0]))
+                - self.perlin.get([last_time / self.frequency, 0.0]));
+        self.time = Some(time);
     }
 
     fn set_goal(&mut self, goal: f64) {
@@ -274,6 +284,8 @@ pub struct RelativeMotionLivelinessObjective {
 
     #[serde(skip)]
     pub goal: f64,
+    #[serde(skip)]
+    pub time: Option<f64>,
 
     // Inaccessible
     #[serde(skip)]
@@ -294,6 +306,7 @@ impl RelativeMotionLivelinessObjective {
             link2,
             frequency,
             goal: 0.0,
+            time: None,
             noise: 0.0,
             perlin,
         }
@@ -301,16 +314,18 @@ impl RelativeMotionLivelinessObjective {
 }
 
 impl Callable<f64> for RelativeMotionLivelinessObjective {
-    fn call(&self, v: &Vars, state: &State, _is_core: bool) -> f64 {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
         // The error is the difference between the current value and the position along the source-target vector.
         let link2_translation = state.get_link_transform(&self.link2).translation.vector;
         let prev1_translation = v
-            .history.prev1
+            .history
+            .prev1
             .get_link_transform(&self.link1)
             .translation
             .vector;
         let prev2_translation = v
-            .history.prev1
+            .history
+            .prev1
             .get_link_transform(&self.link2)
             .translation
             .vector;
@@ -325,7 +340,9 @@ impl Callable<f64> for RelativeMotionLivelinessObjective {
     }
 
     fn update(&mut self, time: f64) {
-        self.noise = self.goal * (self.perlin.get([time / self.frequency, 0.0])-self.perlin.get([(time-0.01) / self.frequency, 0.0]))
+        self.noise = self.goal
+            * (self.perlin.get([time / self.frequency, 0.0])
+                - self.perlin.get([(time - 0.01) / self.frequency, 0.0]))
     }
 
     fn set_goal(&mut self, goal: f64) {
