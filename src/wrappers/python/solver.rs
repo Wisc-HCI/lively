@@ -25,6 +25,9 @@ use crate::wrappers::python::geometry::*;
 #[cfg(feature = "pybindings")]
 use crate::wrappers::python::state::*;
 
+use std::collections::HashMap;
+
+
 #[cfg(feature = "pybindings")]
 #[pyclass(name="Solver")] 
 pub struct PySolver(Solver);
@@ -35,7 +38,7 @@ impl PySolver {
     #[new]
     fn new(
         urdf: String, 
-        objectives: Vec<PyObjective>, 
+        objectives: std::collections::HashMap<String,PyObjective>, 
         root_bounds: Option<Vec<ScalarRange>>,
         shapes: Option<Vec<PyShape>>,
         initial_state: Option<PyState>,
@@ -44,7 +47,11 @@ impl PySolver {
         max_iterations: Option<usize>,
         collision_settings: Option<PyCollisionSettingInfo>
     ) -> Self {
-            let inner_objectives = objectives.iter().map(|o| Objective::from(o.clone())).collect();
+            //let inner_objectives =  std::collections::HashMap::from_iter(objectives.iter().map(|(s,o)| Objective::from(o.clone())).collect::<std::iter::Map<String,Objective>>());
+            let mut inner_objectives = HashMap::new();
+            for (key,value) in objectives{
+                inner_objectives.insert(key,Objective::from(value.clone()));
+            }
             let inner_shapes = shapes.map(|cs| cs.iter().map(|s| Shape::from(s.clone())).collect());
             let inner_bounds = root_bounds.map(|bs| bs.iter().map(|b| (b.value,b.delta)).collect());
             let inner_state = initial_state.map(|s| State::from(s));
@@ -53,14 +60,21 @@ impl PySolver {
     }
 
     #[getter]
-    pub fn get_objectives(&self) -> PyResult<Vec<PyObjective>>{
-        Ok(self.0.objective_set.objectives.iter().map(|o| PyObjective::from(o.clone())).collect())
+    pub fn get_objectives(&self) -> PyResult<HashMap<String,PyObjective>>{
+        let mut objectives_hashmap = HashMap::new();
+            for (key,value) in &self.0.objective_set.objectives{
+                objectives_hashmap.insert(key.to_string(),PyObjective::from(value.clone()));
+            }
+        return Ok(objectives_hashmap);
     }
 
     #[setter]
-    pub fn set_objectives(&mut self, objectives: Vec<PyObjective>) {
-        let inner_objectives = objectives.iter().map(|o| Objective::from(o.clone())).collect();
-        self.0.set_objectives(inner_objectives);
+    pub fn set_objectives(&mut self, objectives: HashMap<String,PyObjective>) {
+        let mut objectives_hashmap = HashMap::new();
+            for (key,value) in objectives{
+                objectives_hashmap.insert(key,Objective::from(value.clone()));
+            }
+        self.0.set_objectives(objectives_hashmap);
     }
 
     #[getter]
@@ -69,8 +83,16 @@ impl PySolver {
     }
 
     #[getter]
-    pub fn get_current_goals(&self) -> PyResult<Vec<Option<PyGoal>>> {
-        Ok(self.0.objective_set.objectives.iter().map(|o| o.get_goal().map(|g| PyGoal::from(g.clone()))).collect())
+    pub fn get_current_goals(&self) -> PyResult<HashMap<String,Option<PyGoal>>> {
+        let mut result_hashmap = HashMap::new();
+            for (key,value) in &self.0.objective_set.objectives{
+                result_hashmap.insert(key.to_string(),Some(PyGoal::from(value.get_goal().unwrap().clone())));
+            }
+        return Ok(result_hashmap);
+        
+
+        //Ok(self.0.objective_set.objectives.iter().map(|o| o.get_goal().map(|g| PyGoal::from(g.clone()))).collect())
+
     }
 
     #[getter]
@@ -86,20 +108,25 @@ impl PySolver {
     fn reset(
         &mut self, 
         state: PyState,
-        weights: Option<Vec<Option<f64>>>
+        weights: HashMap<String,f64>
     ) -> PyResult<()> {
+
         Ok(self.0.reset(State::from(state),weights))
     }
 
     fn solve(
         &mut self,
-        goals: Option<Vec<Option<PyGoal>>>,
-        weights: Option<Vec<Option<f64>>>,
+        goals:  HashMap<String,PyGoal>,
+        weights: HashMap<String,f64>,
         time: f64,
         shape_updates: Option<Vec<PyShapeUpdate>>
     ) -> PyResult<PyState> {
-        let inner_goals = goals.map(|gs| gs.iter().map(|og| og.as_ref().map(|g| Goal::from(g.clone()))).collect());
-        let inner_updates = shape_updates.map(|cs| cs.iter().map(|s| ShapeUpdate::from(s.clone())).collect());
+        let mut inner_goals: std::collections::HashMap<String, Goal> = HashMap::new();
+        for (key,goal) in goals{
+            inner_goals.insert(key,Goal::from(goal));
+        }
+        // let inner_goals = goals.map(|gs| gs.iter().map(|og| og.as_ref().map(|g| Goal::from(g.clone()))).collect());
+         let inner_updates = shape_updates.map(|cs| cs.iter().map(|s| ShapeUpdate::from(s.clone())).collect());
         Ok(PyState::from(self.0.solve(
             inner_goals,
             weights,

@@ -98,8 +98,8 @@ fn lively_tk(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyOriginAccelerationMinimizationObjective>()?;
     m.add_class::<PyOriginJerkMinimizationObjective>()?;
     m.add_class::<PyRelativeMotionLivelinessObjective>()?;
-    m.add_class::<PyOriginPositionLivelinessObjective>()?;
-    m.add_class::<PyOriginPositionMatchObjective>()?;
+    //m.add_class::<PyOriginPositionLivelinessObjective>()?;
+    //m.add_class::<PyOriginPositionMatchObjective>()?;
     m.add_class::<PyGravityObjective>()?;
     m.add_class::<PySmoothnessMacroObjective>()?;
     m.add_class::<PyDistanceMatchObjective>()?;
