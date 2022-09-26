@@ -21,13 +21,13 @@ _python_
 from lively_tk import Solver, PositionMatchObjective, OrientationMatchObjective, SmoothnessMacroObjective, CollisionAvoidanceObjective, State, Transform, ScalarRange, BoxShape
 solver = Solver(
     urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
-    objectives=[
-        PositionMatchObjective(name="EE Position",link="panda_hand",weight=50),
-        OrientationMatchObjective(name="EE Rotation",link="panda_hand",weight=25),
-        SmoothnessMacroObjective(name="General Smoothness",weight=10),
-        CollisionAvoidanceObjective(name="Collision Avoidance",weight=10)
+    objectives={
+        "PositionMatchObjective" : PositionMatchObjective(name="EE Position",link="panda_hand",weight=50),
+        "OrientationMatchObjective" :  OrientationMatchObjective(name="EE Rotation",link="panda_hand",weight=25),
+        "SmoothnessMacroObjective":SmoothnessMacroObjective(name="General Smoothness",weight=10),
+        "CollisionAvoidanceObjective":CollisionAvoidanceObjective(name="Collision Avoidance",weight=10)
         ...
-    ], 
+    }, 
     root_bounds=[
         ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0), # Translational, (x, y, z)
         ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0)  # Rotational, (r, p, y)
@@ -93,8 +93,8 @@ solver.reset(
 
 The `Solver` class has a `solve` method that represents the core functionality of the LivelyTK interface. At a high level, it accepts the following fields:
 
-1. `goals`: A list of goal-type objects.
-2. `weights`: A list of floats, order corresponding to the order of the objectives.
+1. `goals`: A look-up table of goal-type objects. The key of the look-up table should match with that of the objectives to which the goals are corresponded.
+2. `weights`: A look-up table of floats, order corresponding to the order of the objectives. The key of the look-up table should match with that of the objectives to which the weights are corresponded.
 3. `time`: (float) The current time. If no liveliness objectives are used, this has no effect.
 4. `shapes`: A list of shape objects. 
 
