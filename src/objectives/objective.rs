@@ -172,56 +172,73 @@ impl Objective {
     }
 
     pub fn set_goal(&mut self, goal: &Goal) {
-        match goal {
-            Goal::Translation(translation_goal) => {
-                match self {
-                    Self::PositionMatch(obj) => obj.set_goal(translation_goal.vector),
-                    Self::PositionMirroring(obj) => obj.set_goal(translation_goal.vector),
-                    _ => println!("Unexpected Translation provided for Objective {}",self.get_type())
-                }
-            },
-            Goal::Rotation(rotation_goal) => {
-                match self {
-                    Self::OrientationMatch(obj) => obj.set_goal(*rotation_goal),
-                    Self::OrientationMirroring(obj) => obj.set_goal(*rotation_goal),
-                    _ => println!("Unexpected Rotation Goal type provided for Objective {}",self.get_type())
-                }
-            },
-            Goal::Scalar(scalar_goal) => {
-                match self {
-                    Self::JointMatch(obj) => obj.set_goal(*scalar_goal),
-                    Self::JointMirroring(obj) => obj.set_goal(*scalar_goal),
-                    Self::DistanceMatch(obj) => obj.set_goal(*scalar_goal),
-                    Self::JointLiveliness(obj) => obj.set_goal(*scalar_goal),
-                    Self::RelativeMotionLiveliness(obj) => obj.set_goal(*scalar_goal),
-                    _ => println!("Unexpected Scalar Goal type provided for Objective {}",self.get_type())
-                }
-            },
-            Goal::Size(size_goal) => {
-                match self {
-                    Self::PositionLiveliness(obj) => obj.set_goal(*size_goal),
-                    Self::OrientationLiveliness(obj) => obj.set_goal(*size_goal),
-                    _ => println!("Unexpected Size Goal type provided for Objective {}",self.get_type())
-                }
-            },
-            Goal::Ellipse{pose,size} => {
-                match self {
-                    Self::PositionBounding(obj) => obj.set_goal((*pose,*size)),
-                    _ => println!("Unexpected Ellipse Goal type provided for Objective {}",self.get_type())
-                }
-            },
-            Goal::RotationRange{rotation,delta} => {
-                match self {
-                    Self::OrientationBounding(obj) => obj.set_goal((*rotation,*delta)),
-                    _ => println!("Unexpected Rotation Goal type provided for Objective {}",self.get_type())
-                }
-            },
-            Goal::ScalarRange{value,delta} => {
-                match self {
-                    Self::JointBounding(obj) => obj.set_goal((*value,*delta)),
-                    _ => println!("Unexpected Scalar Goal type provided for Objective {}",self.get_type())
-                }
+        match (goal,self) {
+            (Goal::Translation(translation_goal),Self::PositionMatch(obj)) => obj.set_goal(translation_goal.vector),
+            (Goal::Translation(translation_goal),Self::PositionMirroring(obj)) => obj.set_goal(translation_goal.vector),
+            (Goal::Rotation(rotation_goal),Self::OrientationMatch(obj)) => obj.set_goal(*rotation_goal),
+            (Goal::Rotation(rotation_goal),Self::OrientationMirroring(obj)) => obj.set_goal(*rotation_goal),
+            (Goal::Scalar(scalar_goal),Self::JointMatch(obj)) => obj.set_goal(*scalar_goal),
+            (Goal::Scalar(scalar_goal),Self::JointMirroring(obj)) => obj.set_goal(*scalar_goal),
+            (Goal::Scalar(scalar_goal),Self::DistanceMatch(obj)) => obj.set_goal(*scalar_goal),
+            (Goal::Scalar(scalar_goal),Self::JointLiveliness(obj)) => obj.set_goal(*scalar_goal),
+            (Goal::Scalar(scalar_goal),Self::RelativeMotionLiveliness(obj)) => obj.set_goal(*scalar_goal),
+            (Goal::Size(size_goal),Self::PositionLiveliness(obj)) => obj.set_goal(*size_goal),
+            (Goal::Size(size_goal),Self::OrientationLiveliness(obj)) => obj.set_goal(*size_goal),
+            (Goal::Ellipse{pose,size},Self::PositionBounding(obj)) => obj.set_goal((*pose,*size)),
+            (Goal::RotationRange{rotation,delta},Self::OrientationBounding(obj)) => obj.set_goal((*rotation,*delta)),
+            (Goal::ScalarRange{value,delta},Self::JointBounding(obj)) => obj.set_goal((*value,*delta)),
+            (g,o) => {
+                println!("Unexpected goal {:?} provided for Objective {:?}",g,o.clone())
             }
+            // Goal::Translation(translation_goal) => {
+            //     match self {
+            //         Self::PositionMatch(obj) => obj.set_goal(translation_goal.vector),
+            //         Self::PositionMirroring(obj) => obj.set_goal(translation_goal.vector),
+            //         _ => println!("Unexpected Translation provided for Objective {}",self.get_type())
+            //     }
+            // },
+            // Goal::Rotation(rotation_goal) => {
+            //     match self {
+            //         Self::OrientationMatch(obj) => obj.set_goal(*rotation_goal),
+            //         Self::OrientationMirroring(obj) => obj.set_goal(*rotation_goal),
+            //         _ => println!("Unexpected Rotation Goal type provided for Objective {}",self.get_type())
+            //     }
+            // },
+            // Goal::Scalar(scalar_goal) => {
+            //     match self {
+            //         Self::JointMatch(obj) => obj.set_goal(*scalar_goal),
+            //         Self::JointMirroring(obj) => obj.set_goal(*scalar_goal),
+            //         Self::DistanceMatch(obj) => obj.set_goal(*scalar_goal),
+            //         Self::JointLiveliness(obj) => obj.set_goal(*scalar_goal),
+            //         Self::RelativeMotionLiveliness(obj) => obj.set_goal(*scalar_goal),
+            //         _ => println!("Unexpected Scalar Goal type provided for Objective {}",self.get_type())
+            //     }
+            // },
+            // Goal::Size(size_goal) => {
+            //     match self {
+            //         Self::PositionLiveliness(obj) => obj.set_goal(*size_goal),
+            //         Self::OrientationLiveliness(obj) => obj.set_goal(*size_goal),
+            //         _ => println!("Unexpected Size Goal type provided for Objective {}",self.get_type())
+            //     }
+            // },
+            // Goal::Ellipse{pose,size} => {
+            //     match self {
+            //         Self::PositionBounding(obj) => obj.set_goal((*pose,*size)),
+            //         _ => println!("Unexpected Ellipse Goal type provided for Objective {}",self.get_type())
+            //     }
+            // },
+            // Goal::RotationRange{rotation,delta} => {
+            //     match self {
+            //         Self::OrientationBounding(obj) => obj.set_goal((*rotation,*delta)),
+            //         _ => println!("Unexpected Rotation Goal type provided for Objective {}",self.get_type())
+            //     }
+            // },
+            // Goal::ScalarRange{value,delta} => {
+            //     match self {
+            //         Self::JointBounding(obj) => obj.set_goal((*value,*delta)),
+            //         _ => println!("Unexpected Scalar Goal type provided for Objective {}",self.get_type())
+            //     }
+            // }
         }
     }
 }
