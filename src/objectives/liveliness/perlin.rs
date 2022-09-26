@@ -92,14 +92,14 @@ impl Callable<Vector3<f64>> for PositionLivelinessObjective {
     fn update(&mut self, time: f64) {
         let last_time = self.time.unwrap_or(time);
         for i in 0..3 {
-            self.noise[i] = self.goal[i] * 10.0
+            self.noise[i] = self.goal[i] * 100.0
                 * (self.perlin.get([time / self.frequency, self.offsets[i]])
                     - self
                         .perlin
                         .get([last_time / self.frequency, self.offsets[i]]))
         }
         self.time = Some(time);
-        println!("noise {:?}",self.noise);
+        // println!("noise {:?}",self.noise);
     }
 
     fn set_goal(&mut self, goal: Vector3<f64>) {
