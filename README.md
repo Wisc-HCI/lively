@@ -118,6 +118,21 @@ A time parameter that will be used in the collision checking. The value is 100 m
 `timed`:
 A boolean parameter that determines which method will be used for collision checking. The value is true by default. Timed collision checking will be used if true, summation collision checking will be used if false.
 
+_python_
+```python
+CollisionSettingInfo(
+        d_max = 0.3, 
+        r = 0.0, 
+        a_max = 2.0, 
+        time_budget = 100, 
+        timed = True),
+```
+
+_javascript_
+```javascript
+let collision_settings = {d_max : 0.3, r : 0.0, a_max : 2.0, time_budget : 100, timed : True}
+```
+
 ## Resetting 
 
 In both the Javascript and Python interfaces, the `Solver` class has a `reset` method that allows the user to reset the state of the solver given some new objective weights and a new robot state. In this case, the robot state only needs to supply the `joints` and `origin` field, as shown in the initialization example.
@@ -147,23 +162,6 @@ The `Solver` class has a `solve` method that represents the core functionality o
 4. `shapes`: A list of shape objects. 
 
 The `solve` method returns a fully-filled `State` object
-
-
-
-_python_
-```python
-CollisionSettingInfo(
-        d_max = 0.3, 
-        r = 0.0, 
-        a_max = 2.0, 
-        time_budget = 100, 
-        timed = True),
-```
-
-_javascript_
-```javascript
-let collision_settings = {d_max : 0.3, r : 0.0, a_max : 2.0, time_budget : 100, timed : True}
-```
 
 
 
