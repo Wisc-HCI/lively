@@ -99,6 +99,25 @@ let solver = new Solver(
 )
 ```
 
+### Collision Settings
+
+This is a parameter that allows the user to customize the collision checking system while creating a `Solver` 
+
+`d_max`:
+A user-defined distance that functions as a distance of interest for collision checking. The value is 0.3 by default, and pairwise collision checking will only be performed when two shapes are within 0.3. 
+
+`r`:
+A scalar value between 0 and 1 that guarantee the estimated signed distance via interpolation is within the bounds. The value is 0 by default. This will esure that the proximity approximation is a cautious estimate.
+
+`a_max`:
+A paramter that serves as a cut-off value, similar to d_max, that determined if a shape pair should be included or excluded in collision checking. The value is 2.0 by default.
+
+`time_budget`:
+A time parameter that will be used in the collision checking. The value is 100 microseconds by default. Increase the value will result in a slower but more accurate proximity approximiation.
+
+`timed`:
+A boolean parameter that determines which method will be used for collision checking. The value is true by default. Timed collision checking will be used if true, summation collision checking will be used if false.
+
 ## Resetting 
 
 In both the Javascript and Python interfaces, the `Solver` class has a `reset` method that allows the user to reset the state of the solver given some new objective weights and a new robot state. In this case, the robot state only needs to supply the `joints` and `origin` field, as shown in the initialization example.
@@ -116,6 +135,8 @@ solver.reset(
 )
 ```
 
+
+
 ## Solving
 
 The `Solver` class has a `solve` method that represents the core functionality of the LivelyTK interface. At a high level, it accepts the following fields:
@@ -127,22 +148,7 @@ The `Solver` class has a `solve` method that represents the core functionality o
 
 The `solve` method returns a fully-filled `State` object
 
-#### Collision Settings
 
-**d_max**
-A user-defined distance that functions as a distance of interest for collision checking. The value is 0.3 by default, and pairwise collision checking will only be performed when two shapes are within 0.3. 
-
-**r**
-A scalar value between 0 and 1 that guarantee the estimated signed distance via interpolation is within the bounds. The value is 0 by default. This will esure that the proximity approximation is a cautious estimate.
-
-**a_max**
-A paramter that serves as a cut-off value, similar to d_max, that determined if a shape pair should be included or excluded in collision checking. The value is 2.0 by default.
-
-**time_budget**
-A time parameter that will be used in the collision checking. The value is 100 microseconds by default. Increase the value will result in a slower but more accurate proximity approximiation.
-
-**timed**
-A boolean parameter that determines which method will be used for collision checking. The value is true by default. Timed collision checking will be used if true, summation collision checking will be used if false.
 
 _python_
 ```python
