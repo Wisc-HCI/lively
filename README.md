@@ -44,31 +44,46 @@ solver = Solver(
 
 _javascript_
 ```javascript
-import {
-    Solver, PositionMatchObjective, OrientationMatchObjective, 
-    SmoothnessMacroObjective, CollisionAvoidanceObjective, 
-    State, Transform, ScalarRange, BoxShape} from "@people_and_robots/lively_tk";
+import {Solver} from "@people_and_robots/lively_tk";
+
+
 
 let solver = new Solver(
-    '<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
-    [
-        {type:'PositionMatch',name:"EE Position",link:"panda_hand",weight:50},
-        {type:'OrientationMatch',name:"EE Rotation",link:"panda_hand",weight:25},
-        {type:'SmoothnessMacro',name:"General Smoothness",weight:10},
-        {type:'CollisionAvoidance',name:"Collision Avoidance",weight:10}
-        ...
+    urdf = '<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
+    objectives = {
+            "eePosition": {
+              type: "PositionMatch",
+              name: "EE Position",
+              link: attachmentLink,
+              weight: 50,
+            },
+            "eeRotation": {
+              type: "OrientationMatch",
+              name: "EE Rotation",
+              link: attachmentLink,
+              weight: 25,
+            },
+            "collision:: {
+              type: "CollisionAvoidance",
+              name: "Collision Avoidance",
+              weight: COLLISION_WEIGHT,
+            },
+    },
+    root_bounds = [
+        { value: basePose.position.x, delta: 0.0 },
+        { value: basePose.position.y, delta: 0.0 },
+        { value: basePose.position.z, delta: 0.0 }, // Translational
+        { value: baseEuler[0], delta: 0.0 },
+        { value: baseEuler[1], delta: 0.0 },
+        { value: baseEuler[2], delta: 0.0 }, // Rotational
+      ],
+    shapes = [
+        BoxShape(name="Table",frame="world",physical=True,x=2,y=1,z=1.2,local_transform=Transform.isometry())
     ], 
-    [
-        {value:0.0,delta:0.0},{value:0.0,delta:0.0},{value:0.0,delta:0.0}, // Translational, (x, y, z)
-        {value:0.0,delta:0.0},{value:0.0,delta:0.0},{value:0.0,delta:0.0}  // Rotational, (r, p, y)
-    ],
-    [
-        {type:'Box',name="Table",frame:"world",physical:True,x:2,y:1,z:1.2,localTransform:{translation:[0,0,0],rotation:[1,0,0,0]}}
-    ], 
-    {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{panda_joint1:0.0,panda_joint2:0.0,...}}, // Optional
-    false, // Only use this flag if you are not using liveliness objectives and want a slight speed-up.
-    1, // Number of times the solution is attempted (default 1)
-    150 // Number of iterations per try (default 150)
+    initial_state= {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{panda_joint1:0.0,panda_joint2:0.0,...}}, // Optional
+    only_core=False, # Only use this flag if you are not using liveliness objectives and want a slight speed-up.
+    max_retries=1, # Number of times the solution is attempted (default 1)
+    max_iterations=150 # Number of iterations per try (default 150)
 )
 ```
 
