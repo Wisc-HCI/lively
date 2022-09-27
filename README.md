@@ -101,7 +101,7 @@ let solver = new Solver(
 
 ### Collision Settings
 
-This is a parameter that allows the user to customize the collision checking system while creating a `Solver` 
+This is a parameter that allows the user to customize the collision checking system while configuring a `Solver` 
 
 `d_max`:
 A user-defined distance that functions as a distance of interest for collision checking. The value is 0.3 by default, and pairwise collision checking will only be performed when two shapes are within 0.3. 
