@@ -46,8 +46,6 @@ _javascript_
 ```javascript
 import {Solver} from "@people_and_robots/lively_tk";
 
-
-
 let solver = new Solver(
     urdf = '<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
     objectives = {
@@ -63,7 +61,7 @@ let solver = new Solver(
               link: attachmentLink,
               weight: 25,
             },
-            "collision:: {
+            "collision": {
               type: "CollisionAvoidance",
               name: "Collision Avoidance",
               weight: COLLISION_WEIGHT,
@@ -93,14 +91,14 @@ In both the Javascript and Python interfaces, the `Solver` class has a `reset` m
 
 _python_
 ```python
-solver.reset(state=State(origin=Transform.identity(),joints={"panda_joint1":0.0,"panda_joint2":0.0,...}),weights=[50.0,30.0,20.0,10.0])
+solver.reset(state=State(origin=Transform.identity(),joints={"panda_joint1":0.0,"panda_joint2":0.0,...}),weights={})
 ```
 
 _javascript_
 ```javascript
 solver.reset(
     {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{panda_joint1:0.0,panda_joint2:0.0,...}}, // New starting state
-    [50.0,30.0,20.0,10.0] // New starting weights
+    {} // Can define new weights here
 )
 ```
 
