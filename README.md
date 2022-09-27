@@ -340,14 +340,14 @@ A list of all shapes that are currently tracked and that reach close enough prox
 
 1. `shape1` (`string`) The name of the first shape (note, if the robot is initialized with this shape, and it is attached to a robot link, the name is the link it is attached to.)
 2. `shape2` (`string`) The name of the second shape (note, if the robot is initialized with this shape, and it is attached to a robot link, the name is the link it is attached to.)
-3. `distance` (`float`/`number`/`None`/`null`) The distance recorded between the two shapes. May possibly be `None` or `null` if not tracked, and is zero if the shapes are intersecting. 
-4. `points` (`None`/`set of two points`) The closest points on two different shapes that are used determined whether these two shapes are close though to cause a collision based on the distance between the points on these two shapes. `points` will be `None` and `distance` will be `0.0` if two shapes are `interesecting` and colliding. `points` will return a `set of two points` and `distance` will be greater than `0.0` but smaller than `1.0` if two shapes are close enough(smaller than 1.0) to potentially cause a collision but not yet colliding. Any distance between two points bigger than `1.0` are not considered for collision detection. 
+3. `distance` (`float`/`number`/`None`/`null`) The distance recorded between the two shapes. May possibly be `None` or `null` if not tracked, and is zero or negative if the shapes are intersecting. 
+4. `points` (`None`/`set of two points`) The closest points on two different shapes that are used determined whether these two shapes are close though to cause a collision based on the distance between the points on these two shapes. 
 5. `physical` (`bool`) True if both shapes are physical, otherwise False.
 
 
 
-1. If the distance between points on two different shapes is `0.0`, two shapes are `intersecting` with each other. 
-2. If the distance between points on two different shapes is bigger than `0.0` but smaller than `1.0`, two shapes are `with in margin` with each other.
+1. If the distance between points on two different shapes is smaller than or equal to `0.0`, two shapes are `intersecting` with each other. 
+2. If the distance between points on two different shapes is bigger than `0.0` but smaller than a `user defined distance`, two shapes are `with in margin` with each other within `user defined distance`.
 
 **Center of Mass**
 
