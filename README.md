@@ -38,7 +38,14 @@ solver = Solver(
     initial_state=State(origin=Transform.identity(),joints={"panda_joint1":0.0,"panda_joint2":0.0,...}), # Optional
     only_core=False, # Only use this flag if you are not using liveliness objectives and want a slight speed-up.
     max_retries=1, # Number of times the solution is attempted (default 1)
-    max_iterations=150 # Number of iterations per try (default 150)
+    max_iterations=150, # Number of iterations per try (default 150)
+    collision_settings = CollisionSettingInfo(
+        d_max = 0.3, 
+        r = 0.0, 
+        a_max = 2.0, 
+        time_budget = 100, 
+        timed = True),
+
 )
 ```
 
@@ -75,13 +82,20 @@ let solver = new Solver(
         { value: baseEuler[1], delta: 0.0 },
         { value: baseEuler[2], delta: 0.0 }, // Rotational
       ],
-    shapes = [
-        BoxShape(name="Table",frame="world",physical=True,x=2,y=1,z=1.2,local_transform=Transform.isometry())
+    shapes = [{
+        type:'Box', //can be 'Cylinder', 'Capsule', or 'Sphere'
+        name:'camera attachment',
+        frame: 'panda_hand', // or 'world'
+        physical: true,
+        x:0.5,y:0.5,z:0.2,
+        localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
+    }
     ], 
     initial_state= {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{panda_joint1:0.0,panda_joint2:0.0,...}}, // Optional
     only_core=False, # Only use this flag if you are not using liveliness objectives and want a slight speed-up.
     max_retries=1, # Number of times the solution is attempted (default 1)
     max_iterations=150 # Number of iterations per try (default 150)
+    collision_settings = {d_max : 0.3, r : 0.0, a_max : 2.0, time_budget : 100, timed : True}
 )
 ```
 
@@ -113,7 +127,41 @@ The `Solver` class has a `solve` method that represents the core functionality o
 
 The `solve` method returns a fully-filled `State` object
 
-### Goals
+#### Collision Settings
+
+**d_max**
+A user-defined distance that functions as a distance of interest for collision checking. The value is 0.3 by default, and pairwise collision checking will only be performed when two shapes are within 0.3. 
+
+**r**
+A scalar value between 0 and 1 that guarantee the estimated signed distance via interpolation is within the bounds. The value is 0 by default. This will esure that the proximity approximation is a cautious estimate.
+
+**a_max**
+A paramter that serves as a cut-off value, similar to d_max, that determined if a shape pair should be included or excluded in collision checking. The value is 2.0 by default.
+
+**time_budget**
+A time parameter that will be used in the collision checking. The value is 100 microseconds by default. Increase the value will result in a slower but more accurate proximity approximiation.
+
+**timed**
+A boolean parameter that determines which method will be used for collision checking. The value is true by default. Timed collision checking will be used if true, summation collision checking will be used if false.
+
+_python_
+```python
+CollisionSettingInfo(
+        d_max = 0.3, 
+        r = 0.0, 
+        a_max = 2.0, 
+        time_budget = 100, 
+        timed = True),
+```
+
+_javascript_
+```javascript
+let collision_settings = {d_max : 0.3, r : 0.0, a_max : 2.0, time_budget : 100, timed : True}
+```
+
+
+
+#### Goals
 
 There are a variety of different "goal" types that can be provided. Think of these as settings that you would like to achieve (e.g. a PositionMatch objective accepts a `Translation` goal). 
 
@@ -331,7 +379,7 @@ let shape = {
     }
 ```
 
-### State
+#### State
 
 The `State` object is the response back after calling `solve`. It contains the state of the robot in terms of joint and frames, as well as some diagnostic information regarding proximity of various shapes and the center-of-mass of the robot. 
 
@@ -365,6 +413,12 @@ A list of all shapes that are currently tracked and that reach close enough prox
 **Center of Mass**
 
 A translation (vector) indicating the current center of mass of the robot.
+
+
+
+
+
+
 
 ## Contributing
 

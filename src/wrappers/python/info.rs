@@ -20,6 +20,14 @@ pub struct PyTransformInfo(TransformInfo);
 #[pyclass(name="CollisionSettingInfo")]
 #[derive(Clone,Debug)]
 pub struct PyCollisionSettingInfo(CollisionSettingInfo);
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl PyCollisionSettingInfo {
+    #[new]
+    pub fn new(d_max : f64, r : f64, a_max : f64, time_budget : u64, timed : bool) -> Self {
+       PyCollisionSettingInfo(CollisionSettingInfo::new(d_max,r,a_max,time_budget,timed))
+    }
+}
 
 #[cfg(feature = "pybindings")]
 #[pyclass(name="MimicInfo")]
@@ -103,6 +111,8 @@ impl From<PyCollisionSettingInfo> for CollisionSettingInfo {
         pycollisionsettinginfo.0
     }
 }
+
+
 
 #[cfg(feature = "pybindings")]
 #[pymethods]
