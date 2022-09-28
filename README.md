@@ -109,13 +109,13 @@ The LivelyTK framework provides collision detection within the shapes of part of
 This is a parameter `collision_settings` that allows the user to customize the collision checking system while configuring a `Solver` 
 
 `d_max`:
-A distance parameter that controls the distance that queries the collision detection between shapes. The distance by default is 0.3 meteres. This means that pairwise collision queries will only happen when two shapes are within 0.3 meters. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
+A lower bound distance parameter that controls the distance that queries the collision detection between shapes. The distance by default is 0.3 meteres. This means that pairwise collision queries will only happen when two shapes are within 0.3 meters. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
 
 `r`:
 A scalar value between 0 and 1 that controls how cautious the collision estimate will be. The value is 0 by default which is the most cautious and accurate. The estimate will be more optimistic when the value approaches 1.
 
 `a_max`:
-A parameter that serves as a cut-off value, similar to d_max, that determined if a shape pair should be included or excluded in collision checking. The value is 2.0 meters by default. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
+A upper bound distance parameter that, similar to d_max, determined if a shape pair should be included or excluded in collision checking. The value is 2.0 meters by default. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
 
 `time_budget`:
 A time parameter that will be used in the collision checking. The value is 100 microseconds by default. Increase the value will result in a slower but more accurate proximity approximiation.
@@ -467,9 +467,11 @@ wasm-pack publish --access=public
 
 ## References
 
-<a id="1">[1]</a> 
-@inproceedings{rakita2022proxima,
+
+```
+[1]@inproceedings{rakita2022proxima,
   title={PROXIMA: An Approach for Time or Accuracy Budgeted Collision Proximity Queries},
   author={Rakita, Daniel and Mutlu, Bilge and Gleicher, Michael},
   booktitle={Proceedings of Robotics: Science and Systems (RSS)},
   year={2022}
+  ```
