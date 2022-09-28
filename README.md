@@ -117,7 +117,7 @@ A lower bound distance parameter that controls the distance that queries the col
 A scalar value between 0 and 1 that controls how cautious the collision estimate will be. The value is 0 by default which is the most cautious and accurate. The estimate will be more optimistic when the value approaches 1.
 
 `a_max`:
-A upper bound distance parameter that, similar to d_max, determined if a shape pair should be included or excluded in collision checking. The value is 2.0 meters by default. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
+A upper bound distance parameter that, similar to d_max, determines if a shape pair should be included or excluded in collision checking. The value is 2.0 meters by default. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
 
 `time_budget`:
 A time parameter that will be used in the collision checking. The value is 100 microseconds by default. Increase the value will result in a slower but more accurate proximity approximiation.
@@ -471,8 +471,5 @@ wasm-pack publish --access=public
 
 
 
-[^1]:@inproceedings{rakita2022proxima, title={PROXIMA: An Approach for Time or Accuracy Budgeted Collision Proximity Queries},
-  author={Rakita, Daniel and Mutlu, Bilge and Gleicher, Michael},
-  booktitle={Proceedings of Robotics: Science and Systems (RSS)},
-  year={2022}
+[^1]:
 
