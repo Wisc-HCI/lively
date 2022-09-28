@@ -102,9 +102,9 @@ let solver = new Solver(
 ## Collision 
 The LivelyTK framework provides collision detection within the shapes of part of the robot as well as between robot and environmental objects. The collision detection functionality is implemented by a time-efficient algorithm that governs collision-detection through a time-limited or error-limited routine that reduces the number of collision queries between the shapes by estimating the "pairwise relative spatial coherence", which is defined below:
 
-```
+`
 "Guaranteed upper and lower bounds on signed distance are computed between each active pair of shapes in the scene. In this work, these bounds are computed by assessing how relative transforms between shapes change over time, a novel technique we call Pairwise Relative Spatial Coherence"[[1]].
-```
+`
 
 #### Collision Settings
 
