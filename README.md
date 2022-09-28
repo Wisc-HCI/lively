@@ -471,8 +471,7 @@ wasm-pack publish --access=public
 
 
 
-[^1]:@inproceedings{rakita2022proxima,
-  title={PROXIMA: An Approach for Time or Accuracy Budgeted Collision Proximity Queries},
+[^1]:@inproceedings{rakita2022proxima, title={PROXIMA: An Approach for Time or Accuracy Budgeted Collision Proximity Queries},
   author={Rakita, Daniel and Mutlu, Bilge and Gleicher, Michael},
   booktitle={Proceedings of Robotics: Science and Systems (RSS)},
   year={2022}
