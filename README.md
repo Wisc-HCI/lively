@@ -95,28 +95,33 @@ let solver = new Solver(
     only_core=False, # Only use this flag if you are not using liveliness objectives and want a slight speed-up.
     max_retries=1, # Number of times the solution is attempted (default 1)
     max_iterations=150 # Number of iterations per try (default 150)
-    collision_settings = {d_max : 0.3, r : 0.0, a_max : 2.0, time_budget : 100, timed : True}
+    collision_settings = {dMax : 0.3, r : 0.0, aMax : 2.0, timeBudget : 100, timed : true}
 )
 ```
 
-### Collision Settings
+## Collision 
+The LivelyTK framework provides collision detection within the shapes of part of the robot as well as between robot and environmental objects. The collision detection functionality is implemented by a time-efficient algorithm that governs collision-detection through a time-limited or error-limited routine that reduces the number of collision queries between the shapes by estimating the "pairwise relative spatial coherence", which is defined below:
 
-This is a parameter that allows the user to customize the collision checking system while configuring a `Solver` 
+`"Guaranteed upper and lower bounds on signed distance are computed between each active pair of shapes in the scene. In this work, these bounds are computed by assessing how relative transforms between shapes change over time, a novel technique we call Pairwise Relative Spatial Coherence"[[1]](#1).`
+
+#### Collision Settings
+
+This is a parameter `collision_settings` that allows the user to customize the collision checking system while configuring a `Solver` 
 
 `d_max`:
-A user-defined distance that functions as a distance of interest for collision checking. The value is 0.3 by default, and pairwise collision checking will only be performed when two shapes are within 0.3. 
+A distance parameter that controls the distance that queries the collision detection between shapes. The distance by default is 0.3 meteres. This means that pairwise collision queries will only happen when two shapes are within 0.3 meters. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
 
 `r`:
-A scalar value between 0 and 1 that guarantee the estimated signed distance via interpolation is within the bounds. The value is 0 by default. This will esure that the proximity approximation is a cautious estimate.
+A scalar value between 0 and 1 that controls how cautious the collision estimate will be. The value is 0 by default which is the most cautious and accurate. The estimate will be more optimistic when the value approaches 1.
 
 `a_max`:
-A paramter that serves as a cut-off value, similar to d_max, that determined if a shape pair should be included or excluded in collision checking. The value is 2.0 by default.
+A parameter that serves as a cut-off value, similar to d_max, that determined if a shape pair should be included or excluded in collision checking. The value is 2.0 meters by default. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
 
 `time_budget`:
 A time parameter that will be used in the collision checking. The value is 100 microseconds by default. Increase the value will result in a slower but more accurate proximity approximiation.
 
 `timed`:
-A boolean parameter that determines which method will be used for collision checking. The value is true by default. Timed collision checking will be used if true, summation collision checking will be used if false.
+A boolean parameter that determines which routine will be used for collision checking. The value is true by default. Timed-limited routine will be used if true, error-limited routine will be used if false.
 
 _python_
 ```python
@@ -459,3 +464,13 @@ wasm-pack pack
 # Publish
 wasm-pack publish --access=public
 ```
+
+## References
+
+<a id="1">[1]</a> 
+@inproceedings{rakita2022proxima,
+  title={PROXIMA: An Approach for Time or Accuracy Budgeted Collision Proximity Queries},
+  author={Rakita, Daniel and Mutlu, Bilge and Gleicher, Michael},
+  booktitle={Proceedings of Robotics: Science and Systems (RSS)},
+  year={2022}
+}
