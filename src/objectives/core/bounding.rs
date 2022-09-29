@@ -131,7 +131,7 @@ impl Callable<(f64, f64)> for JointBoundingObjective {
             let l: f64 = self.goal.0 - self.goal.1;
             let u: f64 = self.goal.0 + self.goal.1;
             let r: f64 = (joint_value - l) / (u - l);
-            let n: f64 = 2.0 * (r - 0.5);
+            let n: f64 = (2.0 * (r - 0.5).abs()).powi(50);
             let x_val: f64 = a * n.powi(50);
             return self.weight * groove_loss(x_val, 0.0, 2, 0.32950, 0.1, 2);
         }

@@ -70,11 +70,11 @@ impl Callable<bool> for JointLimitsObjective {
             if u - l <= 0.0 {
                 // In cases where the upper and lower limits are the same,
                 // just compare the lower limit to the x value.
-                sum += a * (joint_value - l).abs().powi(50);
+                sum += a * (joint_value - l).abs().powi(2);
             } else {
                 // Otherwise, compare as normal
                 let r: f64 = (joint_value - l) / (u - l);
-                let n: f64 = 2.0 * (r - 0.5);
+                let n: f64 = 2.0 * (r - 0.5).abs();
                 sum += a * n.powi(50);
             }
         }
