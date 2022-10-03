@@ -106,15 +106,16 @@ The LivelyTK framework allows for a wide range of robot with which users program
 
 | Category | Description |
 | --- | --- | 
-| `Basic behavior properties` | revolve around the fluidity of robot motion by limiting rapid changes and considering possible collisions between the links of the robot |
-| `Bounding behavior properties` | limit the space within which joints can assume angles and links can move or be oriented | 
-| `Matching behavior properties` | specify exact positions and orientations of links or angles of joints, while bounding behavior properties set limits |
-| `Mirroring behavior properties` | allow users to mirror the current state of a link's position or orientation in a different link, or the current angle of one joint in another |
-| `Liveliness behavior properties` | allow adding smooth, coordinated motion to joint angles or link positions/orientations |
+| `Base` | revolve around the fluidity of robot motion by limiting rapid changes and considering possible collisions between the links of the robot |
+| `Bounding` | limit the space within which joints can assume angles and links can move or be oriented | 
+| `Matching` | specify exact positions and orientations of links or angles of joints, while bounding behavior properties set limits |
+| `Mirroring` | allow users to mirror the current state of a link's position or orientation in a different link, or the current angle of one joint in another |
+| `Liveliness` | allow adding smooth, coordinated motion to joint angles or link positions/orientations |
 
 
 | Objective | Category | Description |
 | --- | --- | --- |
+| Collision Avoidance | `Base` | Detect and avoid collision using PROXIMA alogorithm[^1] |
 | Joint Limits | `Base` | Applies a cost to approaching the robot’s joint limits |
 | Velocity Minimization | `Base` | Prevent rapid joint movements |
 | Origin Velocity Minimization | `Base` | Prevent rapid robot root movements |
