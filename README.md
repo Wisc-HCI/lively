@@ -111,6 +111,7 @@ The LivelyTK framework allows for a wide range of robot with which users program
 | `Matching` | Specify exact positions and orientations of links or angles of joints, while bounding behavior properties set limits |
 | `Mirroring` | Allow users to mirror the current state of a link's position or orientation in a different link, or the current angle of one joint in another |
 | `Liveliness` | Allow adding smooth, coordinated motion to joint angles or link positions/orientations |
+| `Forces` | Proximating the physcial forces applied to the robot |
 
 
 | Objective | Category | Description |
