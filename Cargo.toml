@@ -16,6 +16,7 @@ pybindings = ["pyo3","pyo3-log"]
 jsbindings = ["wasm-bindgen","console_error_panic_hook"]
 profile-with-puffin = ["profiling/profile-with-puffin"]
 
+
 [dependencies]
 # Benchmarking
 rafx = { version = "=0.0.14", features = ["rafx-vulkan", "framework"], optional = true }
@@ -59,6 +60,7 @@ instant = { version = "0.1", features = [ "stdweb" ] }
 indexmap = "1.9.1"
 bevy = "0.8"
 smooth-bevy-cameras = {git = "https://github.com/bonsairobo/smooth-bevy-cameras"}
+nalgebra-py = "0.3.1"
 
 [profile.dev]
 opt-level = 3

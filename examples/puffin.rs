@@ -29,13 +29,17 @@ use std::time::Instant;
 // use renderer::Renderer;
 
 fn main() {
+    // let data =
+    //     fs::read_to_string("./tests/ur3e.xml").expect("Something went wrong reading the file");
+
     let data =
-        fs::read_to_string("./tests/ur3e.xml").expect("Something went wrong reading the file");
+    fs::read_to_string("./tests/ur3e.xml").expect("Something went wrong reading the file");
 
     let pos_match_obj =
-        PositionMatchObjective::new("EE Position".to_string(), 20.0, "wrist_3_link".to_string());
-    let col_avoid_obj = CollisionAvoidanceObjective::new("Collision Avoidance".to_string(), 10.0);
-    let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 10.0);
+         PositionMatchObjective::new("EE Position".to_string(), 20.0, "wrist_3_link".to_string());
+       // PositionMatchObjective::new("EE Position".to_string(), 20.0, "LThumb2_link".to_string());
+    let col_avoid_obj = CollisionAvoidanceObjective::new("Collision Avoidance".to_string(), 3.0);
+    //let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 10.0);
     let scalar_range_1 = (0.0, 0.0);
     let scalar_range_2 = (-0.15, 0.0);
     let scalar_range_3 = (0.0, 0.0);
@@ -413,7 +417,7 @@ fn main() {
         box_20.clone(),
     ];
 
-    for i in 1..=0 {
+    for i in 1..=80 {
         let mut rng = rand::thread_rng();
         let n: f64 = rng.gen_range(-2.0..2.0);
         let n1: f64 = rng.gen_range(-2.0..2.0);
@@ -485,22 +489,23 @@ fn main() {
         "sdfsddsfes".into(),
         Objective::CollisionAvoidance(col_avoid_obj),
     );
-    objectives.insert(
-        "dfawdaseas".into(),
-        Objective::SmoothnessMacro(smooth_macro_obj),
-    );
+    // objectives.insert(
+    //     "dfawdaseas".into(),
+    //     Objective::SmoothnessMacro(smooth_macro_obj),
+    // );
+
+    println!("{:?}" , box_shapes_vec.len());
 
     let mut temp = Solver::new(
         data.clone(),
         objectives,
         Some(scalar_range_vec.clone()),
-        None,
-        //Some(box_shapes_vec),
-        None,
-        None,
+        
+        Some(box_shapes_vec),
         None,
         None,
         None,
+        None
     );
     temp.compute_average_distance_table();
 
@@ -881,18 +886,47 @@ fn main() {
     weights.insert("iowsdsfhwe".into(), 10.0);
 
     // let vec = temp.compute_average_distance_table();
-    let instant = Instant::now();
-    temp.solve(
-        goals,
-        weights,
-        0.0,
-        //Some(shape_update.clone()
-        Some(shape_update.clone()),
-    );
-    println!("{:?}", instant.elapsed());
-    // println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    //temp.solve(None, None, 0.0, Some(shape_update));
-    println!("{:?}", instant.elapsed());
+
+    
+    let mut times: Vec<instant::Duration> = vec![];
+    for i in 1..= 1000 { // 0 env shapes
+        
+        let instant = Instant::now();
+        temp.solve(
+            goals.clone(),
+            weights.clone(),
+            0.0,
+            //Some(shape_update.clone()
+            None,
+        );
+        times.push(instant.elapsed());
+    }
+
+    let mut total = *times.get(0).unwrap();
+    for i in 1..= times.len()-1 {
+        let time = total.clone().checked_add(*times.get(i).unwrap()) ;
+        match time {
+            Some(time) => {
+                total = time;
+            }
+            None => {}
+        }
+    }
+
+    let time = total.checked_div(1000).unwrap();
+    println!("{:?}" , time);
+
+    
+
+     // println!("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+
+     //println!("{:?}", instant.elapsed());
+
+     // println!("{:?}", instant.elapsed());
+       
+        //temp.solve(None, None, 0.0, Some(shape_update));
+       // println!("{:?}", instant.elapsed());
 
     // for item in temp_solve.proximity {
     //     println!("the result getting from temp_solve is {:?}" , item);
