@@ -5,14 +5,14 @@ use bevy::{
     time::{FixedTimestep},
 };
 
-use lively_tk::lively_tk::Solver;
-use lively_tk::objectives::core::base::CollisionAvoidanceObjective;
-use lively_tk::objectives::core::base::SmoothnessMacroObjective;
-use lively_tk::objectives::core::matching::PositionMatchObjective;
-use lively_tk::objectives::objective::Objective;
-use lively_tk::utils::goals::Goal;
-use lively_tk::utils::info::TransformInfo;
-use lively_tk::utils::shapes::*;
+use lively::lively::Solver;
+use lively::objectives::core::base::CollisionAvoidanceObjective;
+use lively::objectives::core::base::SmoothnessMacroObjective;
+use lively::objectives::core::matching::PositionMatchObjective;
+use lively::objectives::objective::Objective;
+use lively::utils::goals::Goal;
+use lively::utils::info::TransformInfo;
+use lively::utils::shapes::*;
 use nalgebra::geometry::Translation3;
 use nalgebra::Isometry3;
 use smooth_bevy_cameras::{

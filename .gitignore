@@ -11,8 +11,8 @@ Cargo.lock
 **/*.rs.bk
 
 build/**
-lively_tk.egg-info
+lively.egg-info
 dist**
-lively_tk/__pycache__/__init__.*
-lively_tk/lively_tk.cpython-*
+lively/__pycache__/__init__.*
+lively/lively_tk.cpython-*
 tests/.ipynb_checkpoints

@@ -108,7 +108,6 @@ impl Callable<bool> for VelocityMinimizationObjective {
             x_val += (joint_value - v.history.prev1.get_joint_position(&joint.name)).powi(2);
         }
         x_val = x_val.sqrt();
-        // println!("VelocityMinimizationObjective error: {:?}",x_val);
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
     }
 
@@ -166,7 +165,6 @@ impl Callable<bool> for AccelerationMinimizationObjective {
             x_val += (v1 - v2).powi(2);
         }
         x_val = x_val.sqrt();
-        // println!("AccelerationMinimizationObjective error: {:?}",x_val);
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
     }
 
@@ -273,6 +271,7 @@ impl Callable<bool> for OriginJerkMinimizationObjective {
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
+// A macro wrapping the velocity/acceleration/jerk minimization objectives with sensible defaults.
 pub struct SmoothnessMacroObjective {
     pub name: String,
     pub weight: f64,

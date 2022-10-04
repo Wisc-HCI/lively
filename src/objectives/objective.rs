@@ -42,6 +42,7 @@ pub enum Objective {
 
 impl Objective {
     pub fn get_type(&self) -> String {
+        // Returns a string value for each variant. Useful in debugging.
         match self {
             Self::PositionMatch(_obj) => return String::from("PositionMatchObjective"),
             Self::OrientationMatch(_obj) => return String::from("OrientationnMatchObjective"),
@@ -75,6 +76,7 @@ impl Objective {
                 v: &Vars,
                 state: &State
             ) -> f64 {
+                // A switch that passes along the `call` method to the inner objective.
                 match self {
                     Self::PositionMatch(obj) => obj.call(v,state),
                     Self::OrientationMatch(obj) => obj.call(v,state),
@@ -104,6 +106,7 @@ impl Objective {
     }
 
     pub fn update(&mut self, time: f64) {
+        // For time-sensitive objectives, include them here.
         match self {
             Self::PositionLiveliness(obj) => obj.update(time),
             Self::OrientationLiveliness(obj) => obj.update(time),
@@ -114,6 +117,7 @@ impl Objective {
     }
 
     pub fn set_weight(&mut self, weight: f64) {
+        /// Set the weight for the inner objective
         match self {
             Self::PositionMatch(obj) => obj.set_weight(weight),
             Self::OrientationMatch(obj) => obj.set_weight(weight),
@@ -143,6 +147,7 @@ impl Objective {
     }
 
     pub fn get_goal(&self) -> Option<Goal> {
+        // get the goal for the inner objective. Useful for debugging.
         match self {
             Self::PositionMatch(obj) => return Some(Goal::Translation(Translation3::from(obj.goal))),
             Self::OrientationMatch(obj) => return Some(Goal::Rotation(obj.goal)),
@@ -172,6 +177,7 @@ impl Objective {
     }
 
     pub fn set_goal(&mut self, goal: &Goal) {
+        // Set the goal for the inner objective. This matches based on Objective and Goal variant. 
         match (goal,self) {
             (Goal::Translation(translation_goal),Self::PositionMatch(obj)) => obj.set_goal(translation_goal.vector),
             (Goal::Translation(translation_goal),Self::PositionMirroring(obj)) => obj.set_goal(translation_goal.vector),
@@ -190,55 +196,6 @@ impl Objective {
             (g,o) => {
                 println!("Unexpected goal {:?} provided for Objective {:?}",g,o.clone())
             }
-            // Goal::Translation(translation_goal) => {
-            //     match self {
-            //         Self::PositionMatch(obj) => obj.set_goal(translation_goal.vector),
-            //         Self::PositionMirroring(obj) => obj.set_goal(translation_goal.vector),
-            //         _ => println!("Unexpected Translation provided for Objective {}",self.get_type())
-            //     }
-            // },
-            // Goal::Rotation(rotation_goal) => {
-            //     match self {
-            //         Self::OrientationMatch(obj) => obj.set_goal(*rotation_goal),
-            //         Self::OrientationMirroring(obj) => obj.set_goal(*rotation_goal),
-            //         _ => println!("Unexpected Rotation Goal type provided for Objective {}",self.get_type())
-            //     }
-            // },
-            // Goal::Scalar(scalar_goal) => {
-            //     match self {
-            //         Self::JointMatch(obj) => obj.set_goal(*scalar_goal),
-            //         Self::JointMirroring(obj) => obj.set_goal(*scalar_goal),
-            //         Self::DistanceMatch(obj) => obj.set_goal(*scalar_goal),
-            //         Self::JointLiveliness(obj) => obj.set_goal(*scalar_goal),
-            //         Self::RelativeMotionLiveliness(obj) => obj.set_goal(*scalar_goal),
-            //         _ => println!("Unexpected Scalar Goal type provided for Objective {}",self.get_type())
-            //     }
-            // },
-            // Goal::Size(size_goal) => {
-            //     match self {
-            //         Self::PositionLiveliness(obj) => obj.set_goal(*size_goal),
-            //         Self::OrientationLiveliness(obj) => obj.set_goal(*size_goal),
-            //         _ => println!("Unexpected Size Goal type provided for Objective {}",self.get_type())
-            //     }
-            // },
-            // Goal::Ellipse{pose,size} => {
-            //     match self {
-            //         Self::PositionBounding(obj) => obj.set_goal((*pose,*size)),
-            //         _ => println!("Unexpected Ellipse Goal type provided for Objective {}",self.get_type())
-            //     }
-            // },
-            // Goal::RotationRange{rotation,delta} => {
-            //     match self {
-            //         Self::OrientationBounding(obj) => obj.set_goal((*rotation,*delta)),
-            //         _ => println!("Unexpected Rotation Goal type provided for Objective {}",self.get_type())
-            //     }
-            // },
-            // Goal::ScalarRange{value,delta} => {
-            //     match self {
-            //         Self::JointBounding(obj) => obj.set_goal((*value,*delta)),
-            //         _ => println!("Unexpected Scalar Goal type provided for Objective {}",self.get_type())
-            //     }
-            // }
         }
     }
 }

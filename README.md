@@ -1,20 +1,20 @@
 [![PyPI version](https://img.shields.io/pypi/v/lively_tk)](https://badge.fury.io/py/lively_tk)
 ![Upload Python Package](https://github.com/Wisc-HCI/lively_tk/workflows/Upload%20Python%20Package/badge.svg)
-# LivelyTK v0.10.0 (beta)
+# Lively v0.10.0 (beta)
 
-_NOTE: Since LivelyTK is still in beta, the design is subject to change and should not be considered final!_
+_NOTE: Since Lively is still in beta, the design is subject to change and should not be considered final!_
 
 ## About
 
-LivelyTK Package
+Lively Package
 
-The LivelyTK framework provides a highly configurable toolkit for commanding robots in mixed modalities while incorporating liveliness motions. It is adapted from [RelaxedIK](https://github.com/uwgraphics/relaxed_ik_core) framework, and compatible with Python and Javascript/Node.
+The Lively framework provides a highly configurable toolkit for commanding robots in mixed modalities while incorporating liveliness motions. It is adapted from [RelaxedIK](https://github.com/uwgraphics/relaxed_ik_core) framework, and compatible with Python and Javascript/Node.
 
-To configure a robot, the easiest method is to use the LivelyStudio interface in the [lively_tk_ros](https://github.com/Wisc-HCI/lively_tk_ros) repository, which is a wizard for configuring the robot.
+To configure a robot, the easiest method is to use the LivelyStudio interface in the [LivelyStudio](https://github.com/Wisc-HCI/LivelyStudio) repository, which is a system for configuring and programming the robot visually.
 
 ## Configuring
 
-Configuring of LivelyTK is centered on the Solver class, which you can instantiate in the following ways:
+Configuring of Lively is centered on the Solver class, which you can instantiate in the following ways:
 
 _python_
 ```python
@@ -204,7 +204,7 @@ solver.reset(
 
 ## Solving
 
-The `Solver` class has a `solve` method that represents the core functionality of the LivelyTK interface. At a high level, it accepts the following fields:
+The `Solver` class has a `solve` method that represents the core functionality of the Lively interface. At a high level, it accepts the following fields:
 
 1. `goals`: A look-up table of goal-type objects. The key of the look-up table should match with that of the objectives to which the goals are corresponded.
 2. `weights`: A look-up table of floats, order corresponding to the order of the objectives. The key of the look-up table should match with that of the objectives to which the weights are corresponded.
@@ -469,9 +469,81 @@ A list of all shapes that are currently tracked and that reach close enough prox
 A translation (vector) indicating the current center of mass of the robot.
 
 
+## Extending the system.
 
+Extending the set of objectives involves two main steps. The first step is defining the objective itself. These are generally located within the `/src/objectives/` folder. When implementing an objective, you will want to import the "Callable" trait (and possibly groove_loss) with the following: 
 
+```rust
+use crate::objectives::objective::{groove_loss, Callable};
+```
 
+For your new objective, you will need the struct block, which defines the data it encodes. As an example, Position Match defines the following:
+
+```rust
+pub struct PositionMatchObjective {
+    pub name: String,
+    pub weight: f64,
+    pub link: String,
+    // Goal Value
+    #[serde(skip)]
+    pub goal: Vector3<f64>,
+}
+```
+** Note, serde is used to assist in building web bindings. Goals are skipped for this attribute because they are defined by the user explicitly
+
+Second is the implementation for the constructor. Here is the Position Match objective again:
+
+```rust
+impl PositionMatchObjective {
+    pub fn new(name: String, weight: f64, link: String) -> Self {
+        Self {
+            name,
+            weight,
+            link,
+            goal: vector![0.0, 0.0, 0.0], // Default to a sensible value
+        }
+    }
+}
+```
+
+Finally, you need to define the implementation of the `Callable` trait:
+
+```rust
+impl Callable<Vector3<f64>> for PositionMatchObjective {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
+        // Get the link transform from frames
+        let link_translation = state.get_link_transform(&self.link).translation.vector;
+        // Calculate the distance
+        let x_val = (link_translation - self.goal).norm();
+        // Regularize by the groove_loss function and apply the weight.
+        return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2);
+    }
+
+    // Implement the set_goal method
+    fn set_goal(&mut self, goal: Vector3<f64>) {
+        self.goal = goal;
+    }
+
+    // Implement the set_weight method
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
+    }
+
+    // Other methods can use the default trait version.
+}
+```
+
+The next main step is inserting the objective into the `Objective` enum, located in `/src/objectives/objective.rs`. 
+
+```rust
+pub enum Objective {
+    PositionMatch(PositionMatchObjective),
+    OrientationMatch(OrientationMatchObjective),
+    ...
+    // ++++++ Insert your Objective here ++++++
+```
+
+Finally, the `Objective` enum defines a number of functions, mainly aimed at supporting debugging or executing the functions defined in the objective trait. Follow the patterns and descriptoins located in the file for more detail.
 
 
 ## Contributing
@@ -509,6 +581,7 @@ wasm-pack pack
 # Publish
 wasm-pack publish --access=public
 ```
+
 
 ## References
 [^1]:Rakita, Daniel, Bilge Mutlu, and Michael Gleicher. "PROXIMA: An Approach for Time or Accuracy Budgeted Collision Proximity Queries." Proceedings of Robotics: Science and Systems (RSS). 2022. http://www.roboticsproceedings.org/rss18/p043.pdf
