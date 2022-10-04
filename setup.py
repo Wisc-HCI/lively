@@ -5,13 +5,13 @@ from pathlib import Path
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
-package_name = 'lively_tk'
+package_name = 'lively'
 
 setup(
     name=package_name,
     version='0.10.0',
     packages=[package_name],
-    rust_extensions=[RustExtension("lively_tk.lively_tk", binding=Binding.PyO3, quiet=True, features=['pybindings'])],
+    rust_extensions=[RustExtension("lively.lively", binding=Binding.PyO3, quiet=True, features=['pybindings'])],
     install_requires=['setuptools','wheel','setuptools_rust'],
     zip_safe=False,
     maintainer='AndrewJSchoen',

@@ -1,7 +1,7 @@
 #[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
 #[cfg(feature = "pybindings")]
-use crate::lively_tk::Solver;
+use crate::lively::Solver;
 #[cfg(feature = "pybindings")]
 use crate::objectives::objective::Objective;
 #[cfg(feature = "pybindings")]

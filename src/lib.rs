@@ -13,7 +13,7 @@ extern crate console_error_panic_hook;
 
 pub mod utils;
 pub mod objectives;
-pub mod lively_tk;
+pub mod lively;
 pub mod wrappers;
 
 #[cfg(feature = "pybindings")]
@@ -42,7 +42,7 @@ use crate::utils::shapes::*;
 #[cfg(feature = "jsbindings")]
 use crate::objectives::objective::*;
 #[cfg(feature = "jsbindings")]
-use crate::lively_tk::Solver;
+use crate::lively::Solver;
 
 #[cfg(feature = "pybindings")]
 #[pymodule]

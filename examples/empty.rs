@@ -1,13 +1,13 @@
-use lively_tk::lively_tk::Solver;
-use lively_tk::objectives::core::base::CollisionAvoidanceObjective;
-use lively_tk::objectives::core::base::SmoothnessMacroObjective;
-use lively_tk::objectives::core::matching::PositionMatchObjective;
-use lively_tk::objectives::objective::Objective;
-use lively_tk::utils::goals::Goal::ScalarRange;
-use lively_tk::utils::goals::{Goal};
-use lively_tk::utils::shapes::*;
-use lively_tk::utils::info::{*};
-use lively_tk::utils::shapes::Shape;
+use lively::lively::Solver;
+use lively::objectives::core::base::CollisionAvoidanceObjective;
+use lively::objectives::core::base::SmoothnessMacroObjective;
+use lively::objectives::core::matching::PositionMatchObjective;
+use lively::objectives::objective::Objective;
+use lively::utils::goals::Goal::ScalarRange;
+use lively::utils::goals::{Goal};
+use lively::utils::shapes::*;
+use lively::utils::info::{*};
+use lively::utils::shapes::Shape;
 use nalgebra::base::Vector4;
 use nalgebra::base::Vector3;
 use nalgebra::geometry::Isometry3;
@@ -57,9 +57,9 @@ fn main() {
     objectives.insert("sdfsddsfes".into(),Objective::CollisionAvoidance(col_avoid_obj));
     objectives.insert("dfawdaseas".into(),Objective::SmoothnessMacro(smooth_macro_obj));
     // vec![
-    //     // lively_tk_lib::objectives::objective::Objective::PositionMatch(pos_match_obj),
-    //     // lively_tk_lib::objectives::objective::Objective::CollisionAvoidance(col_avoid_obj),
-    //     // lively_tk_lib::objectives::objective::Objective::SmoothnessMacro(smooth_macro_obj),
+    //     // lively_lib::objectives::objective::Objective::PositionMatch(pos_match_obj),
+    //     // lively_lib::objectives::objective::Objective::CollisionAvoidance(col_avoid_obj),
+    //     // lively_lib::objectives::objective::Objective::SmoothnessMacro(smooth_macro_obj),
     // ];
     let mut goals: HashMap<String,Goal> = HashMap::new();
     let mut weights: HashMap<String,f64> = HashMap::new();

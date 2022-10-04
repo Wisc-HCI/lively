@@ -1,20 +1,20 @@
 [![PyPI version](https://img.shields.io/pypi/v/lively_tk)](https://badge.fury.io/py/lively_tk)
 ![Upload Python Package](https://github.com/Wisc-HCI/lively_tk/workflows/Upload%20Python%20Package/badge.svg)
-# LivelyTK v0.10.0 (beta)
+# Lively v0.10.0 (beta)
 
-_NOTE: Since LivelyTK is still in beta, the design is subject to change and should not be considered final!_
+_NOTE: Since Lively is still in beta, the design is subject to change and should not be considered final!_
 
 ## About
 
-LivelyTK Package
+Lively Package
 
-The LivelyTK framework provides a highly configurable toolkit for commanding robots in mixed modalities while incorporating liveliness motions. It is adapted from [RelaxedIK](https://github.com/uwgraphics/relaxed_ik_core) framework, and compatible with Python and Javascript/Node.
+The Lively framework provides a highly configurable toolkit for commanding robots in mixed modalities while incorporating liveliness motions. It is adapted from [RelaxedIK](https://github.com/uwgraphics/relaxed_ik_core) framework, and compatible with Python and Javascript/Node.
 
 To configure a robot, the easiest method is to use the LivelyStudio interface in the [lively_tk_ros](https://github.com/Wisc-HCI/lively_tk_ros) repository, which is a wizard for configuring the robot.
 
 ## Configuring
 
-Configuring of LivelyTK is centered on the Solver class, which you can instantiate in the following ways:
+Configuring of Lively is centered on the Solver class, which you can instantiate in the following ways:
 
 _python_
 ```python
@@ -161,7 +161,7 @@ solver.reset(
 
 ## Solving
 
-The `Solver` class has a `solve` method that represents the core functionality of the LivelyTK interface. At a high level, it accepts the following fields:
+The `Solver` class has a `solve` method that represents the core functionality of the Lively interface. At a high level, it accepts the following fields:
 
 1. `goals`: A look-up table of goal-type objects. The key of the look-up table should match with that of the objectives to which the goals are corresponded.
 2. `weights`: A look-up table of floats, order corresponding to the order of the objectives. The key of the look-up table should match with that of the objectives to which the weights are corresponded.
