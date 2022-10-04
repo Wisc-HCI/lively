@@ -14,6 +14,8 @@ use nalgebra::geometry::Isometry3;
 use nalgebra::geometry::Quaternion;
 use nalgebra::geometry::Translation3;
 use nalgebra::geometry::UnitQuaternion;
+use num::integer::Roots;
+use optimization_engine::matrix_operations::sum;
 use rand::Rng;
 use std::collections::HashMap;
 
@@ -33,10 +35,10 @@ fn main() {
     //     fs::read_to_string("./tests/ur3e.xml").expect("Something went wrong reading the file");
 
     let data =
-    fs::read_to_string("./tests/ur3e.xml").expect("Something went wrong reading the file");
+    fs::read_to_string("./tests/panda.xml").expect("Something went wrong reading the file");
 
     let pos_match_obj =
-         PositionMatchObjective::new("EE Position".to_string(), 20.0, "wrist_3_link".to_string());
+         PositionMatchObjective::new("EE Position".to_string(), 20.0, "panda_rightfinger".to_string());
        // PositionMatchObjective::new("EE Position".to_string(), 20.0, "LThumb2_link".to_string());
     let col_avoid_obj = CollisionAvoidanceObjective::new("Collision Avoidance".to_string(), 3.0);
     //let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 10.0);
@@ -395,93 +397,29 @@ fn main() {
     ));
 
     let mut box_shapes_vec: Vec<Shape> = vec![
-        box_1,
-        box_2,
-        box_3,
-        box_4,
-        box_5,
-        box_6,
-        box_7,
-        box_8,
-        box_9,
-        box_10,
-        box_11,
-        box_12,
-        box_13,
-        box_14,
-        box_15,
-        box_16.clone(),
-        box_17.clone(),
-        box_18.clone(),
-        box_19.clone(),
-        box_20.clone(),
+        // box_1,
+        // box_2,
+        // box_3,
+        // box_4,
+        // box_5,
+        // box_6,
+        // box_7,
+        // box_8,
+        // box_9,
+        // box_10,
+        // box_11,
+        // box_12,
+        // box_13,
+        // box_14,
+        // box_15,
+        // box_16.clone(),
+        // box_17.clone(),
+        // box_18.clone(),
+        // box_19.clone(),
+        // box_20.clone(),
     ];
 
-    for i in 1..=80 {
-        let mut rng = rand::thread_rng();
-        let n: f64 = rng.gen_range(-2.0..2.0);
-        let n1: f64 = rng.gen_range(-2.0..2.0);
-        let n2: f64 = rng.gen_range(-2.0..2.0);
-        let temp_translate = Translation3::new(n, n1, n2);
-        let n8: f64 = rng.gen_range(-10.0..10.0);
-        let n6: f64 = rng.gen_range(-10.0..10.0);
-        let n7: f64 = rng.gen_range(-10.0..10.0);
-        let temp_quat = UnitQuaternion::new(Vector3::new(n7, n8, n6));
-        let iso = Isometry3::from_parts(temp_translate, temp_quat);
-        let n3: usize = rng.gen_range(0..4);
-        if n3 == 0 {
-            let n4: f64 = rng.gen_range(0.0..1.0);
-            let n5: f64 = rng.gen_range(0.0..1.0);
-            let n6: f64 = rng.gen_range(0.0..1.0);
-            let temp_box = Shape::Box(BoxShape::new(
-                "shape".to_string(),
-                "world".to_string(),
-                true,
-                n4,
-                n5,
-                n6,
-                iso,
-            ));
-            box_shapes_vec.push(temp_box);
-        } else if n3 == 1 {
-            let n4: f64 = rng.gen_range(0.0..1.0);
-            let n5: f64 = rng.gen_range(0.0..1.0);
 
-            let temp_cylinder = Shape::Cylinder(CylinderShape::new(
-                "shape".to_string(),
-                "world".to_string(),
-                true,
-                n4,
-                n5,
-                iso,
-            ));
-            box_shapes_vec.push(temp_cylinder);
-        } else if n3 == 2 {
-            let n4: f64 = rng.gen_range(0.0..1.0);
-
-            let temp_sphere = Shape::Sphere(SphereShape::new(
-                "shape".to_string(),
-                "world".to_string(),
-                true,
-                n4,
-                iso,
-            ));
-            box_shapes_vec.push(temp_sphere);
-        } else if n3 == 3 {
-            let n4: f64 = rng.gen_range(0.0..1.0);
-            let n5: f64 = rng.gen_range(0.0..1.0);
-
-            let temp_capsule = Shape::Capsule(CapsuleShape::new(
-                "shape".to_string(),
-                "world".to_string(),
-                true,
-                n4,
-                n5,
-                iso,
-            ));
-            box_shapes_vec.push(temp_capsule);
-        }
-    }
 
     let mut objectives: HashMap<String, Objective> = HashMap::new();
     objectives.insert("iowsdsfhwe".into(), Objective::PositionMatch(pos_match_obj));
@@ -494,20 +432,7 @@ fn main() {
     //     Objective::SmoothnessMacro(smooth_macro_obj),
     // );
 
-    println!("{:?}" , box_shapes_vec.len());
-
-    let mut temp = Solver::new(
-        data.clone(),
-        objectives,
-        Some(scalar_range_vec.clone()),
-        
-        Some(box_shapes_vec),
-        None,
-        None,
-        None,
-        None
-    );
-    temp.compute_average_distance_table();
+   
 
     let mut rng = rand::thread_rng();
 
@@ -886,25 +811,124 @@ fn main() {
     weights.insert("iowsdsfhwe".into(), 10.0);
 
     // let vec = temp.compute_average_distance_table();
+    println!("{:?}" , box_shapes_vec.len());
 
     
     let mut times: Vec<instant::Duration> = vec![];
-    for i in 1..= 1000 { // 0 env shapes
-        
-        let instant = Instant::now();
-        temp.solve(
-            goals.clone(),
-            weights.clone(),
-            0.0,
-            //Some(shape_update.clone()
-            None,
-        );
-        times.push(instant.elapsed());
-    }
+    for i in 1..= 100 {
+        for i in 1..= 60 {
+            let mut rng = rand::thread_rng();
+            let n: f64 = rng.gen_range(-2.0..2.0);
+            let n1: f64 = rng.gen_range(-2.0..2.0);
+            let n2: f64 = rng.gen_range(-2.0..2.0);
+            let temp_translate = Translation3::new(n, n1, n2);
+            let n8: f64 = rng.gen_range(-10.0..10.0);
+            let n6: f64 = rng.gen_range(-10.0..10.0);
+            let n7: f64 = rng.gen_range(-10.0..10.0);
+            let temp_quat = UnitQuaternion::new(Vector3::new(n7, n8, n6));
+            let iso = Isometry3::from_parts(temp_translate, temp_quat);
+            let n3: usize = rng.gen_range(0..4);
+            if n3 == 0 {
+                let n4: f64 = rng.gen_range(0.0..1.0);
+                let n5: f64 = rng.gen_range(0.0..1.0);
+                let n6: f64 = rng.gen_range(0.0..1.0);
+                let temp_box = Shape::Box(BoxShape::new(
+                    "shape".to_string(),
+                    "world".to_string(),
+                    true,
+                    n4,
+                    n5,
+                    n6,
+                    iso,
+                ));
+                box_shapes_vec.push(temp_box);
+            } else if n3 == 1 {
+                let n4: f64 = rng.gen_range(0.0..1.0);
+                let n5: f64 = rng.gen_range(0.0..1.0);
+    
+                let temp_cylinder = Shape::Cylinder(CylinderShape::new(
+                    "shape".to_string(),
+                    "world".to_string(),
+                    true,
+                    n4,
+                    n5,
+                    iso,
+                ));
+                box_shapes_vec.push(temp_cylinder);
+            } else if n3 == 2 {
+                let n4: f64 = rng.gen_range(0.0..1.0);
+    
+                let temp_sphere = Shape::Sphere(SphereShape::new(
+                    "shape".to_string(),
+                    "world".to_string(),
+                    true,
+                    n4,
+                    iso,
+                ));
+                box_shapes_vec.push(temp_sphere);
+            } else if n3 == 3 {
+                let n4: f64 = rng.gen_range(0.0..1.0);
+                let n5: f64 = rng.gen_range(0.0..1.0);
+    
+                let temp_capsule = Shape::Capsule(CapsuleShape::new(
+                    "shape".to_string(),
+                    "world".to_string(),
+                    true,
+                    n4,
+                    n5,
+                    iso,
+                ));
+                box_shapes_vec.push(temp_capsule);
+            }
+        }
 
+        let mut solver = Solver::new(
+            data.clone(),
+            objectives.clone(),
+            Some(scalar_range_vec.clone()),
+            
+            Some(box_shapes_vec.clone()),
+            None,
+            None,
+            None,
+            None
+        );
+        solver.compute_average_distance_table();
+       
+        for j in 1..= 100 {
+            solver.solve(
+                goals.clone(),
+                weights.clone(),
+                0.0,
+                //Some(shape_update.clone()
+                None,
+            );
+        }
+        let mut total = instant::Duration::new(0,0);
+        for j in 1..= 100 { // 0 env shapes
+        
+            let instant = Instant::now();
+            solver.solve(
+                goals.clone(),
+                weights.clone(),
+                0.0,
+                //Some(shape_update.clone()
+                None,
+            );
+            total += instant.elapsed();
+            
+        }
+        times.push(total/100);
+       
+
+       
+        
+
+    }
+    
     let mut total = *times.get(0).unwrap();
     for i in 1..= times.len()-1 {
-        let time = total.clone().checked_add(*times.get(i).unwrap()) ;
+        let time = total.checked_add(*times.get(i).unwrap()) ;
         match time {
             Some(time) => {
                 total = time;
@@ -913,8 +937,43 @@ fn main() {
         }
     }
 
-    let time = total.checked_div(1000).unwrap();
-    println!("{:?}" , time);
+
+
+
+    let average = total.checked_div(times.len().try_into().unwrap()).unwrap();
+   
+
+    let mut sum_time = 0.0;
+    for i in 0..= times.len()-1 {
+        let time = *times.get(i).unwrap();
+        //print!(" {:?} " , time);
+        let mut difference_in_time;
+        if time > average {
+            difference_in_time = time - average;
+        }else{
+            difference_in_time = average - time;
+        }
+       
+        //println!(" {:?},{:?},{:?} " , time,average,difference_in_time);
+        sum_time += difference_in_time.as_secs_f64() * difference_in_time.as_secs_f64();
+    }
+   
+    // let sum_time_duration = instant::Duration::from_secs_f64(sum_time);
+    let div_sum_time = sum_time / (times.len()-1 )as f64;
+   //println!("{:?}" , div_sum_time);
+    let sd = div_sum_time.sqrt();
+    println!("{:?}" , sd);
+
+    let sd_duration = instant::Duration::from_secs_f64(sd);
+
+
+
+   println!("the average is {:?}, and sd is {:?} " , average,sd_duration );
+    
+   
+   
+   
+    
 
     
 
