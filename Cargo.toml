@@ -15,6 +15,8 @@ readme = "README.md"
 pybindings = ["pyo3","pyo3-log"]
 jsbindings = ["wasm-bindgen","console_error_panic_hook"]
 profile-with-puffin = ["profiling/profile-with-puffin"]
+bevy = ["dep:bevy", "winit", "bevy_transform_gizmo", "bevy_mod_picking","smooth-bevy-cameras"]
+
 
 
 [dependencies]
@@ -34,8 +36,8 @@ tracing-subscriber = { version = "0.2" , optional = true}
 profiling = { version = "1.0" , optional = true}
 
 nalgebra = { version = "0.31", features = ["serde-serialize-no-std"]}
-bevy_transform_gizmo = "0.3.1"
-bevy_mod_picking = "0.9"
+bevy_transform_gizmo = {version = "0.3.1", optional = true}
+bevy_mod_picking = {version = "0.9", optional = true}
 array2d = "0.2.1"
 parry3d-f64 = "0.9.0"
 yaml-rust = "0.4"
@@ -58,8 +60,8 @@ log = {version = "0.4.14"}
 console_error_panic_hook = { version = "0.1.7", optional = true }
 instant = { version = "0.1", features = [ "stdweb" ] }
 indexmap = "1.9.1"
-bevy = "0.8"
-smooth-bevy-cameras = {git = "https://github.com/bonsairobo/smooth-bevy-cameras"}
+bevy = {version = "0.8.1", optional = true}
+smooth-bevy-cameras = {git = "https://github.com/bonsairobo/smooth-bevy-cameras", optional = true}
 nalgebra-py = "0.3.1"
 
 [profile.dev]

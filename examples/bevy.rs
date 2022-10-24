@@ -1,5 +1,5 @@
 //! A simple 3D scene with light shining over a cube sitting on a plane.
-
+#[cfg(feature = "bevy")]
 use bevy::{
     prelude::*,
     time::{FixedTimestep},
@@ -15,6 +15,7 @@ use lively::utils::info::TransformInfo;
 use lively::utils::shapes::*;
 use nalgebra::geometry::Translation3;
 use nalgebra::Isometry3;
+#[cfg(feature = "bevy")]
 use smooth_bevy_cameras::{
     controllers::orbit::{OrbitCameraBundle, OrbitCameraController, OrbitCameraPlugin},
     LookTransformPlugin,
