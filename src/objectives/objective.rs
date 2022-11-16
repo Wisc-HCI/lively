@@ -117,7 +117,7 @@ impl Objective {
     }
 
     pub fn set_weight(&mut self, weight: f64) {
-        /// Set the weight for the inner objective
+        // Set the weight for the inner objective
         match self {
             Self::PositionMatch(obj) => obj.set_weight(weight),
             Self::OrientationMatch(obj) => obj.set_weight(weight),
