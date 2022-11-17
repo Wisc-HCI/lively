@@ -46,6 +46,7 @@ use crate::lively::Solver;
 
 #[cfg(feature = "pybindings")]
 #[pymodule]
+#[pyo3(name = "lively")]
 fn lively_tk(_py: Python, m: &PyModule) -> PyResult<()> {
     pyo3_log::init();
     // State

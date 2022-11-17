@@ -1,4 +1,4 @@
-from .lively_tk import *
+from .lively import *
 
 # CONFIG_FIELDS = {
 #         'axis_types', 'base_link_motion_bounds', 'ee_fixed_joints', 'static_environment',
