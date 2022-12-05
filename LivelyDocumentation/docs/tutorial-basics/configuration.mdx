@@ -103,11 +103,86 @@ import TabItem from '@theme/TabItem';
 
    ```rust
    use lively::lively::Solver;
-   fn main(){
+   use lively::objectives::core::base::CollisionAvoidanceObjective;
+   use lively::objectives::core::base::SmoothnessMacroObjective;
+   use lively::objectives::core::matching::PositionMatchObjective;
+   use lively::objectives::objective::Objective;
+   use lively::utils::goals::Goal;
+   use lively::utils::info::TransformInfo;
+   use lively::utils::shapes::*;
+   use std::fs;
 
+   fn main(){
+    let urdf_string =
+       fs::read_to_string("./ur3e.xml").expect("Something went wrong reading the file");
+    let pos_match_obj =
+       PositionMatchObjective::new("EE Position".to_string(), 0.0, "tool0".to_string());
+    let col_avoid_obj =
+       CollisionAvoidanceObjective::new("Collision Avoidance".to_string(), 20.0);
+    let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 30.0);
+    let root_bounds: Vec<(f64, f64)> = vec![
+            (0.0, 0.0),
+            (0.0, 0.0),
+            (0.0, 0.0),
+            (0.0, 0.0),
+            (0.0, 0.0),
+            (0.0, 0.0),
+        ];
+    let iso_1 = Isometry3::from_parts(
+            Translation3::new(
+                0.6497281999999998,
+                -0.24972819999999987,
+                0.050000000000000044,
+            ),
+            UnitQuaternion::from_quaternion(Quaternion::new(
+                0.0,
+                0.0,
+                -0.7069999677447771,
+                0.7072135784958345,
+            )),
+        );
+    let box_1 = Shape::Box(BoxShape::new(
+            "box".to_string(),
+            "world".to_string(),
+            true,
+            0.5,
+            0.75,
+            0.5,
+            iso_1,
+        ));  
+    let iso_2 = Isometry3::from_parts(
+            Translation3::new(
+                -0.7,
+                -0.44972819999999987,
+                -0.050000000000000044,
+            ),
+            UnitQuaternion::from_quaternion(Quaternion::new(
+                0.0,
+                0.0,
+                -0.7069999677447771,
+                0.7072135784958345,
+            )),
+        );
+    let sphere_1 = Shape::Sphere(SphereShape::new(
+                "sphere".to_string(),
+                "world".to_string(),
+                true,
+                0.25,
+                iso_2,
+            ));
+    let mut solver = Solver::new(
+            urdf_string,
+            objectives,
+            Some(root_bounds),
+            Some(vec![box_1,sphere_1]),
+            None,
+            Some(true),
+            None,
+            None,
+            None,
+        );
    }
    ``` 
-
    </TabItem>
 </Tabs> 
 
