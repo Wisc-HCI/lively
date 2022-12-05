@@ -1,6 +1,0 @@
-position: 3
-label: 'Configuration'
-collapsible: true
-link: 
-  type: doc
-  id: urdf
