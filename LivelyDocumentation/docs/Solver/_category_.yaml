@@ -1,6 +1,6 @@
 position: 3
-label: 'Configuration'
+label: 'Solver'
 collapsible: true
 link: 
   type: doc
-  id: urdf
+  id: solver
