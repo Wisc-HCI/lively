@@ -107,8 +107,9 @@ const config = {
         copyright: `Copyright © ${new Date().getFullYear()} Lively.`,
       },
       prism: {
+        additionalLanguages : ['rust'],
         theme: lightCodeTheme,
-        darkTheme: darkCodeTheme,
+        darkTheme: darkCodeTheme,      
       },
     }),
 };
