@@ -1,0 +1,6 @@
+position: 3
+label: 'Solving'
+collapsible: true
+link: 
+  type: doc
+  id: solve
