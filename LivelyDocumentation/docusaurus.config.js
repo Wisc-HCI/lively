@@ -69,7 +69,7 @@ const config = {
             position: 'left',
             label: 'API',
           },
-          {to: '/blog', label: 'Blog', position: 'left'},
+          {to: '/toturial', label: 'Tutorial', position: 'left'},
           {
             href: 'https://github.com/Wisc-HCI/lively',
             label: 'GitHub',
@@ -94,8 +94,8 @@ const config = {
             title: 'More',
             items: [
               {
-                label: 'Blog',
-                to: '/blog',
+                label: 'Toturial',
+                to: '/toturial',
               },
               {
                 label: 'GitHub',
