@@ -1,6 +1,0 @@
-position: 2
-label: 'Goals'
-collapsible: true
-link: 
-  type: doc
-  id: goal

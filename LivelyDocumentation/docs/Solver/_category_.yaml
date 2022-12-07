@@ -1,6 +1,0 @@
-position: 3
-label: 'Solver'
-collapsible: true
-link: 
-  type: doc
-  id: solver

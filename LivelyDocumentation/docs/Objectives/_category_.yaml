@@ -1,6 +1,0 @@
-position: 2
-label: 'Objectives'
-collapsible: true
-link: 
-  type: doc
-  id: objective
