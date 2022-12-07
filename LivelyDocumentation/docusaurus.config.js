@@ -33,7 +33,7 @@ const config = {
      
       ({
         docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
+          sidebarPath: require.resolve('./apiSidebars.js'),
           
         },
         
