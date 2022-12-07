@@ -1,1 +1,44 @@
 # Objectives
+
+The LivelyTK framework allows for a wide range of robot with which users program robot motion. These 24 properties, which serve as building blocks for defining the behavior and motion of the robot, fit into five categories:
+
+
+| Category | Description |
+| --- | --- | 
+| `Base` | Revolve around the fluidity of robot motion by limiting rapid changes and considering possible collisions between the links of the robot |
+| `Bounding` | Limit the space within which joints can assume angles and links can move or be oriented | 
+| `Matching` | Specify exact positions and orientations of links or angles of joints, while bounding behavior properties set limits |
+| `Mirroring` | Allow users to mirror the current state of a link's position or orientation in a different link, or the current angle of one joint in another |
+| `Liveliness` | Allow adding smooth, coordinated motion to joint angles or link positions/orientations |
+| `Forces` | Proximating the physcial forces applied to the robot |
+
+
+| Objective | Category | Description |
+| --- | --- | --- |
+| Collision Avoidance | `Base` | Detect and avoid collision using PROXIMA alogorithm[^1] |
+| Joint Limits | `Base` | Applies a cost to approaching the robot’s joint limits |
+| Velocity Minimization | `Base` | Prevent rapid joint movements |
+| Origin Velocity Minimization | `Base` | Prevent rapid robot root movements |
+| Acceleration Minimization | `Base` | Prevent rapid changes in joint speed |
+| Origin Acceleration Minimization | `Base` | Prevent rapid changes in robot root speed |
+| Jerk Minimization | `Base` | Add fluidity to robot movement along the joints |
+| Origin Jerk Minimization | `Base` |  Add fluidity to robot movement within the Cartesian space of the origin |
+| Smoothness Macro | `Base` | Combines each of the velocity, acceleration, and jerk minimization properties with normalized weights |
+| Position Bounding | `Bounding` | Place the position of a link within a rotated ellipsoid |
+| Orientation Bounding | `Bounding`| A region in orientation space with some delta around an orientation |
+| Joint Bounding | `Bounding`| Limits the maximum and minimum values of a given joint |
+| Position Match | `Matching` | Control a link's position in space |
+| Orientation Match | `Matching` | Control a link's orientation in space |
+| Joint Match | `Matching` | Control a joint's value directly |
+| Distance Match | `Matching` | Specify the distance between two links in space |
+| Position Mirroring | `Mirroring` | Mirror the positions of two links with an optional offset |
+| Orientation Mirroring |  `Mirroring`  | Mirror the rotations of two links with an optional offset |
+| Joint Mirrorin|  `Mirroring`  | Mirror the values of two joints with an optional offset |
+| Position Liveliness | `Liveliness` | Add smooth motion to the position of a link |
+| Orientaion Liveliness | `Liveliness` | Add smooth motion to the rotation of a link |
+| Joint Liveliness | `Liveliness` | Add smooth motion to a joint directly |
+| Relative Motion Liveliness | `Liveliness` | Add smooth motion towards and away from |
+| Gravity | `Forces` | Add a downward force to the position of a link |
+
+## References
+[^1]:Rakita, Daniel, Bilge Mutlu, and Michael Gleicher. "PROXIMA: An Approach for Time or Accuracy Budgeted Collision Proximity Queries." Proceedings of Robotics: Science and Systems (RSS). 2022. http://www.roboticsproceedings.org/rss18/p043.pdf

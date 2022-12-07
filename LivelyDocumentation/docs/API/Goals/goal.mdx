@@ -2,3 +2,114 @@
 id: goal
 ---
 # Goals
+There are a variety of different "goal" types that can be provided. Think of these as settings that you would like to achieve (e.g. a PositionMatch objective accepts a `Translation` goal). 
+
+## Translation
+The translation goal is used by the `PositionMatch`, `PositionMirroring`, and `OriginPositionMatch` objectives.
+
+_python_
+```python
+goal = Translation(x:1.0,y:0.0,z:0.5)
+```
+
+_javascript_
+```javascript
+let goal = {Translation:[1.0,0.0,0.5]}
+```
+
+## Rotation
+
+The rotation goal is used by the `OrientationMatch`, `OrientationMirroring`, and `OriginOrientationMatch` objectives.
+
+_python_
+```python
+goal = Rotation(w:0.707,x:0.0,y:0.0,z:0.707)
+```
+
+_javascript_
+```javascript
+let goal = {Rotation:[0.707,0.0,0.0,0.707]} // [x, y, z, w] ordering
+```
+
+## Scalar
+
+The scalar goal is used by the `JointMatch`, `JointMirroring`, `DistanceMatch`, `JointLiveliness`, and `RelativeMotionLiveliness` objectives.
+
+_python_
+```python
+goal = 0.5
+```
+
+_javascript_
+```javascript
+let goal = {Scalar:0.5}
+```
+
+## Size
+
+The size goal is used by the `PositionLiveliness`, `OrientationLiveliness`, `OriginPositionLiveliness`, and `OriginOrientationLiveliness` objectives.
+
+_python_
+```python
+goal = Size(x:1.0,y:0.1,z:0.5)
+```
+
+_javascript_
+```javascript
+let goal = {Size:[1.0,0.1,0.5]}
+```
+
+## Ellipse
+
+The ellipse goal is used by the `PositionBounding` objective.
+
+_python_
+```python
+goal = Ellipse(
+    translation=Translation(x:1.0,y:0.0,z:0.4),
+    rotation=Rotation(w:0.707,x:0.0,y:0.0,z:0.707),
+    size=Size(x:0.1,y:0.1,z:0.2)
+)
+```
+
+_javascript_
+```javascript
+let goal = {Ellipse: {
+    pose: {translation: [1.0,0.0,0.4], rotation: [0.707,0.0,0.0,0.707]}, // [x, y, z, w] ordering for quaternion
+    size: [0.1,0.1,0.2]
+}
+```
+
+## RotationRange
+
+The rotation range goal is used by the `RotationBounding` objective.
+
+_python_
+```python
+goal = RotationRange(
+    rotation=Rotation(w:0.707,x:0.0,y:0.0,z:0.707),
+    delta=0.4
+)
+```
+
+_javascript_
+```javascript
+let goal = {RotationRange: {
+    rotation: [0.707,0.0,0.0,0.707], // [x, y, z, w] ordering for quaternion
+    delta:0.4
+}
+```
+
+## ScalarRange
+
+The scalar range goal is used by the `JointBounding` objective.
+
+_python_
+```python
+goal = ScalarRange(value=0.0,delta=0.4)
+```
+
+_javascript_
+```javascript
+let goal = {ScalarRange: {value:0.0,delta:0.4}
+```
