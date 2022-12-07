@@ -62,9 +62,9 @@ const config = {
           },
           {
             type: 'doc',
-            docId: 'Toturial/intro',
+            docId: 'Tutorial/intro',
             position: 'left',
-            label: 'Toturial',
+            label: 'Tutorial',
           },
           {
             href: 'https://github.com/Wisc-HCI/lively',

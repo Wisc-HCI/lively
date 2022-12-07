@@ -14,7 +14,7 @@
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
   
-  tutorialSidebar: [
+  sidebar: [
      'API/intro',
     {
       type: 'category',
@@ -39,9 +39,10 @@ const sidebars = {
       label: 'Solver',
       link: {
         type:'doc',
-        id: 'API/Solver/solver'
+        id: 'API/Solver/initialization'
       },
       items:[
+        'API/Solver/properties',
         {
           type: 'category',
           label: 'Methods',
@@ -56,9 +57,11 @@ const sidebars = {
             'API/Solver/Methods/get_current_state',
             'API/Solver/Methods/compute_average_distance_table',
         ]
-        }
+        },       
       ]
-    }
+    },
+    
+    
   ],
    
 };
