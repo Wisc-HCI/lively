@@ -33,7 +33,7 @@ const config = {
      
       ({
         docs: {
-          sidebarPath: require.resolve('./apiSidebars.js'),
+          sidebarPath: require.resolve('./sidebars.js'),
           
         },
         
@@ -56,11 +56,16 @@ const config = {
         items: [
           {
             type: 'doc',
-            docId: 'intro',
+            docId: 'API/intro',
             position: 'left',
             label: 'API',
           },
-          {to: '/toturial', label: 'Tutorial', position: 'left'},
+          // {
+          //   type: 'docSidebar',
+          //   sidebarId: 'Toturial/intro',
+          //   position: 'left',
+          //   label: 'Toturial',
+          // },
           {
             href: 'https://github.com/Wisc-HCI/lively',
             label: 'GitHub',
@@ -76,7 +81,7 @@ const config = {
             items: [
               {
                 label: 'API',
-                to: '/docs/intro',
+                to: '/docs/API/intro',
               },
             ],
           },
@@ -86,7 +91,7 @@ const config = {
             items: [
               {
                 label: 'Toturial',
-                to: '/toturial',
+                to: '/docs/API/toturial/intro',
               },
               {
                 label: 'GitHub',

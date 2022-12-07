@@ -15,13 +15,13 @@
 const sidebars = {
   
   tutorialSidebar: [
-     'intro',
+     'API/intro',
     {
       type: 'category',
       label: 'Goals',
       link: {
         type:'doc',
-        id: 'Goals/goal'
+        id: 'API/Goals/goal'
       },
       items: [],    
     },
@@ -30,7 +30,7 @@ const sidebars = {
       label: 'Objectives',
       link: {
         type:'doc',
-        id: 'Objectives/objective'
+        id: 'API/Objectives/objective'
       },
       items: [],
     },
@@ -39,7 +39,7 @@ const sidebars = {
       label: 'Solver',
       link: {
         type:'doc',
-        id: 'Solver/solver'
+        id: 'API/Solver/solver'
       },
       items:[
         {
@@ -49,12 +49,12 @@ const sidebars = {
             type: 'generated-index',
           },
           items:[
-            'Solver/Methods/solve',
-            'Solver/Methods/solve_with_retries',
-            'Solver/Methods/reset',
-            'Solver/Methods/optimize',
-            'Solver/Methods/get_current_state',
-            'Solver/Methods/compute_average_distance_table',
+            'API/Solver/Methods/solve',
+            'API/Solver/Methods/solve_with_retries',
+            'API/Solver/Methods/reset',
+            'API/Solver/Methods/optimize',
+            'API/Solver/Methods/get_current_state',
+            'API/Solver/Methods/compute_average_distance_table',
         ]
         }
       ]
