@@ -60,12 +60,12 @@ const config = {
             position: 'left',
             label: 'API',
           },
-          // {
-          //   type: 'docSidebar',
-          //   sidebarId: 'Toturial/intro',
-          //   position: 'left',
-          //   label: 'Toturial',
-          // },
+          {
+            type: 'doc',
+            docId: 'Toturial/intro',
+            position: 'left',
+            label: 'Toturial',
+          },
           {
             href: 'https://github.com/Wisc-HCI/lively',
             label: 'GitHub',
