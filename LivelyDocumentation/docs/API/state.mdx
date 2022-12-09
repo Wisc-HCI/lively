@@ -1,0 +1,31 @@
+# State
+The `State` object is the response back after calling `solve`. It contains the state of the robot in terms of joint and frames, as well as some diagnostic information regarding proximity of various shapes and the center-of-mass of the robot. 
+
+## Origin
+
+The transform of the root of the robot. This is useful if the root node is movable. Exported as a Transform class (python) or object containing `translation` and `rotation` fields (javascript).
+
+## Joints
+
+A lookup table of the joint values for each movable joint. Exported as a dictionary (python) or object (javascript).
+
+## Frames
+
+A lookup table of the positions/orientations for each link. Exported as a dictionary (python) or object (javascript) of transform objects keyed by the link name.
+
+## Proximity
+
+A list of all shapes that are currently tracked and that reach close enough proximity to potentially factor into collision detection. Exported as a ProximityInfo class (python) or object (javascript) with the following attributes:
+
+1. `shape1` (`string`) The name of the first shape (note, if the robot is initialized with this shape, and it is attached to a robot link, the name is the link it is attached to.)
+2. `shape2` (`string`) The name of the second shape (note, if the robot is initialized with this shape, and it is attached to a robot link, the name is the link it is attached to.)
+3. `distance` (`float`/`number`/`None`/`null`) The distance recorded between the two shapes. May possibly be `None` or `null` if not tracked, and is zero or negative if the shapes are intersecting. 
+4. `points` (`None`/`set of two points`) The closest points on two different shapes that are used determined whether these two shapes are close though to cause a collision based on the distance between the points on these two shapes. 
+5. `physical` (`bool`) True if both shapes are physical, otherwise False.
+
+- If the distance between points on two different shapes is smaller than or equal to `0.0`, two shapes are `intersecting` with each other. 
+- If the distance between points on two different shapes is bigger than `0.0` but smaller than a `user defined distance`, two shapes are `with in margin` with each other within `user defined distance`.
+
+## Center of Mass
+
+A translation (vector) indicating the current center of mass of the robot.

@@ -16,6 +16,8 @@ const sidebars = {
   
   sidebar: [
      'API/intro',
+     'API/shapes',
+     'API/state',
     {
       type: 'category',
       label: 'Goals',
@@ -42,7 +44,16 @@ const sidebars = {
         id: 'API/Solver/initialization'
       },
       items:[
-        'API/Solver/properties',
+        {
+          type: 'category',
+          label: 'Properties',
+          link:{
+            type: 'doc',
+            id: 'API/Solver/Properties/intro'
+          },
+          items:[
+                ]
+        },      
         {
           type: 'category',
           label: 'Methods',
