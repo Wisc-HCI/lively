@@ -18,6 +18,7 @@ const sidebars = {
      'API/intro',
      'API/shapes',
      'API/state',
+     'API/collision',
     {
       type: 'category',
       label: 'Goals',
@@ -44,16 +45,7 @@ const sidebars = {
         id: 'API/Solver/initialization'
       },
       items:[
-        {
-          type: 'category',
-          label: 'Properties',
-          link:{
-            type: 'doc',
-            id: 'API/Solver/Properties/intro'
-          },
-          items:[
-                ]
-        },      
+         
         {
           type: 'category',
           label: 'Methods',
@@ -65,10 +57,19 @@ const sidebars = {
             'API/Solver/Methods/solve_with_retries',
             'API/Solver/Methods/reset',
             'API/Solver/Methods/optimize',
-            'API/Solver/Methods/get_current_state',
             'API/Solver/Methods/compute_average_distance_table',
         ]
-        },       
+        },
+        {
+          type: 'category',
+          label: 'Properties',
+          link:{
+            type: 'doc',
+            id: 'API/Solver/Properties/intro'
+          },
+          items:[
+                ]
+        },            
       ]
     },
     

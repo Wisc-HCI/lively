@@ -1,1 +1,10 @@
-# Solve
+# Solving
+
+The `Solver` class has a `solve` method that represents the core functionality of the Lively interface. At a high level, it accepts the following fields:
+
+1. `goals`: A look-up table of goal-type objects. The key of the look-up table should match with that of the objectives to which the goals are corresponded.
+2. `weights`: A look-up table of floats, order corresponding to the order of the objectives. The key of the look-up table should match with that of the objectives to which the weights are corresponded.
+3. `time`: (float) The current time. If no liveliness objectives are used, this has no effect.
+4. `shapes`: A list of shape objects. 
+
+The `solve` method returns a fully-filled `State` object

@@ -1,5 +1,32 @@
----
-sidebar_position: 1
----
+# Resetting 
 
-# reset
+In both the Javascript and Python interfaces, the `Solver` class has a `reset` method that allows the user to reset the state of the solver given some new objective weights and a new robot state. In this case, the robot state only needs to supply the `joints` and `origin` field, as shown in the initialization example.
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+  <TabItem value="js" label="Javascript">
+
+  ```js
+  solver.reset(
+    {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{panda_joint1:0.0,panda_joint2:0.0,...}}, weights:{}) // Can define new weights here
+  ```
+
+  </TabItem>
+  <TabItem value="py" label="Python">
+
+  ```py
+  solver.reset(state=State(origin=Transform.identity(),joints={"panda_joint1":0.0,"panda_joint2":0.0,...}),weights={})
+  ```
+   </TabItem>
+   <TabItem value= "rust" label="Rust"> 
+
+   ```rust
+   solver::reset(`State`, `Joints`, `Weights`);
+   ``` 
+   </TabItem>
+</Tabs> 
+
+
+
