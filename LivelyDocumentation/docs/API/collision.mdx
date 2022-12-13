@@ -5,9 +5,9 @@ The livelytk framework provides collision detection between the robot and enviro
 
 > "Guaranteed upper and lower bounds on signed distance are computed between each active pair of shapes in the scene. In this work, these bounds are computed by assessing how relative transforms between shapes change over time, a novel technique we call Pairwise Relative Spatial Coherence[^1]".
 
-#### Collision Settings
+## Collision Settings
 
-This is a parameter `collision_settings` that allows the user to customize the collision checking system while configuring a `Solver` 
+This is a parameter `collision_settings` that allows the user to customize the collision checking system while configuring a [`Solver`](Solver/initialization)
 
 `d_max`:
 A lower bound distance parameter that controls the distance that queries the collision detection between shapes. The distance by default is 0.3 meteres. This means that pairwise collision queries will only happen when two shapes are within 0.3 meters. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
@@ -38,18 +38,13 @@ import TabItem from '@theme/TabItem';
   <TabItem value="py" label="Python">
 
   ```py
-  CollisionSettingInfo(
-        d_max = 0.3, 
-        r = 0.0, 
-        a_max = 2.0, 
-        time_budget = 100, 
-        timed = True),
+  CollisionSettingInfo(d_max = 0.3, r = 0.0, a_max = 2.0, time_budget = 100, timed = True),
   ```
    </TabItem>
    <TabItem value= "rust" label="Rust"> 
 
    ```rust
-   
+   let collision_settings = CollisionSettingInfo::new(0.3, 0.0, 2.0, 100, true);
    ``` 
    </TabItem>
 </Tabs> 
