@@ -18,7 +18,6 @@ const sidebars = {
      'API/intro',
      'API/shapes',
      'API/state',
-     'API/collision',
     {
       type: 'category',
       label: 'Goals',
@@ -37,6 +36,7 @@ const sidebars = {
       },
       items: [],
     },
+    'API/collision',
     {
       type: 'category',
       label: 'Solver',
@@ -53,6 +53,7 @@ const sidebars = {
             type: 'generated-index',
           },
           items:[
+            'API/Solver/Methods/methods',
             'API/Solver/Methods/solve',
             'API/Solver/Methods/solve_with_retries',
             'API/Solver/Methods/reset',
