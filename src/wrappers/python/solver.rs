@@ -133,4 +133,8 @@ impl PySolver {
             inner_updates)))
         
     }
+
+    fn compute_average_distance_table(&mut self) -> PyResult<Vec<PyProximityInfo>> {
+        Ok(self.0.compute_average_distance_table().iter().map(|p| PyProximityInfo::from(p.clone())).collect())
+    }
 }
