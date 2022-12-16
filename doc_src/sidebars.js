@@ -32,9 +32,16 @@ const sidebars = {
       label: 'Info',
       link: {
         type:'doc',
-        id: 'API/Info/info'
+        id: 'API/Info/index'
       },
-      items: [],    
+      items: [
+        'API/Info/transformInfo',
+        'API/Info/mimicInfo',
+        'API/Info/jointInfo',
+        'API/Info/linkInfo',
+        'API/Info/proximityInfo',
+        'API/Info/collisionSettingInfo',
+      ],    
     },
     {
       type: 'category',
