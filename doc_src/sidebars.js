@@ -54,7 +54,7 @@ const sidebars = {
         id: 'API/Solver/index'
       },
       items:[
-         
+         'API/Solver/initialization',
         {
           type: 'category',
           label: 'Methods',
