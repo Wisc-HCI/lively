@@ -15,7 +15,7 @@
 const sidebars = {
   
   sidebar: [
-     'API/intro',
+     'API/index',
      'API/shapes',
      'API/state',
     {
@@ -51,7 +51,7 @@ const sidebars = {
       label: 'Solver',
       link: {
         type:'doc',
-        id: 'API/Solver/initialization'
+        id: 'API/Solver/index'
       },
       items:[
          
@@ -73,7 +73,7 @@ const sidebars = {
           label: 'Properties',
           link:{
             type: 'doc',
-            id: 'API/Solver/Properties/intro'
+            id: 'API/Solver/Properties/index'
           },
           items:[
                 ]

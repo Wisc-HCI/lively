@@ -56,13 +56,13 @@ const config = {
         items: [
           {
             type: 'doc',
-            docId: 'API/intro',
+            docId: 'API/index',
             position: 'left',
             label: 'API',
           },
           {
             type: 'doc',
-            docId: 'Tutorial/intro',
+            docId: 'Tutorial/index',
             position: 'left',
             label: 'Tutorial',
           },
@@ -81,7 +81,7 @@ const config = {
             items: [
               {
                 label: 'API',
-                to: '/docs/API/intro',
+                to: '/docs/API/index',
               },
             ],
           },
@@ -91,7 +91,7 @@ const config = {
             items: [
               {
                 label: 'Toturial',
-                to: '/docs/API/toturial/intro',
+                to: '/docs/API/Tutorial/index',
               },
               {
                 label: 'GitHub',

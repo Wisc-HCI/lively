@@ -1,6 +1,4 @@
----
-id: intro
----
+
 
 # Lively v0.10.0 (beta)
 
