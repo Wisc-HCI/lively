@@ -27,6 +27,10 @@ const config = {
     locales: ['en'],
   },
 
+  markdown: {
+    mermaid: true
+  },
+
   presets: [
     [
       'classic',
@@ -43,6 +47,8 @@ const config = {
       }),
     ],
   ],
+
+  themes: ['@docusaurus/theme-mermaid'],
 
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
@@ -90,7 +96,7 @@ const config = {
             title: 'More',
             items: [
               {
-                label: 'Toturial',
+                label: 'Tutorial',
                 to: '/docs/API/Tutorial/index',
               },
               {
@@ -107,6 +113,9 @@ const config = {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,      
       },
+      mermaid: {
+        theme: {light:'default',dark:'dark'}
+      }
     }),
 };
 
