@@ -29,6 +29,15 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: 'Info',
+      link: {
+        type:'doc',
+        id: 'API/Info/info'
+      },
+      items: [],    
+    },
+    {
+      type: 'category',
       label: 'Objectives',
       link: {
         type:'doc',
@@ -54,10 +63,8 @@ const sidebars = {
           },
           items:[
             'API/Solver/Methods/methods',
-            'API/Solver/Methods/solve',
-            'API/Solver/Methods/solve_with_retries',
+            'API/Solver/Methods/solve',   
             'API/Solver/Methods/reset',
-            'API/Solver/Methods/optimize',
             'API/Solver/Methods/compute_average_distance_table',
         ]
         },
