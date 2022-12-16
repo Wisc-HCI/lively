@@ -1,0 +1,44 @@
+# Collision Settings
+
+This is a parameter `collision_settings` that allows the user to customize the collision checking system while configuring a [`Solver`](Solver/initialization)
+
+`d_max`:
+A lower bound distance parameter that controls the distance that queries the collision detection between shapes. The distance by default is 0.3 meteres. This means that pairwise collision queries will only happen when two shapes are within 0.3 meters. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
+
+`r`:
+A scalar value between 0 and 1 that controls how cautious the collision estimate will be. The value is 0 by default which is the most cautious and accurate. The estimate will be more optimistic when the value approaches 1.
+
+`a_max`:
+A upper bound distance parameter that, similar to d_max, determines if a shape pair should be included or excluded in collision checking. The value is 2.0 meters by default. Increasing/Decreasing the distance will result in a greater/smaller distance for the collision queries which will lead to greater/smaller number of collision queries.
+
+`time_budget`:
+A time parameter that will be used in the collision checking. The value is 100 microseconds by default. Increase the value will result in a slower but more accurate proximity approximiation.
+
+`timed`:
+A boolean parameter that determines which routine will be used for collision checking. The value is true by default. Timed-limited routine will be used if true, error-limited routine will be used if false.
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem'; 
+
+<Tabs>
+  <TabItem value="js" label="Javascript">
+
+  ```js
+  let collision_settings = {dMax : 0.3, r : 0.0, aMax : 2.0, timeBudget : 100, timed : true}
+  ```
+
+  </TabItem>
+  <TabItem value="py" label="Python">
+
+  ```py
+  CollisionSettingInfo(d_max = 0.3, r = 0.0, a_max = 2.0, time_budget = 100, timed = True),
+  ```
+   </TabItem>
+   <TabItem value= "rust" label="Rust"> 
+
+   ```rust
+   let collision_settings = CollisionSettingInfo::new(0.3, 0.0, 2.0, 100, true);
+   ``` 
+   </TabItem>
+</Tabs> 
+
