@@ -2,9 +2,9 @@
 
 `LinkInfo` captures information such as name, and parent joint. It is generated through the parsing of the input URDF and is accessible as a property or getter of the [`solver`](../Solver/).
 
-| Parameter | Description |
-|---|---|
-|`name`||
-|`parent_joint`||
-|`visuals`||
-|`collisions`||
+| Parameter | Type | Description |
+|---|---|---|
+|`name`|string|The name of a partiuclar link. Each link has an unique name|
+|`parent_joint`|string|The parent joint of this link|
+|`visuals`|array of [`Shape`](../shapes)|The primitive [`shapes`](../shapes) that encapsulate the robotic parts or environmental objects|
+|`collisions`|array of [`Shape`](../shapes)|The primitive [`shapes`](../shapes), used in collision detection, that encapsulate the robotic parts or environmental objects|

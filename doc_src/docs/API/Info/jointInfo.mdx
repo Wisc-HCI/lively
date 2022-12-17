@@ -2,14 +2,14 @@
 
 `JointInfo` contains information about a joint such as name, type, lower bound, upper bound, parent link, or child link. It is generated through the parsing of the input URDF and is accessible as a [`property`](../Solver/Properties/) or [`getter`](../Solver/Methods/) of the [`solver`](../Solver/).
 
-| Parameter | Description |
-|---|---|
-|`name`||
-|`joint type`||
-|`lower_bound`||
-|`upper_bound`||
-|`max_velocity`||
-|`axis`||
-|`mimic`||
-|`parent_link`||
-|`child_link`||
+| Parameter | Type | Description |
+|---|---|---|
+|`name`|string|The name of a partiuclar joint. Each joint has an unique name|
+|`joint type`|string|The types of joints are consisted of `Revolute`, `Prismatic`,and `Spherical`|
+|`lower_bound`|float|The lowerest value of the joint space|
+|`upper_bound`|float|The highest value of the joint spac|
+|`max_velocity`|float|The max speed of a joint|
+|`axis`|float array of length 3|The coordinate system/motion axis|
+|`mimic`|optional [`MimicInfo`](MimicInfo)|The mimic joint|
+|`parent_link`|string|The parent link of the joint|
+|`child_link`|string|The child link of the joint|
