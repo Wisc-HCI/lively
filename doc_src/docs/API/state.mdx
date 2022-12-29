@@ -1,31 +1,57 @@
 # State
-The `State` object is the response back after calling [`solve`](Solver/Methods/solve). It contains the state of the robot in terms of joint and frames, as well as some diagnostic information regarding proximity of various shapes and the center-of-mass of the robot. 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-## Origin
+The `State` object is the response back after calling [`solve`](Solver/Methods/solve). 
+It contains the state of the robot in terms of joint and frames, as well as some diagnostic information regarding [`proximity`](../API/Info/proximityInfo) of various [`shapes`](../API/Shapes/index) and the `center-of-mass` of the robot. 
 
-The transform of the root of the robot. This is useful if the root node is movable. Exported as a Transform class (python) or object containing `translation` and `rotation` fields (javascript).
 
-## Joints
+| Parameter |Type| Description |
+|---|---|--|
+|`origin`|isometry consisted of translation and rotation|The transform of the root of the robot|
+|`joints`|lookup table(string, float)|A lookup table of the joint values for each movable joint|
+|`frames`|lookup table(string, [`TransformInfo`](../API/Info/transformInfo))|A lookup table of the positions/orientations for each link. Can either be `world` or `robot frame`|
+|`proximity`|list of [`ProximityInfo`](../API/Info/proximityInfo)|A list of all shapes that are currently tracked and that reach close enough proximity to potentially factor into collision detection|
+|`center_of_mass`|list of float|A translation (vector) indicating the current center of mass of the robot|
 
-A lookup table of the joint values for each movable joint. Exported as a dictionary (python) or object (javascript).
+<Tabs>
+  <TabItem value="js" label="Javascript">
 
-## Frames
+  ```js
+    let state = {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{"panda_joint1":0.0,"panda_joint2":0.0}}
+  ```
 
-A lookup table of the positions/orientations for each link. Exported as a dictionary (python) or object (javascript) of transform objects keyed by the link name.
+  </TabItem>
+  <TabItem value="py" label="Python">
 
-## Proximity
+  ```py
+    state = State(origin=Transform.identity(),joints={"panda_joint1":0.0,"panda_joint2":0.0})
+  ```
+   </TabItem>
+   <TabItem value= "rust" label="Rust"> 
 
-A list of all shapes that are currently tracked and that reach close enough proximity to potentially factor into collision detection. Exported as a ProximityInfo class (python) or object (javascript) with the following attributes:
+   ```rust
+    let iso = Isometry3::from_parts(
+         Translation3::new(
+             0.6497281999999998,
+             -0.24972819999999987,
+             0.050000000000000044,
+         ),
+         UnitQuaternion::from_quaternion(Quaternion::new(
+             0.0,
+             0.0,
+             -0.7069999677447771,
+             0.7072135784958345,
+         )),
+     );
+     let mut joints: HashMap<String, f64> = HashMap::new();
+     let mut frames: HashMap<String,TransformInfo> = HashMap::new();
+     let mut proximities = Vec::new();
+     let mut center_of_mass: Vector3<f64>::new();
+     let state = State::new(iso, joints, frames, proximities, center_of_mass);
+   ``` 
+   </TabItem>
+</Tabs> 
 
-1. `shape1` (`string`) The name of the first shape (note, if the robot is initialized with this shape, and it is attached to a robot link, the name is the link it is attached to.)
-2. `shape2` (`string`) The name of the second shape (note, if the robot is initialized with this shape, and it is attached to a robot link, the name is the link it is attached to.)
-3. `distance` (`float`/`number`/`None`/`null`) The distance recorded between the two shapes. May possibly be `None` or `null` if not tracked, and is zero or negative if the shapes are intersecting. 
-4. `points` (`None`/`set of two points`) The closest points on two different shapes that are used determined whether these two shapes are close though to cause a collision based on the distance between the points on these two shapes. 
-5. `physical` (`bool`) True if both shapes are physical, otherwise False.
 
-- If the distance between points on two different shapes is smaller than or equal to `0.0`, two shapes are `intersecting` with each other. 
-- If the distance between points on two different shapes is bigger than `0.0` but smaller than a `user defined distance`, two shapes are `with in margin` with each other within `user defined distance`.
 
-## Center of Mass
-
-A translation (vector) indicating the current center of mass of the robot.
