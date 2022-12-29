@@ -16,7 +16,20 @@ const sidebars = {
   
   sidebar: [
      'API/index',
-     'API/shapes',
+     {
+      type: 'category',
+      label: 'Shapes',
+      link: {
+        type:'doc',
+        id: 'API/Shapes/index'
+      },
+      items: [
+        'API/Shapes/box',
+        'API/Shapes/sphere',
+        'API/Shapes/cylinder',
+        'API/Shapes/capsule'
+      ],    
+    },
      'API/state',
     {
       type: 'category',
@@ -48,9 +61,12 @@ const sidebars = {
       label: 'Objectives',
       link: {
         type:'doc',
-        id: 'API/Objectives/objective'
+        id: 'API/Objectives/index'
       },
-      items: [],
+      items: [
+        'API/Objectives/category',
+        'API/Objectives/objective'
+      ],
     },
     'API/collision',
     {

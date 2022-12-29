@@ -1,18 +1,5 @@
 # Objectives
 
-Lively allows for a wide range of robot with which users program robot motion. These 24 properties, which serve as building blocks for defining the behavior and motion of the robot, fit into five categories:
-
-
-| Category | Description |
-| --- | --- | 
-| `Base` | Revolve around the fluidity of robot motion by limiting rapid changes and considering possible collisions between the links of the robot |
-| `Bounding` | Limit the space within which joints can assume angles and links can move or be oriented | 
-| `Matching` | Specify exact positions and orientations of links or angles of joints, while bounding behavior properties set limits |
-| `Mirroring` | Allow users to mirror the current state of a link's position or orientation in a different link, or the current angle of one joint in another |
-| `Liveliness` | Allow adding smooth, coordinated motion to joint angles or link positions/orientations |
-| `Forces` | Proximating the physcial forces applied to the robot |
-
-
 | Objective | Category | Description |
 | --- | --- | --- |
 | Collision Avoidance | `Base` | Detect and avoid collision using PROXIMA alogorithm[^1] |
@@ -27,8 +14,6 @@ Lively allows for a wide range of robot with which users program robot motion. T
 | Position Bounding | `Bounding` | Place the position of a link within a rotated ellipsoid |
 | Orientation Bounding | `Bounding`| A region in orientation space with some delta around an orientation |
 | Joint Bounding | `Bounding`| Limits the maximum and minimum values of a given joint |
-| Position Match | `Matching` | Control a link's position in space |
-| Orientation Match | `Matching` | Control a link's orientation in space |
 | Joint Match | `Matching` | Control a joint's value directly |
 | Distance Match | `Matching` | Specify the distance between two links in space |
 | Position Mirroring | `Mirroring` | Mirror the positions of two links with an optional offset |

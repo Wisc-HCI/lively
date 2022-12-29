@@ -1,4 +1,6 @@
 # Shapes
+
+# Shapes
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -6,117 +8,16 @@ import TabItem from '@theme/TabItem';
 
 There are 4 different Shape classes: Box, Sphere, Capsule, and Cylinder. The `name` field is entirely for your own usage, and the `frame` field indicates what robot link the shape is attached to (by default "world"). The `physical` field indicates whether the shape presents a collision, and should be factored into collision avoidance. Otherwise, the shape is simply tracked in the state if close enough.
 
+Note: The axis we are using is z-up compare to the traditional y-up axis. This applies to all the shapes listed below.
+
+![img alt](/img/z-up_axis.gif)
+
 ### 1. Box
 
-<Tabs>
-  <TabItem value="js" label="Javascript">
 
-  ```js
-  let shape = {
-    type:'Box',
-    name:'camera attachment',
-    frame: 'panda_hand',
-    physical: true,
-    x:0.5,y:0.5,z:0.2,
-    localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
-    }
-  ```
-
-  </TabItem>
-  <TabItem value="py" label="Python">
-
-  ```py
-  shape = BoxShape(
-    name="camera attachment",
-    frame='panda_hand',
-    physical=True,
-    x=0.5,y=0.5,z=0.2,
-    local_transform=Transform.identity())
-  ```
-   </TabItem>
-   <TabItem value= "rust" label="Rust"> 
-
-   ```rust
-   let transform = Isometry3::from_parts(
-            Translation3::new(
-                0.0,
-                0.0,
-                0.0,
-            ),
-            UnitQuaternion::from_quaternion(Quaternion::new(
-                0.0,
-                0.0,
-                -0.7069999677447771,
-                0.7072135784958345,
-            )),
-        );
-   let box = Shape::Box(BoxShape::new(
-            "box".to_string(),
-            "world".to_string(),
-            true,
-            0.5,
-            0.5,
-            0.2,
-            transform,
-        ));  
-   ``` 
-   </TabItem>
-</Tabs> 
 
 ### 2. Sphere
 
-<Tabs>
-  <TabItem value="js" label="Javascript">
-
-  ```js
-  let shape = {
-    type:'Sphere',
-    name:'bouncy ball',
-    frame: 'world',
-    physical: true,
-    radius:0.1,
-    localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
-    }
-  ```
-
-  </TabItem>
-  <TabItem value="py" label="Python">
-
-  ```py
-  shape = SphereShape(
-    name="bouncy ball",
-    frame='world',
-    physical=True,
-    radius=0.1,
-    local_transform=Transform.identity())
-  ```
-   </TabItem>
-   <TabItem value= "rust" label="Rust"> 
-
-   ```rust
-   let transform = Isometry3::from_parts(
-            Translation3::new(
-                0.0,
-                0.0,
-                0.0,
-            ),
-            UnitQuaternion::from_quaternion(Quaternion::new(
-                0.0,
-                0.0,
-                -0.7069999677447771,
-                0.7072135784958345,
-            )),
-        );
-   let sphere = Shape::Sphere(SphereShape::new(
-                "sphere".to_string(),
-                "world".to_string(),
-                true,
-                0.1,
-                transform,     
-        ));  
-   ``` 
-   </TabItem>
-</Tabs> 
 
 ### 3. Capsule
 
