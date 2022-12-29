@@ -50,7 +50,10 @@ const sidebars = {
         type:'doc',
         id: 'API/Objectives/index'
       },
-      items: [],
+      items: [
+        'API/Objectives/category',
+        'API/Objectives/objective'
+      ],
     },
     'API/collision',
     {
