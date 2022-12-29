@@ -3,7 +3,6 @@ use lively::objectives::core::base::CollisionAvoidanceObjective;
 use lively::objectives::core::base::SmoothnessMacroObjective;
 use lively::objectives::core::matching::PositionMatchObjective;
 use lively::objectives::objective::Objective;
-use lively::utils::goals::Goal::ScalarRange;
 use lively::utils::shapes::*;
 use lively::utils::info::{*};
 use lively::utils::shapes::Shape;
@@ -451,9 +450,9 @@ fn main() {
     }
 
     let objective_vec: Vec<Objective> = vec![
-        lively_tk::objectives::objective::Objective::PositionMatch(pos_match_obj),
-        lively_tk::objectives::objective::Objective::CollisionAvoidance(col_avoid_obj),
-        lively_tk::objectives::objective::Objective::SmoothnessMacro(smooth_macro_obj),
+        Objective::PositionMatch(pos_match_obj),
+        Objective::CollisionAvoidance(col_avoid_obj),
+        Objective::SmoothnessMacro(smooth_macro_obj),
     ];
     
 

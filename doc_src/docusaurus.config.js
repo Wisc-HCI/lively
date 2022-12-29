@@ -16,7 +16,7 @@ const config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
+  organizationName: 'Wisc-HCI', // Usually your GitHub org/user name.
   projectName: 'Lively', // Usually your repo name.
 
   // Even if you don't use internalization, you can use this field to set useful
@@ -68,9 +68,9 @@ const config = {
           },
           {
             type: 'doc',
-            docId: 'Tutorial/index',
+            docId: 'Tutorials/index',
             position: 'left',
-            label: 'Tutorial',
+            label: 'Tutorials',
           },
           {
             href: 'https://github.com/Wisc-HCI/lively',
