@@ -1,4 +1,6 @@
 # Shapes
+
+# Shapes
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -12,76 +14,6 @@ Note: The axis we are using is z-up compare to the traditional y-up axis. This a
 
 ### 1. Box
 
-A 6-sided cuboid that captures colliders that have cuboid properties. 
-
-![img alt](/img/box.png)
-
-| Parameter |Type| Description |
-|---|---|--|
-|`type`|string|The `Box` shape class|
-|`name`|string|A user-defined name of the shape|
-|`frame`|string|The frame this shape belongs to. Can either be `world` or `robot frame`|
-|`physical`|boolean|True if the collision with this shape is phyiscal, else false|
-|`x`|float|The length of `x` dimension|
-|`y`|float|The length of `y` dimension|
-|`z`|float|The length of `z` dimension|
-|`localTransform`|isometry consisted of translation and rotation|Defines the position and rotation of the shape relevant to the specific `frame`|
-
-
-<Tabs>
-  <TabItem value="js" label="Javascript">
-
-  ```js
-  let shape = {
-    type:'Box',
-    name:'camera attachment',
-    frame: 'panda_hand',
-    physical: true,
-    x:0.5,y:0.5,z:0.2,
-    localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
-    }
-  ```
-
-  </TabItem>
-  <TabItem value="py" label="Python">
-
-  ```py
-  shape = BoxShape(
-    name="camera attachment",
-    frame='panda_hand',
-    physical=True,
-    x=0.5,y=0.5,z=0.2,
-    local_transform=Transform.identity())
-  ```
-   </TabItem>
-   <TabItem value= "rust" label="Rust"> 
-
-   ```rust
-   let transform = Isometry3::from_parts(
-            Translation3::new(
-                0.0,
-                0.0,
-                0.0,
-            ),
-            UnitQuaternion::from_quaternion(Quaternion::new(
-                0.0,
-                0.0,
-                -0.7069999677447771,
-                0.7072135784958345,
-            )),
-        );
-   let box = Shape::Box(BoxShape::new(
-            "box".to_string(),
-            "world".to_string(),
-            true,
-            0.5,
-            0.5,
-            0.2,
-            transform,
-        ));  
-   ``` 
-   </TabItem>
-</Tabs> 
 
 
 ### 2. Sphere

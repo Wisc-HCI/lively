@@ -16,7 +16,17 @@ const sidebars = {
   
   sidebar: [
      'API/index',
-     'API/shapes',
+     {
+      type: 'category',
+      label: 'Shapes',
+      link: {
+        type:'doc',
+        id: 'API/Shapes/index'
+      },
+      items: [
+        'API/Shapes/box'
+      ],    
+    },
      'API/state',
     {
       type: 'category',
