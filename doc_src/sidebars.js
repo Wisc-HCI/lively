@@ -48,7 +48,7 @@ const sidebars = {
       label: 'Objectives',
       link: {
         type:'doc',
-        id: 'API/Objectives/objective'
+        id: 'API/Objectives/index'
       },
       items: [],
     },
