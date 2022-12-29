@@ -12,6 +12,20 @@ Note: The axis we are using is z-up compare to the traditional y-up axis. This a
 
 ### 1. Box
 
+A 6-sided cuboid that captures colliders that have cuboid properties. 
+
+![img alt](/img/box.png)
+
+| Parameter |Type| Description |
+|---|---|--|
+|`type`|string|The `Box` shape class|
+|`name`|string|A user-defined name of the shape|
+|`frame`|string|The frame this shape belongs to. Can either be `world` or `robot frame`|
+|`physical`|boolean|True if the collision with this shape is phyiscal, else false|
+|`x`|float|The length of `x` dimension|
+|`y`|float|The length of `y` dimension|
+|`z`|float|The length of `z` dimension|
+|`localTransform`|isometry consisted of translation and rotation|Defines the position and rotation of the shape relevant to the specific `frame`|
 
 
 <Tabs>
@@ -68,6 +82,7 @@ Note: The axis we are using is z-up compare to the traditional y-up axis. This a
    ``` 
    </TabItem>
 </Tabs> 
+
 
 ### 2. Sphere
 
