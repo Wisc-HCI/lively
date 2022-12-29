@@ -18,58 +18,6 @@ Note: The axis we are using is z-up compare to the traditional y-up axis. This a
 
 ### 2. Sphere
 
-<Tabs>
-  <TabItem value="js" label="Javascript">
-
-  ```js
-  let shape = {
-    type:'Sphere',
-    name:'bouncy ball',
-    frame: 'world',
-    physical: true,
-    radius:0.1,
-    localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
-    }
-  ```
-
-  </TabItem>
-  <TabItem value="py" label="Python">
-
-  ```py
-  shape = SphereShape(
-    name="bouncy ball",
-    frame='world',
-    physical=True,
-    radius=0.1,
-    local_transform=Transform.identity())
-  ```
-   </TabItem>
-   <TabItem value= "rust" label="Rust"> 
-
-   ```rust
-   let transform = Isometry3::from_parts(
-            Translation3::new(
-                0.0,
-                0.0,
-                0.0,
-            ),
-            UnitQuaternion::from_quaternion(Quaternion::new(
-                0.0,
-                0.0,
-                -0.7069999677447771,
-                0.7072135784958345,
-            )),
-        );
-   let sphere = Shape::Sphere(SphereShape::new(
-                "sphere".to_string(),
-                "world".to_string(),
-                true,
-                0.1,
-                transform,     
-        ));  
-   ``` 
-   </TabItem>
-</Tabs> 
 
 ### 3. Capsule
 

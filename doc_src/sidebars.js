@@ -24,7 +24,10 @@ const sidebars = {
         id: 'API/Shapes/index'
       },
       items: [
-        'API/Shapes/box'
+        'API/Shapes/box',
+        'API/Shapes/sphere',
+        'API/Shapes/cylinder',
+        'API/Shapes/capsule'
       ],    
     },
      'API/state',
