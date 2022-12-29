@@ -1,107 +1,105 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require('prism-react-renderer/themes/github');
-const darkCodeTheme = require('prism-react-renderer/themes/dracula');
+const lightCodeTheme = require("prism-react-renderer/themes/github");
+const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Lively',
-  tagline: 'Dinosaurs are cool',
-  url: 'https://your-docusaurus-test-site.com',
-  baseUrl: '/',
-  onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/logo.svg',
+  title: "Lively",
+  tagline: "Dinosaurs are cool",
+  url: "https://your-docusaurus-test-site.com",
+  baseUrl: "/",
+  onBrokenLinks: "throw",
+  onBrokenMarkdownLinks: "warn",
+  favicon: "img/logo.svg",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'Wisc-HCI', // Usually your GitHub org/user name.
-  projectName: 'Lively', // Usually your repo name.
+  organizationName: "Wisc-HCI", // Usually your GitHub org/user name.
+  projectName: "Lively", // Usually your repo name.
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
   // to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: "en",
+    locales: ["en"],
   },
 
   markdown: {
-    mermaid: true
+    mermaid: true,
   },
 
   presets: [
     [
-      'classic',
-     
-      ({
+      "classic",
+      {
         docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
-          
+          path: "docs",
+          sidebarPath: require.resolve("./sidebars.js"),
         },
-        
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+          customCss: require.resolve("./src/css/custom.css"),
         },
-      }),
+      },
     ],
   ],
 
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: ["@docusaurus/theme-mermaid"],
 
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'Lively',
+        title: "Lively",
         logo: {
-          alt: 'Lively Logo',
-          src: 'img/logo.svg',
+          alt: "Lively Logo",
+          src: "img/logo.svg",
         },
         items: [
           {
-            type: 'doc',
-            docId: 'API/index',
-            position: 'left',
-            label: 'API',
+            type: "doc",
+            docId: "API/index",
+            position: "left",
+            label: "API",
           },
           {
-            type: 'doc',
-            docId: 'Tutorials/index',
-            position: 'left',
-            label: 'Tutorials',
+            type: "doc",
+            docId: "Tutorials/index",
+            position: "left",
+            label: "Tutorials",
           },
           {
-            href: 'https://github.com/Wisc-HCI/lively',
-            label: 'GitHub',
-            position: 'right',
+            href: "https://github.com/Wisc-HCI/lively",
+            label: "GitHub",
+            position: "right",
           },
         ],
       },
       footer: {
-        style: 'dark',
+        style: "dark",
         links: [
           {
-            title: 'Docs',
+            title: "Docs",
             items: [
               {
-                label: 'API',
-                to: '/docs/API/index',
+                label: "API",
+                to: "/docs/API/index",
               },
             ],
           },
-         
+
           {
-            title: 'More',
+            title: "More",
             items: [
               {
-                label: 'Tutorial',
-                to: '/docs/API/Tutorial/index',
+                label: "Tutorial",
+                to: "/docs/API/Tutorial/index",
               },
               {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                label: "GitHub",
+                href: "https://github.com/facebook/docusaurus",
               },
             ],
           },
@@ -109,13 +107,13 @@ const config = {
         copyright: `Copyright © ${new Date().getFullYear()} Lively.`,
       },
       prism: {
-        additionalLanguages : ['rust'],
+        additionalLanguages: ["rust"],
         theme: lightCodeTheme,
-        darkTheme: darkCodeTheme,      
+        darkTheme: darkCodeTheme,
       },
       mermaid: {
-        theme: {light:'default',dark:'dark'}
-      }
+        theme: { light: "default", dark: "dark" },
+      },
     }),
 };
 
