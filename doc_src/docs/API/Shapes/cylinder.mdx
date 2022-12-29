@@ -1,1 +1,75 @@
 # Cylinder
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+A 3D cylinder shape that captures colliders with curvilinear geometric properties.
+
+![img alt](/img/cylinder.gif)
+
+| Parameter |Type| Description |
+|---|---|--|
+|`type`|string|The `Cylinder` shape class|
+|`name`|string|A user-defined name of the shape|
+|`frame`|string|The frame this shape belongs to. Can either be `world` or `robot frame`|
+|`physical`|boolean|True if the collision with this shape is phyiscal, else false|
+|`length`|float|The length of height of the cylinder|
+|`radius`|float|The length of `radius` of the cylinder|
+|`localTransform`|isometry consisted of translation and rotation|Defines the position and rotation of the shape relevant to the specific `frame`|
+
+
+<Tabs>
+  <TabItem value="js" label="Javascript">
+
+  ```js
+  let shape = {
+    type:'Cylinder',
+    name:'zone',
+    frame: 'world',
+    physical: false,
+    length:0.2,
+    radius:0.1,
+    localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
+    }
+  ```
+
+  </TabItem>
+  <TabItem value="py" label="Python">
+
+  ```py
+  shape = CylinderShape(
+    name="zone",
+    frame='world',
+    physical=False,
+    length=0.2,
+    radius=0.1,
+    local_transform=Transform.identity())
+  ```
+   </TabItem>
+   <TabItem value= "rust" label="Rust"> 
+
+   ```rust
+   let transform = Isometry3::from_parts(
+            Translation3::new(
+                0.0,
+                0.0,
+                0.0,
+            ),
+            UnitQuaternion::from_quaternion(Quaternion::new(
+                0.0,
+                0.0,
+                -0.7069999677447771,
+                0.7072135784958345,
+            )),
+        );
+   let cylinder_1 =  Shape::Cylinder(CylinderShape::new(
+                "cylinder".to_string(),
+                "world".to_string(),
+                true,
+                0.2,
+                0.1,
+                transform,
+            ));
+   ``` 
+   </TabItem>
+</Tabs> 
+
