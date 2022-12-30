@@ -5,19 +5,17 @@ description = "A real-time robot control framework with liveliness."
 repository = "https://github.com/Wisc-HCI/lively"
 homepage = "https://wisc-hci.github.io/lively/"
 license = "MIT"
-authors = ["djrakita <djrakita@gmail.com>","andrewjschoen <schoen.andrewj@gmail.com>"]
+authors = ["andrewjschoen <schoen.andrewj@gmail.com>","djrakita <djrakita@gmail.com>"]
 edition = "2021"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-pybindings = ["pyo3","pyo3-log"]
+pybindings = ["pyo3","pyo3-log","nalgebra-py"]
 jsbindings = ["wasm-bindgen","console_error_panic_hook"]
 profile-with-puffin = ["profiling/profile-with-puffin"]
 bevy = ["dep:bevy", "winit", "bevy_transform_gizmo", "bevy_mod_picking","smooth-bevy-cameras"]
-
-
 
 [dependencies]
 # Benchmarking
@@ -35,9 +33,23 @@ tracing-tracy = { version = "0.4.0" , optional = true}
 tracing-subscriber = { version = "0.2" , optional = true}
 profiling = { version = "1.0" , optional = true}
 
-nalgebra = { version = "0.31", features = ["serde-serialize-no-std"]}
+# Bevy
 bevy_transform_gizmo = {version = "0.3.1", optional = true}
 bevy_mod_picking = {version = "0.9", optional = true}
+smooth-bevy-cameras = {git = "https://github.com/bonsairobo/smooth-bevy-cameras", optional = true}
+bevy = {version = "0.8.1", optional = true}
+
+# Python
+pyo3 = {version = "0.16.5", features = ["extension-module"], optional = true}
+pyo3-log = {version = "0.6.0", optional = true}
+nalgebra-py = {version = "0.3.1", optional = true}
+
+# Javascript
+console_error_panic_hook = { version = "0.1.7", optional = true }
+wasm-bindgen = { version = "0.2.81", features = ["serde-serialize"], optional = true }
+getrandom = { version = "0.2", features = ["js"] }
+
+nalgebra = { version = "0.31", features = ["serde-serialize-no-std"]}
 array2d = "0.2.1"
 parry3d-f64 = "0.9.0"
 yaml-rust = "0.4"
@@ -52,17 +64,9 @@ k = {git = "https://github.com/AndrewJSchoen/k"}
 # k = { version = "0.28.0" }
 urdf-rs = "0.6.6"
 serde = { version = "1.0", features = ["derive"]}
-wasm-bindgen = { version = "0.2.81", features = ["serde-serialize"], optional = true }
-getrandom = { version = "0.2", features = ["js"] }
-pyo3 = {version = "0.16.5", features = ["extension-module"], optional = true}
-pyo3-log = {version = "0.6.0", optional = true}
 log = {version = "0.4.14"}
-console_error_panic_hook = { version = "0.1.7", optional = true }
 instant = { version = "0.1", features = [ "stdweb" ] }
 indexmap = "1.9.1"
-bevy = {version = "0.8.1", optional = true}
-smooth-bevy-cameras = {git = "https://github.com/bonsairobo/smooth-bevy-cameras", optional = true}
-nalgebra-py = "0.3.1"
 
 [profile.dev]
 opt-level = 3

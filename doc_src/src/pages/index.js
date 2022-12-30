@@ -13,8 +13,7 @@ import bannerUrl from "@site/static/img/doc_banner.png";
 function HomepageHeader() {
   // const { siteConfig } = useDocusaurusContext();
   // console.log(siteConfig)
-  const colorMode = useColorMode();
-  console.log(colorMode)
+  const {colorMode} = useColorMode();
   return (
     <header
       className={clsx(styles.heroBanner)}
@@ -27,7 +26,7 @@ function HomepageHeader() {
     >
       <div 
         style={{
-          backgroundColor:colorMode.isDarkTheme ? '#22222255' : '#dddddd55',
+          backgroundColor:colorMode === "dark" ? '#22222255' : '#dddddd55',
           padding:15,
           borderRadius:4,
           backdropFilter:'blur(5px)',
