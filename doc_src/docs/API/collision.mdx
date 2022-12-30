@@ -1,7 +1,26 @@
 # Collision
 
-The livelytk framework provides collision detection between the robot and environmental objects as well as within the shapes of robot parts. The collision detection functionality is implemented by a time-efficient algorithm that governs collision detection through a time-limited or error-limited routine that reduces the number of collision queries between the shapes by estimating the "pairwise relative spatial coherence", which is defined below:
 
 
-> "Guaranteed upper and lower bounds on signed distance are computed between each active pair of shapes in the scene. In this work, these bounds are computed by assessing how relative transforms between shapes change over time, a novel technique we call Pairwise Relative Spatial Coherence[^1]".
+Lively implements the PROXIMA collision detection algorithm, which allows for time-efficient collision
+and proximity detection for robots [^1]. The Collision Avoidance objective serves to utilize the data generated from this collision detection algorithm to prevent collisions. Lively employs a three-fold
+approach to handling modeling collision objects. 
 
+1. The first is input from the URDF during the initialization of the solver. This specification allows for the inclusion of four default types of shapes: [`boxes`](../API/Shapes/box),
+[`capsules`](../API/Shapes/capsule), [`cylinders`](../API/Shapes/cylinder), and [`spheres`](../API/Shapes/sphere), and these shapes are automatically imported into the collision model when the URDF is parsed. For cross-platform and web-based reasons, mesh-based colliders are ignored during URDF import. 
+
+2. The second approach allows additional
+colliders to be specified during initialization, including the above
+shapes and additionally convex hulls. These shapes can be attached
+to any link in the robot, or the world, allowing for a second level
+of support for collision specification. 
+
+3. Finally, as an optional input
+to the [`solve`](../API/) method, developers can provide a set of updates to
+the collision model. Using an id-based approach, new colliders can
+be added, and existing colliders can be moved or deleted. These
+mechanisms enable the system to respond in real-time to new or
+moving objects in the scene.
+
+## References
+[^1]:Rakita, Daniel, Bilge Mutlu, and Michael Gleicher. "PROXIMA: An Approach for Time or Accuracy Budgeted Collision Proximity Queries." Proceedings of Robotics: Science and Systems (RSS). 2022. http://www.roboticsproceedings.org/rss18/p043.pdf
