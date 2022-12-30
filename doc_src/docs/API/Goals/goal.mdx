@@ -5,10 +5,10 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 # Goals
-There are a variety of different "goal" types that can be provided. Think of these as settings that you would like to achieve (e.g. a PositionMatch objective accepts a `Translation` goal). 
+There are a variety of different "goal" types that can be provided. Think of these as settings that you would like to achieve (e.g. a [`PositionMatch`](../Objectives/matching) objective accepts a `Translation` goal). 
 
 ## Translation
-The translation goal is used by the `PositionMatch`, `PositionMirroring`, and `OriginPositionMatch` objectives.
+A 3-vector representing coordinates that is used by the [`PositionMatch`](../Objectives/matching), [`PositionMirroring`](../Objectives/mirroring) objectives.
 <Tabs>
   <TabItem value="js" label="Javascript">
 
@@ -34,7 +34,7 @@ The translation goal is used by the `PositionMatch`, `PositionMirroring`, and `O
 
 ## Rotation
 
-The rotation goal is used by the `OrientationMatch`, `OrientationMirroring`, and `OriginOrientationMatch` objectives.
+A Quaternion representing rotation that is used by the [`OrientationMatch`](../Objectives/matching), [`OrientationMirroring`](../Objectives/mirroring) objectives.
 <Tabs>
   <TabItem value="js" label="Javascript">
 
@@ -61,7 +61,7 @@ The rotation goal is used by the `OrientationMatch`, `OrientationMirroring`, and
 
 ## Scalar
 
-The scalar goal is used by the `JointMatch`, `JointMirroring`, `DistanceMatch`, `JointLiveliness`, and `RelativeMotionLiveliness` objectives.
+A float value that is used by the [`JointMatch`](../Objectives/matching), [`JointMirroring`](../Objectives/mirroring), [`DistanceMatch`](../Objectives/matching), [`JointLiveliness`](../Objectives/liveliness), and [`RelativeMotionLiveliness`](../Objectives/liveliness) objectives.
 
 <Tabs>
   <TabItem value="js" label="Javascript">
@@ -89,7 +89,7 @@ The scalar goal is used by the `JointMatch`, `JointMirroring`, `DistanceMatch`, 
 
 ## Size
 
-The size goal is used by the `PositionLiveliness`, `OrientationLiveliness`, `OriginPositionLiveliness`, and `OriginOrientationLiveliness` objectives.
+A 3-vector representing scale of a 3D shape that is used by the [`PositionLiveliness`](../Objectives/liveliness), [`OrientationLiveliness`](../Objectives/liveliness), [`OriginPositionLiveliness`](../Objectives/liveliness) objectives.
 
 <Tabs>
   <TabItem value="js" label="Javascript">
@@ -116,7 +116,7 @@ The size goal is used by the `PositionLiveliness`, `OrientationLiveliness`, `Ori
 
 ## Ellipse
 
-The ellipse goal is used by the `PositionBounding` objective.
+A structure designating a rotated ellipsoid, with `Translation`, `Rotation`, and `Size` components. The `ellipse` goal is used by the [`PositionBounding`](../Objectives/bounding) objective.
 
 <Tabs>
   <TabItem value="js" label="Javascript">
@@ -163,7 +163,7 @@ The ellipse goal is used by the `PositionBounding` objective.
 
 ## RotationRange
 
-The rotation range goal is used by the `RotationBounding` objective.
+A structure including a center `Rotation`, as well as a float value indicating allowed delta in radians from that rotation. The `RotationRange` goal is used by the [`RotationBounding`](../Objectives/bounding) objective.
 
 <Tabs>
   <TabItem value="js" label="Javascript">
@@ -200,7 +200,7 @@ The rotation range goal is used by the `RotationBounding` objective.
 
 ## ScalarRange
 
-The scalar range goal is used by the `JointBounding` objective.
+The `ScalarRange` goal is used by the [`JointBounding`](../Objectives/bounding) objective.
 
 <Tabs>
   <TabItem value="js" label="Javascript">
