@@ -94,9 +94,9 @@ const sidebars = {
       link: {
         type: "doc",
         id: "API/Objectives/index",
+
       },
-      items: ["API/Objectives/category", 
-      "API/Objectives/objective",
+      items: [
       "API/Objectives/base",
       "API/Objectives/bounding",
       "API/Objectives/matching",
