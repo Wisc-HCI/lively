@@ -1,2 +1,13 @@
 # Base
 
+| Objective | Category | Description |
+| --- | --- | --- |
+| Collision Avoidance | `Base` | Detect and avoid collision using PROXIMA alogorithm[^1] |
+| Joint Limits | `Base` | Applies a cost to approaching the robot’s joint limits |
+| Velocity Minimization | `Base` | Prevent rapid joint movements |
+| Origin Velocity Minimization | `Base` | Prevent rapid robot root movements |
+| Acceleration Minimization | `Base` | Prevent rapid changes in joint speed |
+| Origin Acceleration Minimization | `Base` | Prevent rapid changes in robot root speed |
+| Jerk Minimization | `Base` | Add fluidity to robot movement along the joints |
+| Origin Jerk Minimization | `Base` |  Add fluidity to robot movement within the Cartesian space of the origin |
+| Smoothness Macro | `Base` | Combines each of the velocity, acceleration, and jerk minimization properties with normalized weights |
