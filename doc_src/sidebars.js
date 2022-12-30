@@ -31,7 +31,6 @@ const sidebars = {
             type: "generated-index",
           },
           items: [
-            "API/Solver/Methods/methods",
             "API/Solver/Methods/solve",
             "API/Solver/Methods/reset",
             "API/Solver/Methods/compute_average_distance_table",
