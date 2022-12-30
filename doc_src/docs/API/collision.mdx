@@ -16,11 +16,16 @@ to any link in the robot, or the world, allowing for a second level
 of support for collision specification. 
 
 3. Finally, as an optional input
-to the [`solve`](../API/) method, developers can provide a set of updates to
+to the [`solve`](../API/Solver/Methods/solve) method, developers can provide a set of updates to
 the collision model. Using an id-based approach, new colliders can
 be added, and existing colliders can be moved or deleted. These
 mechanisms enable the system to respond in real-time to new or
 moving objects in the scene.
+
+![img alt](/img/collisionGraph.png)
+__Solve times for the UR3e, Panda, and Pepper robots,
+with randomized locations of environmental colliders. Of
+note, speed is largely unaffected by shape count.__
 
 ## References
 [^1]:Rakita, Daniel, Bilge Mutlu, and Michael Gleicher. "PROXIMA: An Approach for Time or Accuracy Budgeted Collision Proximity Queries." Proceedings of Robotics: Science and Systems (RSS). 2022. http://www.roboticsproceedings.org/rss18/p043.pdf
