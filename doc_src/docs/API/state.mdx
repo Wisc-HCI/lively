@@ -8,11 +8,11 @@ It contains the state of the robot in terms of joint and frames, as well as some
 
 | Parameter |Type| Description |
 |---|---|--|
-|`origin`|isometry consisted of translation and rotation|The transform of the root of the robot|
+|`origin`|isometry consisted of translation and rotation|The transform of the root of the robot. This data is also included in `frames`|
 |`joints`|lookup table(string, float)|A lookup table of the joint values for each movable joint|
-|`frames`|lookup table(string, [`TransformInfo`](../API/Info/transformInfo))|A lookup table of the positions/orientations for each link. Can either be `world` or `robot frame`|
-|`proximity`|list of [`ProximityInfo`](../API/Info/proximityInfo)|A list of all shapes that are currently tracked and that reach close enough proximity to potentially factor into collision detection|
-|`center_of_mass`|list of float|A translation (vector) indicating the current center of mass of the robot|
+|`frames`|lookup table(string, [`TransformInfo`](../API/Info/transformInfo))|A lookup table of each link’s position in both world and local coordinates|
+|`proximity`|list of [`ProximityInfo`](../API/Info/proximityInfo)|A vector of data representing pairwise proximity between the robot’s parts and other robot parts and the environment. Each entry contains distance, as well as the closest points between the pair of colliders|
+|`center_of_mass`|list of float|A 3-vector representing the center of mass of the robot in the world frame|
 
 <Tabs>
   <TabItem value="js" label="Javascript">
