@@ -2,7 +2,9 @@
 
 Matching Objectives specify exact positions and orientations of links or angles of joints, while bounding behavior properties set limits.
 
-| Objective | Category | Description |
+| Objective | Goals | Description |
 | --- | --- | --- |
-| Joint Match | `Matching` | Control a joint's value directly |
-| Distance Match | `Matching` | Specify the distance between two links in space |
+| Position Match | [`Translation`](../Goals/goal)  | Control a link's position in space |
+| Orientation Match | [`Rotation`](../Goals/goal) | Control a link's position in space |
+| Joint Match | [`Scalar`](../Goals/goal) | Control a joint's value directly |
+| Distance Match | [`Scalar`](../Goals/goal) | Specify the distance between two links in space |
