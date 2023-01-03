@@ -47,12 +47,12 @@ impl Solver {
         // Parse the bounds that were given
 
         let displacement_bounds: Vec<(f64,f64)> = root_bounds.unwrap_or(vec![
-            (0.0,INFINITY.into()),
-            (0.0,INFINITY.into()),
-            (0.0,INFINITY.into()),
-            (0.0,PI/-2.0),
-            (0.0,PI/-2.0),
-            (0.0,PI/-2.0),
+            (0.0,0.0),
+            (0.0,0.0),
+            (0.0,0.0),
+            (0.0,0.0),
+            (0.0,0.0),
+            (0.0,0.0),
         ]);
         let mut lower_bounds: Vec<f64> = vec![];
         let mut upper_bounds: Vec<f64> = vec![];

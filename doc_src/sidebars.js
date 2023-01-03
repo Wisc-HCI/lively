@@ -93,22 +93,44 @@ const sidebars = {
       link: {
         type: "doc",
         id: "API/Objectives/index",
-
       },
       items: [
-      "API/Objectives/base",
-      "API/Objectives/bounding",
-      "API/Objectives/matching",
-      "API/Objectives/mirroring",
-      "API/Objectives/liveliness",
-      "API/Objectives/forces",
-    ],
+        "API/Objectives/base",
+        "API/Objectives/bounding",
+        "API/Objectives/matching",
+        "API/Objectives/mirroring",
+        "API/Objectives/liveliness",
+        "API/Objectives/forces",
+      ],
     },
-    "API/collision"
+    "API/collision",
   ],
   tutorials: [
-   "Tutorials/index",
-  ]
+    "Tutorials/index",
+    "Tutorials/installation",
+    {
+      type: "category",
+      label: "Basic Usage",
+      link: {
+        type: "generated-index",
+      },
+      items: [
+        "Tutorials/initialization",
+        "Tutorials/advanced_initialization",
+        "Tutorials/solving",
+        "Tutorials/liveliness",
+        "Tutorials/environment",
+      ],
+    },
+    {
+      type: "category",
+      label: "Customized Usage",
+      link: {
+        type: "generated-index",
+      },
+      items: ["Tutorials/adding_objectives", "Tutorials/adding_goals"],
+    },
+  ],
 };
 
 module.exports = sidebars;

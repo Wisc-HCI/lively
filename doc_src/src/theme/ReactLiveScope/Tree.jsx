@@ -32,12 +32,14 @@ export const Tree = ({ label, data, topLevel=true }) => {
         />
       ) : typeof data === "string" || typeof data === "number" ? (
         <Header label={label} open={open} value={data} extra={typeof data} />
+      ) : typeof data === "boolean" ? (
+        <Header label={label} open={open} value={data ? 'true' : 'false'} extra={typeof data} />
       ) : data === null ? (
         <Header label={label} open={open} value={"null"} />
       ) : data === undefined ? (
         <Header label={label} open={open} value={"undefined"} />
       ) : (
-        "not handled"
+        <Header label={label} open={open} value={`not handled (${typeof data})`} />
       )}
       {typeof data === "object" && data !== null && data !== undefined && (
         <AnimatePresence>
