@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, memo } from "react";
 import { useColorMode } from '@docusaurus/theme-common';
 
-export const Tree = ({ label, data }) => {
+export const Tree = ({ label, data, topLevel=true }) => {
   const {colorMode} = useColorMode();
   const [open, setOpen] = useState(false);
   const openable =
@@ -14,6 +14,7 @@ export const Tree = ({ label, data }) => {
         e.stopPropagation();
       }}
       style={{
+        backgroundColor: !topLevel ? 'none' : colorMode === 'dark' ? "#dddddd44" : "#22222244",
         borderRadius: 5,
         padding: 6,
         textAlign: "left",
@@ -56,7 +57,7 @@ export const Tree = ({ label, data }) => {
               }}
             >
               {Object.keys(data).map((k) => (
-                <Tree key={k} label={k} data={data[k]} />
+                <Tree key={k} label={k} data={data[k]} topLevel={false}/>
               ))}
             </motion.div>
         }

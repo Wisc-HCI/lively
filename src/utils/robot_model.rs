@@ -219,8 +219,9 @@ impl RobotModel {
         } else {
             proximity = vec![]
         }
-
+        
         let center_of_mass_vec = center_of_mass(&self.chain);
+        println!("{:?} {:?}",x,center_of_mass_vec);
 
         // Return the current state.
         return State::new(origin, joints, frames, proximity, center_of_mass_vec)

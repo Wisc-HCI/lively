@@ -11,44 +11,98 @@ use nalgebra::Vector3;
 pub enum BehaviorProperty {
     PositionMatch {
         objective: PositionMatchObjective,
-        goal: Goal::Translation
+        goal: Option::Some(Goal::Translation)
     },
     OrientationMatch {
         objective: OrientationMatchObjective,
-        goal: Goal::Rotation
+        goal: Option::Some(Goal::Rotation)
     },
     PositionLiveliness {
         objective: PositionLivelinessObjective,
-        goal: Goal::Size
+        goal: Option::Some(Goal::Size)
     },
     OrientationLiveliness {
         objective: OrientationLivelinessObjective,
-        goal: Goal::Size
+        goal: Option::Some(Goal::Size)
     },
     PositionMirroring {
         objective: PositionMirroringObjective,
-        goal: Goal::Translation
+        goal: Option::Some(Goal::Translation)
     },
     OrientationMirroring {
         objective: OrientationMirroringObjective,
-        goal: Goal::Rotation
+        goal: Option::Some(Goal::Rotation)
     },
-    PositionBounding(PositionBoundingObjective),
-    OrientationBounding(OrientationBoundingObjective),
-    JointMatch(JointMatchObjective),
-    JointLiveliness(JointLivelinessObjective),
-    JointMirroring(JointMirroringObjective),
-    JointLimits(JointLimitsObjective),
-    JointBounding(JointBoundingObjective),
-    CollisionAvoidance(CollisionAvoidanceObjective),
-    VelocityMinimization(VelocityMinimizationObjective),
-    AccelerationMinimization(AccelerationMinimizationObjective),
-    JerkMinimization(JerkMinimizationObjective),
-    OriginVelocityMinimization(OriginVelocityMinimizationObjective),
-    OriginAccelerationMinimization(OriginAccelerationMinimizationObjective),
-    OriginJerkMinimization(OriginJerkMinimizationObjective),
-    RelativeMotionLiveliness(RelativeMotionLivelinessObjective),
-    Gravity(GravityObjective),
-    SmoothnessMacro(SmoothnessMacroObjective),
-    DistanceMatch(DistanceMatchObjective)
+    PositionBounding {
+        objective: PositionBoundingObjective,
+        goal: Option::Some(Goal::Ellipse)
+    },
+    OrientationBounding{
+        objective: OrientationBoundingObjective,
+        goal: Option::Some(Goal::RotationRange)
+    },
+    JointMatch{
+        objective: JointMatchObjective,
+        goal: Option::Some(Goal::ScalarRange)
+    },
+    JointLiveliness{
+        objective: JointLivelinessObjective,
+        goal: Option::Some(Goal::Scalar)
+    },
+    JointMirroring{
+        objective: JointMirroringObjective,
+        goal: Option::Some(Goal::Scalar)
+    },
+    JointLimits{
+        objective: JointLimitsObjective,
+        goal: None
+    },
+    JointBounding{
+        objective: JointBoundingObjective,
+        goal: None
+    },
+    CollisionAvoidance{
+        objective: CollisionAvoidanceObjective,
+        goal: None
+    },
+    VelocityMinimization{
+        objective: VelocityMinimizationObjective,
+        goal: None
+    },
+    AccelerationMinimization{
+        objective: AccelerationMinimizationObjective,
+        goal: None
+    },
+    JerkMinimization{
+        objective: JerkMinimizationObjective,
+        goal: None
+    },
+    OriginVelocityMinimization{
+        objective: OriginVelocityMinimizationObjective,
+        goal: None
+    },
+    OriginAccelerationMinimization{
+        objective: OriginAccelerationMinimizationObjective,
+        goal: None
+    },
+    OriginJerkMinimization{
+        objective: OriginJerkMinimizationObjective,
+        goal: None
+    },
+    RelativeMotionLiveliness{
+        objective: RelativeMotionLivelinessObjective,
+        goal: Option::Some(Goal::Scalar)
+    },
+    Gravity{
+        objective: GravityObjective,
+        goal: None
+    },
+    SmoothnessMacro{
+        objective: SmoothnessMacroObjective,
+        goal: None
+    },
+    DistanceMatch{
+        objective: DistanceMatchObjective,
+        goal: Option::Some(Goal::Scalar)
+    }
 }

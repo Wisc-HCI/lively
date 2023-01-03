@@ -15,6 +15,7 @@ pub mod utils;
 pub mod objectives;
 pub mod lively;
 pub mod wrappers;
+// pub mod manager;
 
 #[cfg(feature = "pybindings")]
 use crate::wrappers::python::solver::PySolver;

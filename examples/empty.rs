@@ -75,10 +75,10 @@ fn main() {
         None,
         None,
         None,
-        None,
-        None,
+        None
     );
     temp.compute_average_distance_table();
+    println!("{:?}",temp.get_current_state());
     
 
     // let vec = temp.compute_average_distance_table();

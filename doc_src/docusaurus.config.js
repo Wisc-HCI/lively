@@ -1,6 +1,6 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
-
+const meshLoader = require("./plugins/mesh-loader");
 const lightCodeTheme = require("prism-react-renderer/themes/github");
 const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 
@@ -47,7 +47,7 @@ const config = {
   ],
 
   themes: ["@docusaurus/theme-mermaid",'@docusaurus/theme-live-codeblock'],
-
+  plugins: ['./plugins/mesh-loader'], // loader required for .glb
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
