@@ -16,20 +16,74 @@ import TabItem from '@theme/TabItem';
 
   ```js
   solver.reset(
-    {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{panda_joint1:0.0,panda_joint2:0.0,...}}, weights:{}) // Can define new weights here
+    // A new state with origin and joint properties
+    {
+      origin:{
+        translation:[0,0,0],
+        rotation:[1,0,0,0]
+      },
+      joints:{
+        panda_joint1:0.0,
+        panda_joint2:0.0,
+        ...
+      }
+    }, 
+    // Weights
+    {
+      myObjective:0.5
+    }
+  )
   ```
 
   </TabItem>
   <TabItem value="py" label="Python">
 
   ```py
-  solver.reset(state=State(origin=Transform.identity(),joints={"panda_joint1":0.0,"panda_joint2":0.0,...}),weights={})
+  solver.reset(
+    state=State(
+      origin=Transform.identity(),
+      joints={
+        "panda_joint1":0.0,
+        "panda_joint2":0.0,
+        ...
+      }
+    ),
+    weights={}
+  )
   ```
    </TabItem>
    <TabItem value= "rust" label="Rust"> 
 
-   ```rust
-   solver::reset(`State`, `Joints`, `Weights`);
+  ```rust
+  let mut joints: HashMap<String,f64> = HashMap::new();
+  joints.insert(
+    "panda_joint1".into(),
+    0.0
+  );
+  joints.insert(
+    "panda_joint2".into(),
+    0.0
+  )
+  ...
+  
+  let new_state: State = State::new(
+        Isometry3::identity(), // Origin
+        joints, // Joint Values
+        frames: HashMap::new(), // Ignored, so just pass in an empty map
+        proximity: vec![],
+        center_of_mass: vec![0.0,0.0,0.0] // Ignored, so just pass in a 3-vector of zeros
+  );
+
+  let mut new_weights: HashMap<String,f64> = HashMap::new();
+  new_weights.insert(
+    "myObjective".into(),
+    0.5
+  );
+
+  solver.reset(
+    new_state,
+    new_weights
+  );
    ``` 
    </TabItem>
 </Tabs> 
