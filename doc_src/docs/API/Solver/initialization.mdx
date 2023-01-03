@@ -4,8 +4,23 @@ sidebar_position: 1
 
 # Initialization 
 
-Configuring of Lively is centered on the **Solver** class, which you can instantiate in the following ways:
+Configuring of Lively is centered on the [`Solver`](../Solver) class, which you can instantiate with the following parameters:
 
+:::note
+The **optional** field can be left empty if the no specification is needed. The `Solver` will just use the default setting for the optional parameters.
+:::
+
+
+|Parameter|Type|Optional|Description|
+|---|---|---|---|
+|`urdf`|string|no|The string representation of XML format |
+|`objectives`|look-up table of <string,[`Objective`](../Objectives)> key-value pairs |no|The initial objectives to the `Solver`|
+|`root_bounds`|list of (float,float)|yes|The list of hard limits on how much the base of the robot can move relative to the world frame|
+|`shapes`|list of [`Shape`](../Shapes) objects|yes|The initial environmental shapes|
+|`initial_state`|[`State`](../state) objects|yes|The initial state to the `Solver`|
+|`max_retries`|integer|yes|The maximum number of randomly initialized rounds allowed for each invocation of `solve`|
+|`max_iterations`|integer|yes|The number of maximum iterations per round within the optimization|
+|`collision_settings`|[`CollisionSettingInfo`](../Info/CollisionSettingInfo)|yes|The initial setting to [`Collision Avoidance`](../collision)|
 
 
 import Tabs from '@theme/Tabs';

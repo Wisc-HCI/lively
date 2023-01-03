@@ -1,13 +1,16 @@
 # Solving
 
-The `Solver` class has a `solve` method that represents the core functionality of the Lively interface. At a high level, it returns a fully-filled [state](../../state) object and accepts the following fields:
+The `Solver` class has a `solve` method that represents the core functionality of the Lively interface. At a high level, it returns a fully-filled [`state`](../../state) object and accepts the following fields:
+:::note
+The **optional** field can be left empty if the no specification is needed. The `Solver` will just use the default setting for the optional parameters.
+:::
 
-| Field | Description |
-| --- | --- | 
-|`goals`|A look-up table of [goal](../../Goals/goal) objects. The key of the look-up table should match with that of the objectives to which the goals are corresponded.|
-|`weights`|A look-up table of floats, order corresponding to the order of the objectives. The key of the look-up table should match with that of the objectives to which the weights are corresponded.|
-|`time`|The current time. If no liveliness objectives are used, this has no effect.|
-|`shapes`|A list of [shape](../../shapes) objects.|
+| Field | Type | Optional |Description |
+| --- | --- |---|---|
+|`goals`|a look-up table of <string,[`goal`](../../Goals/goal)> key-value pairs|no| The key of the look-up table should match with that of the [`objectives`](../../Objectives) to which the `goals` are corresponded.|
+|`weights`|A look-up table of <string,floats> |no|The key of the look-up table should match with that of the [`objectives`](../../Objectives) to which the weights are corresponded.|
+|`time`|float|no|The current time. If no liveliness [`objectives`](../../Objectives) are used, this has no effect.|
+|`shapes`|list of [`shape`](../../shapes) objects|yes|The list of environmental shapes |
 
 
 
