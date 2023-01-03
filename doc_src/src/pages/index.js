@@ -21,17 +21,20 @@ function HomepageHeader() {
         paddingBottom:0,
         backgroundImage: `url(${bannerUrl})`,
         backgroundPosition:'center',
-        backgroundSize:'cover'
+        backgroundSize:'cover',
+        height:'600px',
+        alignContent:'end',
+        display:'flex'
       }}
     >
       <div 
         style={{
+          alignSelf:'end',
           backgroundColor:colorMode === "dark" ? '#22222255' : '#dddddd55',
           padding:15,
-          borderRadius:4,
           backdropFilter:'blur(5px)',
           WebkitBackdropFilter:'blur(5px)',
-
+          width:'100vw'
         }}
       >
         <h1 className="hero__title">{"Lively v0.10.0 (beta)"}</h1>
@@ -75,7 +78,7 @@ export default function Home() {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={""}
+      title={"Lively"}
       description="A highly configurable toolkit for commanding robots in mixed modalities"
     >
       <HomepageHeader />
