@@ -1,6 +1,12 @@
 # Resetting 
 
-In both the Javascript and Python interfaces, the `Solver` class has a `reset` method that allows the user to reset the state of the solver given some new objective weights and a new robot state. In this case, the robot state only needs to supply the `joints` and `origin` field, as shown in the initialization example.
+In both the Javascript and Python interfaces, the `Solver` class has a `reset` method that allows the user to reset the [`state`](../../state) of the solver given new [`objective`](../../Objectives/), `weights` and a new robot [`state`](../../state). In this case, the robot [`state`](../../state) only needs to supply the `joints` and `origin` field, as shown in the [`initialization`](../initialization) example.
+
+|Parameter|Type|Optional|Description|
+|---|---|---|---|
+|`state`|[`State`](../../state)|no|The new [`state`](../../state) will replace the original one in the next cycle of calculation|
+|`weights`|a look-up table of <string,float>|no|The new `weights` will replace the original one in the next cycle of calculation|
+
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';

@@ -1,0 +1,43 @@
+---
+sidebar_position: 3
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Collision Normalization
+
+[`Collision Detection`](../../collision) is a computational-heavy calculation that allows for collision and proximity detection for robots and environmental shapes. 
+To help with the calculation, we have a method, `compute_average_distance_table` that normalizes the distance between the objects in the environment to enhance the performance of [`collision detection`](../../collision)
+
+
+## compute_average_distance_table
+
+<Tabs>
+  <TabItem value="js" label="Javascript">
+
+  ```js
+  solver.compute_average_distance_table();
+  ```
+
+  </TabItem>
+  <TabItem value="py" label="Python">
+
+  ```py
+  solver.computeAverageDistanceTable();
+  ```
+   </TabItem>
+   <TabItem value= "rust" label="Rust"> 
+
+   ```rust
+   solver.compute_average_distance_table();
+   ``` 
+   </TabItem>
+</Tabs> 
+
+
+
+
+
+
+

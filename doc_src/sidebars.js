@@ -33,7 +33,7 @@ const sidebars = {
           items: [
             "API/Solver/Methods/solve",
             "API/Solver/Methods/reset",
-            "API/Solver/Methods/compute_average_distance_table",
+            "API/Solver/Methods/collision normalization",
           ],
         },
         {
