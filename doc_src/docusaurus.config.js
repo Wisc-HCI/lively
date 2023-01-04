@@ -8,8 +8,8 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const config = {
   title: "Lively",
   tagline: "A highly configurable toolkit for commanding robots in mixed modalities",
-  url: "https://your-docusaurus-test-site.com",
-  baseUrl: "/",
+  url: "https://wisc-hci.github.io",
+  baseUrl: "/lively/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   favicon: "/img/favicon.ico",
@@ -18,7 +18,8 @@ const config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: "Wisc-HCI", // Usually your GitHub org/user name.
   projectName: "lively", // Usually your repo name.
-  deploymentBranch: "Documentation",
+  deploymentBranch: "gh_pages",
+  //trailingSlash : false,
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
@@ -86,7 +87,7 @@ const config = {
             items: [
               {
                 label: "API",
-                to: "/docs/API/index",
+                to: "/docs/API/",
               },
             ],
           },
@@ -96,7 +97,7 @@ const config = {
             items: [
               {
                 label: "Tutorial",
-                to: "/docs/Tutorials/index",
+                to: "/docs/Tutorials/",
               },
               {
                 label: "GitHub",

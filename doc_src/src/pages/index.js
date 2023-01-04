@@ -52,7 +52,7 @@ function HomepageHeader() {
               backdropFilter: 'blur(5px)',
               WebkitBackdropFilter: 'blur(5px)'
             }}
-            to="../docs/API/"
+            to="/docs/API/"
           >
             API
           </Link>
@@ -64,7 +64,7 @@ function HomepageHeader() {
               backdropFilter: 'blur(5px)',
               WebkitBackdropFilter: 'blur(5px)'
             }}
-            to="../docs/Tutorials/"
+            to="/docs/Tutorials/"
           >
             Tutorials
           </Link>
