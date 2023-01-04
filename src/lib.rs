@@ -9,6 +9,8 @@ use serde::{Serialize,Deserialize};
 #[cfg(feature = "jsbindings")]
 use wasm_bindgen::prelude::*;
 #[cfg(feature = "jsbindings")]
+use serde_wasm_bindgen;
+#[cfg(feature = "jsbindings")]
 extern crate console_error_panic_hook;
 
 pub mod utils;
@@ -66,10 +68,6 @@ fn lively_tk(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyCapsuleShape>()?;
     m.add_class::<PyHullShape>()?;
     m.add_class::<PyMeshShape>()?;
-    // m.add_class::<PyBoxZone>()?;
-    // m.add_class::<PySphereZone>()?;
-    // m.add_class::<PyCylinderZone>()?;
-    // m.add_class::<PyCapsuleZone>()?;
     // Geometry/Goals
     m.add_class::<Size>()?;
     m.add_class::<Translation>()?;
@@ -100,8 +98,6 @@ fn lively_tk(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyOriginAccelerationMinimizationObjective>()?;
     m.add_class::<PyOriginJerkMinimizationObjective>()?;
     m.add_class::<PyRelativeMotionLivelinessObjective>()?;
-    //m.add_class::<PyOriginPositionLivelinessObjective>()?;
-    //m.add_class::<PyOriginPositionMatchObjective>()?;
     m.add_class::<PyGravityObjective>()?;
     m.add_class::<PySmoothnessMacroObjective>()?;
     m.add_class::<PyDistanceMatchObjective>()?;
@@ -118,6 +114,14 @@ pub struct ScalarRange {
 }
 
 #[cfg(feature = "jsbindings")]
+fn serialize<T>(obj: &T) -> Result<JsValue, serde_wasm_bindgen::Error>
+where
+    T: Serialize
+{
+    Ok(obj.serialize(&serde_wasm_bindgen::Serializer::json_compatible())?)
+}
+
+#[cfg(feature = "jsbindings")]
 #[wasm_bindgen(js_name=Solver)]
 pub struct JsSolver(Solver);
 
@@ -127,89 +131,82 @@ impl JsSolver {
     #[wasm_bindgen(constructor)]
     pub fn new(
         urdf: String, 
-        objectives: &JsValue, 
-        root_bounds: &JsValue,
-        shapes: &JsValue,
-        initial_state: &JsValue,
+        objectives: JsValue, 
+        root_bounds: JsValue,
+        shapes: JsValue,
+        initial_state: JsValue,
         max_retries: Option<usize>,
         max_iterations: Option<usize>,
-        collision_settings: &JsValue
+        collision_settings: JsValue
     ) -> Self {
             console_error_panic_hook::set_once();
-            let inner_objectives:HashMap<String,Objective> = objectives.into_serde().unwrap();
-            let temp_bounds:Option<Vec<ScalarRange>> = root_bounds.into_serde().unwrap();
+            let inner_objectives:HashMap<String,Objective> = serde_wasm_bindgen::from_value(objectives).unwrap();
+            let temp_bounds:Option<Vec<ScalarRange>> = serde_wasm_bindgen::from_value(root_bounds).unwrap();
             let inner_bounds:Option<Vec<(f64,f64)>> = temp_bounds.map(|bs| bs.iter().map(|b| (b.value,b.delta)).collect());
-            let inner_shapes:Option<Vec<Shape>> = shapes.into_serde().unwrap();
-            let inner_state:Option<State> = initial_state.into_serde().unwrap();
-            let inner_collision_settings:Option<CollisionSettingInfo> = collision_settings.into_serde().unwrap();
-            // let inner_retries: Option<u64> = max_retries.into_serde().unwrap();
-            // let inner_iterations: Option<usize> = max_iterations.into_serde().unwrap();
-            // let inner_core: Option<bool> = only_core.into_serde().unwrap();
+            let inner_shapes:Option<Vec<Shape>> = serde_wasm_bindgen::from_value(shapes).unwrap();
+            let inner_state:Option<State> = serde_wasm_bindgen::from_value(initial_state).unwrap();
+            let inner_collision_settings:Option<CollisionSettingInfo> = serde_wasm_bindgen::from_value(collision_settings).unwrap();
             Self(Solver::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, max_retries, max_iterations, inner_collision_settings))
     }
 
     #[wasm_bindgen(getter)]
-    pub fn objectives(&self) -> JsValue {
-        JsValue::from_serde(&self.0.objective_set.objectives).unwrap()
+    pub fn objectives(&self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(&self.0.objective_set.objectives)
     }
 
     #[wasm_bindgen(setter)]
     pub fn set_objectives(&mut self, objectives: JsValue) {
-        let inner_objectives: HashMap<String,Objective> = objectives.into_serde().unwrap();
+        let inner_objectives: HashMap<String,Objective> = serde_wasm_bindgen::from_value(objectives).unwrap();
         self.0.set_objectives(inner_objectives);
     }
 
     #[wasm_bindgen(getter = currentState)]
-    pub fn current_state(&self) -> JsValue {
-        JsValue::from_serde(&self.0.get_current_state()).unwrap()
+    pub fn current_state(&self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(&self.0.get_current_state())
     }
 
     #[wasm_bindgen(getter = currentGoals)]
-    pub fn current_goals(&self) -> JsValue {
-        let mut goals: HashMap<String,Option<Goal>> = HashMap::new();
-        for (k,v) in self.0.objective_set.objectives.iter() {
-            goals.insert(k.clone(),v.get_goal());
-        }
-        JsValue::from_serde(&goals).unwrap()
+    pub fn current_goals(&self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(&self.0.get_goals())
     }
 
     #[wasm_bindgen(getter)]
-    pub fn links(&self) -> JsValue {
-        JsValue::from_serde(&self.0.robot_model.links).unwrap()
+    pub fn links(&self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(self.0.get_links())
     }
 
     #[wasm_bindgen(getter)]
-    pub fn joints(&self) -> JsValue {
-        JsValue::from_serde(&self.0.robot_model.joints).unwrap()
+    pub fn joints(&self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(self.0.get_joints())
     }
 
     pub fn reset(
         &mut self, 
-        state: &JsValue,
-        weights: &JsValue,
+        state: JsValue,
+        weights: JsValue,
     ) {
-        let inner_state:State = state.into_serde().unwrap();
-        let inner_weights:HashMap<String,f64> = weights.into_serde().unwrap();
+        let inner_state:State = serde_wasm_bindgen::from_value(state).unwrap();
+        let inner_weights:HashMap<String,f64> = serde_wasm_bindgen::from_value(weights).unwrap();
         self.0.reset(inner_state,inner_weights);
     }
 
     pub fn solve(
         &mut self,
-        goals: &JsValue,
-        weights: &JsValue,
+        goals: JsValue,
+        weights: JsValue,
         time: f64,
-        shape_updates: &JsValue
-    ) -> JsValue {
-        let inner_goals: HashMap<String,Goal> = goals.into_serde().unwrap();
-        let inner_weights:HashMap<String,f64> = weights.into_serde().unwrap();
-        let inner_updates: Option<Vec<ShapeUpdate>> = shape_updates.into_serde().unwrap();
+        shape_updates: JsValue
+    ) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        let inner_goals: HashMap<String,Goal> = serde_wasm_bindgen::from_value(goals).unwrap();
+        let inner_weights:HashMap<String,f64> = serde_wasm_bindgen::from_value(weights).unwrap();
+        let inner_updates: Option<Vec<ShapeUpdate>> = serde_wasm_bindgen::from_value(shape_updates).unwrap();
         let state:State = self.0.solve(inner_goals,inner_weights,time,inner_updates);
-        return JsValue::from_serde(&state).unwrap();
+        return serialize(&state);
     }
 
     #[wasm_bindgen(js_name = computeAverageDistanceTable)]
-    pub fn compute_average_distance_table(&mut self) -> JsValue {
-        return JsValue::from_serde(&self.0.compute_average_distance_table()).unwrap()
+    pub fn compute_average_distance_table(&mut self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(&self.0.compute_average_distance_table())
     }
 }
 
@@ -231,22 +228,22 @@ extern "C" {
 
 #[cfg(feature = "jsbindings")]
 #[wasm_bindgen]
-pub fn solve(solver: &mut JsSolver, goals: &JsValue, weights: &JsValue, time: f64, shape_updates: &JsValue) -> JsValue {
-    let inner_goals: HashMap<String,Goal> = goals.into_serde().unwrap();
-    let inner_weights:HashMap<String,f64> = weights.into_serde().unwrap();
-    let inner_updates: Option<Vec<ShapeUpdate>> = shape_updates.into_serde().unwrap();
+pub fn solve(solver: &mut JsSolver, goals: JsValue, weights: JsValue, time: f64, shape_updates: JsValue) -> Result<JsValue,serde_wasm_bindgen::Error> {
+    let inner_goals: HashMap<String,Goal> = serde_wasm_bindgen::from_value(goals).unwrap();
+    let inner_weights:HashMap<String,f64> = serde_wasm_bindgen::from_value(weights).unwrap();
+    let inner_updates: Option<Vec<ShapeUpdate>> = serde_wasm_bindgen::from_value(shape_updates).unwrap();
     // console_log!("Received Goals: {:?}",inner_goals);
     // console_log!("Received Weights: {:?}",inner_weights);
     // console_log!("Received Updates: {:?}",inner_updates);
     let state:State = solver.0.solve(inner_goals,inner_weights,time,inner_updates);
     // console_log!("Produced State: {:?}",state);
-    return JsValue::from_serde(&state).unwrap();
+    return serialize(&state);
 }
 
 #[cfg(feature = "jsbindings")]
 #[wasm_bindgen]
-pub fn reset(solver: &mut JsSolver, state: &JsValue, weights: &JsValue) {
-    let inner_state:State = state.into_serde().unwrap();
-    let inner_weights:HashMap<String,f64> = weights.into_serde().unwrap();
+pub fn reset(solver: &mut JsSolver, state: JsValue, weights: JsValue) {
+    let inner_state:State = serde_wasm_bindgen::from_value(state).unwrap();
+    let inner_weights:HashMap<String,f64> = serde_wasm_bindgen::from_value(weights).unwrap();
     solver.0.reset(inner_state,inner_weights);
 }

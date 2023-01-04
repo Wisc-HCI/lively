@@ -9,8 +9,6 @@ use crate::utils::objective_set::ObjectiveSet;
 use crate::objectives::objective::Objective;
 use rand::{thread_rng, Rng};
 use rand::rngs::ThreadRng;
-use std::f32::INFINITY;
-use std::f64::consts::{PI};
 use std::collections::HashMap;
 
 #[repr(C)]
@@ -254,6 +252,14 @@ impl Solver {
             goals.insert(k.clone(),v.get_goal());
         }
         return goals;
+    }
+
+    pub fn get_links(&self) -> &Vec<LinkInfo> {
+        return &self.robot_model.links
+    }
+
+    pub fn get_joints(&self) -> &Vec<JointInfo> {
+        return &self.robot_model.joints
     }
 
     pub fn compute_average_distance_table(&mut self) -> Vec<ProximityInfo> {
