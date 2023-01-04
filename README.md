@@ -562,8 +562,6 @@ pip3 install maturin
 maturin develop
 ```
 
-You will need this installed to use the ROS2 LivelyIK Package.
-
 **Javascript Instructions**
 
 To build, download and `cd` to this directory. Then run:
