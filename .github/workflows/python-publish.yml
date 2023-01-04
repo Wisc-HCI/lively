@@ -9,60 +9,277 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, ubuntu-latest]
-        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']
-        exclude:
-        # excludes node 4 on macOS
-        - os: ubuntu-latest
-          python-version: '3.6'
-        - os: ubuntu-latest
-          python-version: '3.7'
-        - os: ubuntu-latest
-          python-version: '3.8'
-        - os: ubuntu-latest
-          python-version: '3.9'
-
+  macos:
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+          architecture: x64
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build wheels - x86_64
+        uses: PyO3/maturin-action@v1
+        with:
+          target: x86_64
+          args: --release --out dist
+      - name: Install built wheel - x86_64
+        run: |
+          pip install crfs --no-index --find-links dist --force-reinstall
+          python -c "import crfs"
+      - name: Build wheels - universal2
+        uses: PyO3/maturin-action@v1
+        with:
+          args: --release --universal2
+      - name: Install built wheel - universal2
+        run: |
+          pip install crfs --no-index --find-links dist --force-reinstall
+          python -c "import crfs"
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: dist
+
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [x64, x86]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+          architecture: ${{ matrix.target }}
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+      - name: Install built wheel
+        run: |
+          pip install crfs --no-index --find-links dist --force-reinstall
+          python -c "import crfs"
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: dist
+
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [x86_64, i686]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
-    - name: Python Setup
-      run: |
-        python -m pip install --upgrade pip
-        pip install twine
-    - name: macOS Build
-      if: matrix.os == 'macos-latest'
-      run: |
-        curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-        pip install setuptools setuptools_rust wheel auditwheel
-        python setup.py bdist_wheel --universal
-    - name: Linux Build
-      if: matrix.os == 'ubuntu-latest'
-      uses: RalfG/python-wheels-manylinux-build@v0.5.0-manylinux2010_x86_64
+        python-version: 3.9
+        architecture: x64
+    - name: Build wheels
+      uses: PyO3/maturin-action@v1
       with:
-        python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310'
-        build-requirements: 'setuptools wheel setuptools_rust'
-        pip-wheel-args: '-w ./dist --no-deps' 
-        pre-build-command: 'source ./install-rust.sh'    
-    - name: Publish Python distribution to PyPI (macOS)
-      if: matrix.os == 'macos-latest'
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        target: ${{ matrix.target }}
+        manylinux: auto
+        args: --release --out dist
+    - name: Install built wheel
+      if: matrix.target == 'x86_64'
       run: |
-        twine upload dist/* --skip-existing
-    - name: Publish Python distribution to PyPI (Mac)
-      if: matrix.os == 'ubuntu-latest'
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: |
-        twine upload `ls -c -td -- dist/*manylinux*` --skip-existing
+        pip install crfs --no-index --find-links dist --force-reinstall
+        python -c "import crfs"
+    - name: Upload wheels
+      uses: actions/upload-artifact@v3
+      with:
+        name: wheels
+        path: dist
+
+  linux-cross:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [aarch64, armv7, s390x, ppc64le, ppc64]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+    - name: Build wheels
+      uses: PyO3/maturin-action@v1
+      with:
+        target: ${{ matrix.target }}
+        manylinux: auto
+        args: --release --out dist
+    - uses: uraimo/run-on-arch-action@v2.5.0
+      if: matrix.target != 'ppc64'
+      name: Install built wheel
+      with:
+        arch: ${{ matrix.target }}
+        distro: ubuntu20.04
+        githubToken: ${{ github.token }}
+        install: |
+          apt-get update
+          apt-get install -y --no-install-recommends python3 python3-pip
+          pip3 install -U pip
+        run: |
+          pip3 install crfs --no-index --find-links dist/ --force-reinstall
+          python3 -c "import crfs"
+    - name: Upload wheels
+      uses: actions/upload-artifact@v3
+      with:
+        name: wheels
+        path: dist
+
+  musllinux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - i686-unknown-linux-musl
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+        architecture: x64
+    - name: Build wheels
+      uses: PyO3/maturin-action@v1
+      with:
+        target: ${{ matrix.target }}
+        manylinux: musllinux_1_2
+        args: --release --out dist -m python/Cargo.toml
+    - name: Install built wheel
+      if: matrix.target == 'x86_64-unknown-linux-musl'
+      uses: addnab/docker-run-action@v3
+      with:
+        image: alpine:latest
+        options: -v ${{ github.workspace }}:/io -w /io
+        run: |
+          apk add py3-pip
+          pip3 install -U pip
+          pip3 install crfs --no-index --find-links /io/dist/ --force-reinstall
+          python3 -c "import crfs"
+    - name: Upload wheels
+      uses: actions/upload-artifact@v3
+      with:
+        name: wheels
+        path: dist
+
+  musllinux-cross:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform:
+          - target: aarch64-unknown-linux-musl
+            arch: aarch64
+          - target: armv7-unknown-linux-musleabihf
+            arch: armv7
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+    - name: Build wheels
+      uses: PyO3/maturin-action@v1
+      with:
+        target: ${{ matrix.platform.target }}
+        manylinux: musllinux_1_2
+        args: --release --out dist
+    - uses: uraimo/run-on-arch-action@v2.5.0
+      name: Install built wheel
+      with:
+        arch: ${{ matrix.platform.arch }}
+        distro: alpine_latest
+        githubToken: ${{ github.token }}
+        install: |
+          apk add py3-pip
+          pip3 install -U pip
+        run: |
+          pip3 install crfs --no-index --find-links dist/ --force-reinstall
+          python3 -c "import crfs"
+    - name: Upload wheels
+      uses: actions/upload-artifact@v3
+      with:
+        name: wheels
+        path: dist
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: "startsWith(github.ref, 'refs/tags/')"
+    needs: [ macos, windows, linux, linux-cross, musllinux, musllinux-cross ]
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: wheels
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          pip install --upgrade twine
+          twine upload --skip-existing *
+# jobs:
+#   deploy:
+
+#     runs-on: ${{ matrix.os }}
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         os: [macos-latest, ubuntu-latest]
+#         python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']
+#         exclude:
+#         # excludes node 4 on macOS
+#         - os: ubuntu-latest
+#           python-version: '3.6'
+#         - os: ubuntu-latest
+#           python-version: '3.7'
+#         - os: ubuntu-latest
+#           python-version: '3.8'
+#         - os: ubuntu-latest
+#           python-version: '3.9'
+
+#     steps:
+#     - uses: actions/checkout@v2
+#     - name: Set up Python
+#       uses: actions/setup-python@v2
+#       with:
+#         python-version: ${{ matrix.python-version }}
+#     - name: Python Setup
+#       run: |
+#         python -m pip install --upgrade pip
+#         pip install twine
+#     - name: macOS Build
+#       if: matrix.os == 'macos-latest'
+#       run: |
+#         curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
+#         pip install setuptools setuptools_rust wheel auditwheel
+#         python setup.py bdist_wheel --universal
+#     - name: Linux Build
+#       if: matrix.os == 'ubuntu-latest'
+#       uses: RalfG/python-wheels-manylinux-build@v0.5.0-manylinux2010_x86_64
+#       with:
+#         python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310'
+#         build-requirements: 'setuptools wheel setuptools_rust'
+#         pip-wheel-args: '-w ./dist --no-deps' 
+#         pre-build-command: 'source ./install-rust.sh'    
+#     - name: Publish Python distribution to PyPI (macOS)
+#       if: matrix.os == 'macos-latest'
+#       env:
+#         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+#         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+#       run: |
+#         twine upload dist/* --skip-existing
+#     - name: Publish Python distribution to PyPI (Mac)
+#       if: matrix.os == 'ubuntu-latest'
+#       env:
+#         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+#         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+#       run: |
+#         twine upload `ls -c -td -- dist/*manylinux*` --skip-existing
