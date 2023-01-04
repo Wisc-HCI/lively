@@ -1,4 +1,27 @@
 # Info
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 Lively provides a set of data structures that contain information that can be provided to the solver or are returned from the [`solver`](../Solver/).
 
+## Import
+
+:::note
+There is no need to import for Javascript.
+:::
+
+<Tabs>
+
+  <TabItem value="py" label="Python">
+
+   ```py
+   from lively import TransformInfo #can be 'MimicInfo', 'JointInfo', 'LinkInfo', 'ProximityInfo', or 'CollisionInfo'
+   ```
+   </TabItem>
+   <TabItem value= "rust" label="Rust"> 
+
+   ```rust
+   use lively::utils::info::TransformInfo; //can be 'MimicInfo', 'JointInfo', 'LinkInfo', 'ProximityInfo', or 'CollisionInfo'
+   ``` 
+   </TabItem>
+</Tabs> 
