@@ -1,6 +1,8 @@
 ---
 sidebar_position: 1
 ---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Initialization 
 
@@ -22,11 +24,35 @@ If no values are provided for the **optional** field, the `Solver` will just use
 |`max_iterations`|integer|yes|value of 150 is used|The number of maximum iterations per round within the optimization.|
 |`collision_settings`|[`CollisionSettingInfo`](../Info/CollisionSettingInfo)|yes|[`Default CollisionSettingInfo`](../Info/collisionSettingInfo)|The initial setting to [`Collision Avoidance`](../collision).|
 
+## Import
+<Tabs>
+  <TabItem value="js" label="Javascript">
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+  ```js
+  import {Solver} from "@people_and_robots/lively";
+  ```
+
+  </TabItem>
+  <TabItem value="py" label="Python">
+
+  ```py
+  from lively import Solver
+  ```
+   </TabItem>
+   <TabItem value= "rust" label="Rust"> 
+
+   ```rust
+   use lively::lively::Solver;
+   ``` 
+   </TabItem>
+</Tabs> 
 
 
+
+
+
+
+## Example Solver Initialization
 <Tabs>
   <TabItem value="js" label="Javascript">
 
