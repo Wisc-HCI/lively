@@ -554,15 +554,12 @@ Finally, the `Objective` enum defines a number of functions, mainly aimed at sup
 To build, download and `cd` to this directory. Then run:
 
 ```bash
-# If you just want to install:
-python3 setup.py install
 
+# Install Maturin
+pip3 install maturin
 
-# Or if you are developing:
-python3 setup.py develop
-
-# If you are developing and need to rebuild:
-python3 setup.py clean && python3 setup.py develop
+# If you just want to install locally or develop:
+maturin develop
 ```
 
 You will need this installed to use the ROS2 LivelyIK Package.
