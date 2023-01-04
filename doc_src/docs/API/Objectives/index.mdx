@@ -1,4 +1,6 @@
 # Objective
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 Lively allows for a wide range of robot with which users program robot motion. These 24 properties, which serve as building blocks for defining the behavior and motion of the robot, fit into five categories: 
 `Base`, `Bounding`, `Matchting`, `Mirroring`, `Liveliness`, and `Forces` listed blow. 
@@ -12,6 +14,44 @@ Lively allows for a wide range of robot with which users program robot motion. T
 | `Liveliness` | Allow adding smooth, coordinated motion to joint angles or link positions/orientations |
 | `Forces` | Proximating the physcial forces applied to the robot |
 
+## Import
+
+
+
+For Javascript, there is no need for additional import. Only a object need to be constructed. 
+
+<Tabs>
+  <TabItem value="js" label="Javascript">
+
+  ```js
+  "eePosition": {
+            type: "PositionMatch",
+            name: "EE Position",
+            link: attachmentLink,
+            weight: 50},
+  "eeRotation": {
+            type: "OrientationMatch",
+            name: "EE Rotation",
+            link: attachmentLink,
+            weight: 25},
+  ```
+
+  </TabItem>
+  <TabItem value="py" label="Python">
+
+  ```py
+  from lively import PositionMatchObjective 
+  from lively import OrientationMatchObjective
+  ```
+   </TabItem>
+   <TabItem value= "rust" label="Rust"> 
+
+   ```rust
+   use lively::objectives::core::matching::PositionMatchObjective;
+   use lively::objectives::core::matching::OrientationMatchObjective;
+   ``` 
+   </TabItem>
+</Tabs> 
 
 
 
