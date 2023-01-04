@@ -9,10 +9,40 @@ import TabItem from '@theme/TabItem';
 There are 4 different Shape classes: [`Box`](./box), [`Sphere`](./sphere), [`Cylinder`](./cylinder), and [`Capsule`](./capsule). The `name` field is entirely for your own usage, and the `frame` field indicates what robot link the shape is attached to (by default "world"). The `physical` field indicates whether the shape presents a collision, and should be factored into collision avoidance. Otherwise, the shape is simply tracked in the state if close enough.
 
 :::note
-The axis we are using is **z-up** compare to the traditional **y-up** axis. 
+The coordinate system Lively is using has **z-axis** as the **up-axis** compare to the traditional coordinate system that has **y-axis** as the **up-axis**
 :::
 
 ![img alt](/img/z-up_axis.gif)
 
 ## Import
+
+
+<Tabs>
+  <TabItem value="js" label="Javascript">
+
+  ```js
+  const boxShape = {
+      type:"Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+      name:"camera attachment",
+      frame: "panda_hand", // or 'world'
+      physical: true,
+      x:0.5,y:0.5,z:0.2,
+      localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
+  }
+  ```
+
+  </TabItem>
+  <TabItem value="py" label="Python">
+
+  ```py
+  from lively import BoxShape #can be 'CylinderShape', 'CapsuleShape', or 'SphereShape'
+  ```
+   </TabItem>
+   <TabItem value= "rust" label="Rust"> 
+
+   ```rust
+   use lively::utils::shapes::Box; //can be 'Cylinder', 'Capsule', or 'Sphere'
+   ``` 
+   </TabItem>
+</Tabs> 
 

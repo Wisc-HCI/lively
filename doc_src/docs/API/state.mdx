@@ -14,6 +14,33 @@ It contains the state of the robot in terms of joint and frames, as well as some
 |`proximity`|list of [`ProximityInfo`](../API/Info/proximityInfo)|A vector of data representing pairwise proximity between the robot’s parts and other robot parts and the environment. Each entry contains distance, as well as the closest points between the pair of colliders|
 |`center_of_mass`|list of float|A 3-vector representing the center of mass of the robot in the world frame|
 
+ 
+
+## Import
+
+<Tabs>
+  <TabItem value="js" label="Javascript">
+
+  ```js
+    let state = {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{"panda_joint1":0.0,"panda_joint2":0.0}}
+  ```
+
+  </TabItem>
+  <TabItem value="py" label="Python">
+
+  ```py
+    from lively import State
+  ```
+   </TabItem>
+   <TabItem value= "rust" label="Rust"> 
+
+   ```rust
+     use lively::utils::state::State;
+   ``` 
+   </TabItem>
+</Tabs> 
+
+## Declaration Example
 <Tabs>
   <TabItem value="js" label="Javascript">
 
@@ -51,9 +78,6 @@ It contains the state of the robot in terms of joint and frames, as well as some
      let state = State::new(iso, joints, frames, proximities, center_of_mass);
    ``` 
    </TabItem>
-</Tabs> 
-
-## Import
-
+</Tabs>
 
 
