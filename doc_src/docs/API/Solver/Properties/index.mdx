@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 |`vars`|A set of useful features within the optimization, including history, joint, and link information|
 |`lower_bounds`|A vector representing the lower bounds in the optimization vector. This is derived from the robot base limits and joint limits|
 |`upper_bounds`|A vector representing the upper bounds in the optimization vector. This is derived from the robot base limits, as well as joint limits|
-|`objective_set`|A lookup table containing all of the current [`objectives`](../../Objectives/objective) in use|
+|`objective_set`|A lookup table containing all of the current [`objectives`](../../Objectives/) in use|
 |`max_retries`|The maximum number of randomly initialized rounds allowed for each invocation of [`solve`](../Methods/solve)|
 |`max_iterations`|The number of maximum iterations per round within the optimization|
 
@@ -39,8 +39,8 @@ let current_state = solver.get_current_state();
 </TabItem>
 </Tabs>
 
-## Retriving current [`objectives`](../../Objectives/objective)
-Returns the current [`objectives`](../../Objectives/objective) as a lookup table
+## Retriving current [`objectives`](../../Objectives/)
+Returns the current [`objectives`](../../Objectives/) as a lookup table
 <Tabs>
 <TabItem value="js" label="Javascript">
 
@@ -65,8 +65,8 @@ let current_state = solver::get_objectives();
 </TabItem>
 </Tabs>
 
-## Modifying current [`objectives`](../../Objectives/objective)
-Replace the current [`objectives`](../../Objectives/objective) with new [`objectives`](../../Objectives/objective) lookup table
+## Modifying current [`objectives`](../../Objectives/)
+Replace the current [`objectives`](../../Objectives/) with new [`objectives`](../../Objectives/) lookup table
 <Tabs>
 <TabItem value="js" label="Javascript">
 

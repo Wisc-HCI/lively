@@ -95,7 +95,7 @@ const config = {
             items: [
               {
                 label: "Tutorial",
-                to: "/docs/API/Tutorial/index",
+                to: "/docs/Tutorials/index",
               },
               {
                 label: "GitHub",
