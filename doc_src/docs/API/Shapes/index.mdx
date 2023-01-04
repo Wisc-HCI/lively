@@ -16,21 +16,11 @@ The coordinate system Lively is using has **z-axis** as the **up-axis** compare 
 
 ## Import
 
+:::note
+There is no need to import for Javascript.
+:::
+
 <Tabs>
-  <TabItem value="js" label="Javascript">
-
-  ```js
-  const boxShape = {
-      type:"Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
-      name:"camera attachment",
-      frame: "panda_hand", // or 'world'
-      physical: true,
-      x:0.5,y:0.5,z:0.2,
-      localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
-  }
-  ```
-
-  </TabItem>
   <TabItem value="py" label="Python">
 
   ```py
