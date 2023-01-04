@@ -78,7 +78,7 @@ impl PySolver {
 
     #[getter]
     pub fn get_current_state(&self) -> PyResult<PyState> {
-        Ok(PyState::from(self.0.vars.history.prev1.clone()))
+        Ok(PyState::from(self.0.get_current_state()))
     }
 
     #[getter]
