@@ -5,6 +5,9 @@ import TabItem from '@theme/TabItem';
 The `State` object is the response back after calling [`solve`](Solver/Methods/solve). 
 It contains the state of the robot in terms of joint and frames, as well as some diagnostic information regarding [`proximity`](../API/Info/proximityInfo) of various [`shapes`](../API/Shapes/) and the `center_of_mass` of the robot. 
 
+:::note
+For [`solver Initialization`](docs/API/Solver/initialization.mdx), only `origin` and `joints` parameters have to be defined if user decided to provide a `State`object to the `initial_state` parameter.
+:::
 
 | Parameter |Type| Description |
 |---|---|---|
