@@ -7,7 +7,7 @@ It contains the state of the robot in terms of joint and frames, as well as some
 
 
 | Parameter |Type| Description |
-|---|---|--|
+|---|---|---|
 |`origin`|isometry consisted of translation and rotation|The transform of the root of the robot. This data is also included in `frames`|
 |`joints`|lookup table(string, float)|A lookup table of the joint values for each movable joint|
 |`frames`|lookup table(string, [`TransformInfo`](../API/Info/transformInfo))|A lookup table of each link’s position in both world and local coordinates|

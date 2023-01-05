@@ -15,14 +15,14 @@ If no values are provided for the **optional** field, the `Solver` will just use
 
 |Parameter|Type|Optional|Default value/behavior|Description|
 |---|---|---|---|---|
-|`urdf`|string|no||The string representation of XML format. |
-|`objectives`|look-up table of <string,[`Objective`](../Objectives)> key-value pairs |no||The initial objectives to the `Solver`.|
-|`root_bounds`|list of tuple of (float,float)|yes|The root of the robot is fixated to the origin in the world frame.|The list of hard limits on how much the base of the robot can move relative to the world frame. Each element is a tuple of two float. The first float number is the center value and the second value is the delta|
+|`urdf`|string|no|none|URDF XML as a string. |
+|`objectives`|look-up table of [`Objectives`](../Objectives) indexed by a string key |no|none|The initial objectives to the `Solver`.|
+|`root_bounds`|list of 6 pairs of floats|yes|The root of the robot is fixed to the world origin|The list of hard limits on how much the base of the robot can move relative to the world frame. The first value in each pair is the center of the range, and the second is the delta allowed. The first 3 entries correspond to the X, Y, and Z coordinates, and the second 3 correspond to the rotation in R, P, Y euler angles|
 |`shapes`|list of [`Shape`](../Shapes) objects|yes|There will be no other shapes beside that of the robot.|The initial environmental shapes.|
-|`initial_state`|[`State`](../state) objects|yes||The initial state to the `Solver`.|
-|`max_retries`|integer|yes|Value of 1 is used|The maximum number of randomly initialized rounds allowed for each invocation of `solve`.|
-|`max_iterations`|integer|yes|value of 150 is used|The number of maximum iterations per round within the optimization.|
-|`collision_settings`|[`CollisionSettingInfo`](../Info/CollisionSettingInfo)|yes|[`Default CollisionSettingInfo`](../Info/collisionSettingInfo)|The initial setting to [`Collision Avoidance`](../collision).|
+|`initial_state`|[`State`](../state) objects|yes|Only `origin` and `joints` parameters have to be defined for the [`State`](../state) if user decided to provide a [`State`](../state) object to the `initial_state` parameter |The initial state to the `Solver`.|
+|`max_retries`|integer|yes|Value of 1 is used|If a value bigger than 1 is provided, the new value is the maximum number of randomly initialized rounds allowed for each invocation of `solve`.|
+|`max_iterations`|integer|yes|value of 150 is used|If a value other than 150 is provided, the value is the number of maximum iterations per round within the optimization.|
+|`collision_settings`|[`Collision Setting`](../Info/CollisionSettingInfo)|yes|See Type Defaults|The initial setting to [`Collision Avoidance`](../collision).|
 
 ## Import
 
