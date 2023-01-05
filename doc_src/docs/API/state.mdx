@@ -6,16 +6,16 @@ The `State` object is the response back after calling [`solve`](Solver/Methods/s
 It contains the state of the robot in terms of joint and frames, as well as some diagnostic information regarding [`proximity`](../API/Info/proximityInfo) of various [`shapes`](../API/Shapes/) and the `center_of_mass` of the robot. 
 
 :::note
-For [`solver Initialization`](docs/API/Solver/initialization.mdx), only `origin` and `joints` parameters have to be defined if user decided to provide a `State`object to the `initial_state` parameter.
+For [`Solver initialization`](docs/API/Solver/initialization.mdx), only `origin` and `joints` parameters have to be defined if user decided to provide a `State`object to the `initial_state` parameter.
 :::
 
-| Parameter |Type| Description |
-|---|---|---|
-|`origin`|isometry consisted of translation and rotation|The transform of the root of the robot. This data is also included in `frames`|
-|`joints`|lookup table(string, float)|A lookup table of the joint values for each movable joint|
-|`frames`|lookup table(string, [`TransformInfo`](../API/Info/transformInfo))|A lookup table of each link’s position in both world and local coordinates|
-|`proximity`|list of [`ProximityInfo`](../API/Info/proximityInfo)|A vector of data representing pairwise proximity between the robot’s parts and other robot parts and the environment. Each entry contains distance, as well as the closest points between the pair of colliders|
-|`center_of_mass`|list of float|A 3-vector representing the center of mass of the robot in the world frame|
+| Parameter |Type|Optional | Description |
+|---|---|---|---|
+|`origin`|isometry consisted of translation and rotation|no|The transform of the root of the robot. This data is also included in `frames`|
+|`joints`|lookup table(string, float)|no|A lookup table of the joint values for each movable joint|
+|`frames`|lookup table(string, [`TransformInfo`](../API/Info/transformInfo))|can be ignored for [`Solver initialization`](docs/API/Solver/initialization.mdx)|A lookup table of each link’s position in both world and local coordinates|
+|`proximity`|list of [`ProximityInfo`](../API/Info/proximityInfo)|can be ignored for [`Solver initialization`](docs/API/Solver/initialization.mdx)|A vector of data representing pairwise proximity between the robot’s parts and other robot parts and the environment. Each entry contains distance, as well as the closest points between the pair of colliders|
+|`center_of_mass`|list of float|can be ignored for [`Solver initialization`](docs/API/Solver/initialization.mdx)|A 3-vector representing the center of mass of the robot in the world frame|
 
  
 

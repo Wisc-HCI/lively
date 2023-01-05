@@ -2,7 +2,11 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Lively provides a set of data structures that contain information that can be provided to the solver or are returned from the [`solver`](../Solver/).
+`Lively` provides a set of data structures as `Info` objects that contains diagnostic information and are returned from the [`solver`](../Solver/) as output.
+
+:::note
+The users are not expected to construct `Info` objects because they are output. However, the [`CollisionSettingInfo`](collisionSettingInfo) object can be constructed by the user to be fed into the `Solver` during [`initialization`](../Solver/initialization)
+:::
 
 ## Import
 
