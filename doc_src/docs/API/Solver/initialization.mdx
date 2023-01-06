@@ -61,26 +61,26 @@ If no values are provided for the **optional** field, the `Solver` will just use
   import {Solver} from "@people_and_robots/lively";
   let solver = new Solver(
     urdf = "<?xml version='1.0' ?><robot name='panda'>...</robot>", // Full urdf as a string
-    objectives = {
+    objectives = { //The initial objectives to the solver
             "eePosition": {
-              type: "PositionMatch",
-              name: "EE Position",
-              link: attachmentLink,
-              weight: 50,
+              type: "PositionMatch", // for Javascript, the type of the objective is the name of the objective but without "Objective". For example, the type for PositionMatchObjective is PositionMatch
+              name: "EE Position", // name can be arbitrary
+              link: "torso", 
+              weight: 4, // the weight determines the prioritization of objectives
             },
             "eeRotation": {
               type: "OrientationMatch",
               name: "EE Rotation",
-              link: attachmentLink,
-              weight: 25,
+              link: "torso",
+              weight: 5,
             },
             "collision": {
               type: "CollisionAvoidance",
               name: "Collision Avoidance",
-              weight: COLLISION_WEIGHT,
+              weight: 2,
             },
      },
-    root_bounds = [
+    root_bounds = [ 
         { value: basePose.position.x, delta: 0.0 },
         { value: basePose.position.y, delta: 0.0 },
         { value: basePose.position.z, delta: 0.0 }, // Translational
@@ -90,17 +90,17 @@ If no values are provided for the **optional** field, the `Solver` will just use
       ],
     shapes = [{
         type:"Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
-        name:"camera attachment",
+        name:"camera attachment", // name can be arbitrary
         frame: "panda_hand", // or 'world'
-        physical: true,
-        x:0.5,y:0.5,z:0.2,
+        physical: true, // physical collision
+        x:0.5,y:0.5,z:0.2, // dimension of the box
         localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
     }],
-    initial_state= {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{panda_joint1:0.0,panda_joint2:0.0}}, // Optional
-    only_core=False, // Only use this flag if you are not using liveliness objectives and want a slight speed-up.
-    max_retries=1, // Number of times the solution is attempted (default 1)
-    max_iterations=150, // Number of iterations per try (default 150)
-    collision_settings = {dMax : 0.3, r : 0.0, aMax : 2.0, timeBudget : 100, timed : true}
+    initial_state= {origin:{translation:[0,0,0],rotation:[1,0,0,0]},joints:{panda_joint1:0.0,panda_joint2:0.0}}, //only the origin and joints need to be defined for the state object for initial_state
+    only_core=False, // Only use this flag if you are not using liveliness objectives and want a slight speed-up
+    max_retries=1, // Number of times the solution is attempted 
+    max_iterations=150, // Number of iterations per try 
+    collision_settings = {dMax : 0.3, r : 0.0, aMax : 2.0, timeBudget : 100, timed : true} // if not provided, the solve will use the default values
   );
   ```
 
