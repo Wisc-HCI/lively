@@ -8,3 +8,10 @@ Liveliness Objectives allow adding smooth, coordinated motion to joint angles or
 | Orientaion Liveliness | [`size`](../Goals/goal) | Add smooth motion to the rotation of a link |
 | Joint Liveliness | [`scalar`](../Goals/goal) | Add smooth motion to a joint directly |
 | Relative Motion Liveliness | [`scalar`](../Goals/goal) | Add smooth motion towards and away from |
+
+## Parameters
+|Parameter|Type|Optional|Defauly value/behavior|Description|
+|---|---|---|---|---|
+|`name`|string|no|none|Name can be arbitrary and should be unqiue|
+|`weight`|float|no|none|Indicates the prioritization of the objective|
+|`link`|string|no|none|The name of the link this objective is applied to|

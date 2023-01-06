@@ -8,3 +8,11 @@ Matching Objectives specify exact positions and orientations of links or angles 
 | Orientation Match | [`Rotation`](../Goals/goal) | Control a link's position in space |
 | Joint Match | [`Scalar`](../Goals/goal) | Control a joint's value directly |
 | Distance Match | [`Scalar`](../Goals/goal) | Specify the distance between two links in space |
+
+## Parameters
+|Parameter|Type|Optional|Defauly value/behavior|Description|
+|---|---|---|---|---|
+|`name`|string|no|none|Name can be arbitrary and should be unqiue|
+|`weight`|float|no|none|Indicates the prioritization of the objective|
+|`link`|string|no|none|The name of the link this objective is applied to|
+|`goal`|[`Goal`](../Goals/goal)|yes|origin for `Translation`, no rotation for `Rotation`, and 0.0 for `Scalar`|The goal for objectives to achieve|
