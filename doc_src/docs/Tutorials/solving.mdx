@@ -6,6 +6,13 @@ import TabItem from '@theme/TabItem';
 
 _NOTE: Since Lively is still in beta, the design is subject to change and should not be considered final!_
 
+'position' : {
+                        name: 'MyPositionMatchObjective',
+                        type: 'EE Position',
+                        link: 'wrist_3_link', 
+                        weight : 5
+                    }
+
 
 <Tabs>
   <TabItem value="jsx" label="Live">
@@ -16,6 +23,8 @@ function InitializationExample(props) {
     const [robot, setRobot] = useState('panda');
     const [robotState, setRobotState] = useState(null);
     const [visualRobotState, setVisualRobotState] = useState(null);
+   
+   
    
     
     useEffect(()=>{
@@ -41,7 +50,15 @@ function InitializationExample(props) {
                         name: 'MySmoothnessObjective',
                         type: 'SmoothnessMacro',
                         weight: 5
-                    }
+                    }, 
+                    'position' : {
+                        name: 'MyPositionMatchObjective',
+                        type: 'PositionMatch',
+                        link: 'panda_hand', 
+                        weight : 5
+                    },
+                   
+                    
                 }
             );
             currSolver = newSolver;
@@ -58,7 +75,21 @@ function InitializationExample(props) {
         const interval = setInterval(updateSolver, (1000/30));
         
         function updateSolver(){
-            const newState = currSolver.solve({},{},0.0);
+
+        const d = new Date();
+        let time = d.getTime() ;
+        {/* console.log(Math.sin(time/1000)); */}
+            //const time = 
+            let goal = {
+            'position':{
+                Translation :[
+                    0.0,
+                    0.5,
+                    Math.sin(time/1000)/4+0.75
+                ]
+            }}
+            const newState = currSolver.solve(goal,{},0.0);
+            //console.log(newState);
             // Update the solver's current state
             setRobotState(newState)
         }
