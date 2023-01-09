@@ -55,8 +55,14 @@ function InitializationExample(props) {
                         name: 'MyPositionMatchObjective',
                         type: 'PositionMatch',
                         link: 'panda_hand', 
-                        weight : 5
+                        weight : 15
                     },
+                    'orientation': {
+                        name: 'MyOrientationMatchObjective',
+                        type: 'OrientationMatch',
+                        link: 'panda_hand',
+                        weight : 10
+                    }
                    
                     
                 }
@@ -87,7 +93,11 @@ function InitializationExample(props) {
                     0.5,
                     Math.sin(time/1000)/4+0.75
                 ]
-            }}
+                },
+            'orientation':{
+                Rotation:[0.0,0.707,0.0,0.0]
+            }
+            }
             const newState = currSolver.solve(goal,{},0.0);
             //console.log(newState);
             // Update the solver's current state
