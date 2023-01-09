@@ -8,14 +8,14 @@ Bounding Objectives limit the space within which joints can assume angles and li
 | Orientation Bounding | [`RotationRange`](../Goals/goal) | A region in orientation space with some delta around an orientation |
 | Joint Bounding | [`JointBounding`](../Goals/goal) | Limits the maximum and minimum values of a given joint |
 
-## Parameters
+## Parameters for constructing Bounding Objectives
 
-|Parameter|Type|Optional|Defauly value/behavior|Description|
-|---|---|---|---|---|
-|`name`|string|no|none|Name can be arbitrary and should be unqiue|
-|`weight`|float|no|none|Indicates the prioritization of the objective|
-|`link`|string|no|none|The name of the link this objective is applied to|
-|`goal`|[`Goal`](../Goals/goal)|yes|origin for `Translation`, no rotation for `Rotation`, and 0 for both maximum and minimum for `JointBounding`|The goal for objectives to achieve|
+|Parameter|Objectives|Type|Optional|Defauly value/behavior|Description|
+|---|---|---|---|---|---|
+|`name`|all of the objectives mentioned above|string|no|none|Name can be arbitrary and should be unqiue|
+|`weight`|all of the objectives mentioned above|float|no|none|Indicates the prioritization of the objective|
+|`link`|all of the objectives mentioned above|string|no|none|The name of the link this objective is applied to|
+|`goal`|all of the objectives mentioned above|[`Goal`](../Goals/goal)|yes|origin for `Translation`, no rotation for `Rotation`, and 0 for both maximum and minimum for `JointBounding`|The goal for objectives to achieve|
 
 
 

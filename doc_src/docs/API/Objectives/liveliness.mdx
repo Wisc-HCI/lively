@@ -9,9 +9,15 @@ Liveliness Objectives allow adding smooth, coordinated motion to joint angles or
 | Joint Liveliness | [`scalar`](../Goals/goal) | Add smooth motion to a joint directly |
 | Relative Motion Liveliness | [`scalar`](../Goals/goal) | Add smooth motion towards and away from |
 
-## Parameters
-|Parameter|Type|Optional|Defauly value/behavior|Description|
-|---|---|---|---|---|
-|`name`|string|no|none|Name can be arbitrary and should be unqiue|
-|`weight`|float|no|none|Indicates the prioritization of the objective|
-|`link`|string|no|none|The name of the link this objective is applied to|
+## Parameters for constructing Liveliness Objectives
+|Parameter|Objectives|Type|Optional|Defauly value/behavior|Description|
+|---|---|---|---|---|---|
+|`name`|all of the objectives mentioned above|string|no|none|Name can be arbitrary and should be unqiue|
+|`weight`|all of the objectives mentioned above|float|no|none|Indicates the prioritization of the objective|
+|`link`|`Position Liveliness`,`Orientation Liveliness`,|string|no|none|The name of the link this objective is applied to|
+|`joint`|`Joint Liveliness`|string|no|none|The name of the joint the objective is applied to|
+|`link1`|`Relative Motion Liveliness`|string|no|none|The name of the first link the objective is applied to|
+|`link2`|`Relative Motion Liveliness`|string|no|none|The name of the second link the objective is applied to|
+|`frequency`|all of the objectives mentioned above|float|no|none|A range higher than 0.0 and lower than 30.0 is advised. Higher the value, slower the lively-motion; lower the value, faster the lively-motion.|
+
+ 
