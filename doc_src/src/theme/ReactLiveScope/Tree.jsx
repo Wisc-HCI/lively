@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, memo } from "react";
 import { useColorMode } from '@docusaurus/theme-common';
 
-export const Tree = ({ label, data, topLevel=true }) => {
+export const Tree = memo(({ label, data, topLevel=true }) => {
   const {colorMode} = useColorMode();
   const [open, setOpen] = useState(false);
   const openable =
@@ -67,7 +67,7 @@ export const Tree = ({ label, data, topLevel=true }) => {
       )}
     </div>
   );
-};
+})
 
 const Header = ({ open, label, value, extra, openable }) => (
   <span>

@@ -14,7 +14,9 @@ _NOTE: Since Lively is still in beta, the design is subject to change and should
 function InitializationExample(props) {
     const [livelySolver, setLivelySolver] = useState(null);
     const [robot, setRobot] = useState('panda');
-    const [robotState, setRobotState] = useState(null)
+    const [robotState, setRobotState] = useState(null);
+    const [visualRobotState, setVisualRobotState] = useState(null);
+   
     
     useEffect(()=>{
         /* 
@@ -27,12 +29,13 @@ function InitializationExample(props) {
         because the lively library is built on web assembly (WASM),
         which needs to be imported asynchronously.
         */
+        var currSolver ;
         const init = async ()=>{
             // Initialize the lively package (WASM)
             await lively.init();
             // Instantiate a new solver
             const newSolver = new lively.Solver(
-                urdfs[robot], // The urdf of the robot
+                urdfs.panda, // The urdf of the robot
                 {
                     'smoothness': {  // An example objective (smoothness macro)
                         name: 'MySmoothnessObjective',
@@ -41,28 +44,40 @@ function InitializationExample(props) {
                     }
                 }
             );
+            currSolver = newSolver;
             // Assign the solver to the value
             setLivelySolver(newSolver)
             // Run solve to get a solved state
             const newState = newSolver.solve({},{},0.0);
             // Update the solver's current state
-            setRobotState(newState)
+            setRobotState(newState);
+            setVisualRobotState(newState)
         }
         init();
+
+        const interval = setInterval(updateSolver, (1000/30));
+        
+        function updateSolver(){
+            const newState = currSolver.solve({},{},0.0);
+            // Update the solver's current state
+            setRobotState(newState)
+        }
+
         
         return ()=>{
             // Provide a function to clear previous values
             setLivelySolver(null);
             setRobotState(null);
+            setVisualRobotState(null);
+            clearInterval(interval);
         }
     },[robot]) // Rerun this code if the robot changes
 
   return (
     <div>
-       <Button active={robot==='panda'} onClick={()=>setRobot('panda')}>Panda</Button>
-       <Button active={robot==='ur3e'} onClick={()=>setRobot('ur3e')}>UR3e</Button>
+       <Button active={robot==='panda'} onClick={()=>setVisualRobotState(robotState)}>Update State</Button>
        <RobotViewer state={robotState} links={livelySolver ? livelySolver.links : []}/>
-       <Tree label='state' data={robotState}/>
+       <Tree label='state' data={visualRobotState}/>
     </div>
   );
 }

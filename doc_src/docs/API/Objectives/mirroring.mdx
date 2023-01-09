@@ -13,8 +13,8 @@ Mirroring objectives allow users to mirror the current state of a link's positio
 |---|---|---|---|---|---|
 |`name`|all of the objectives mentioned above|string|no|none|Name can be arbitrary and should be unqiue|
 |`weight`|all of the objectives mentioned above|float|no|none|Indicates the prioritization of the objective|
-|`link1`|`Position Mirroring`,`Orientation Mirroring`|string|no|none|The name of the first link this objective is applied to |
-|`link2`|`Position Mirroring`,`Orientation Mirroring`|string|no|none|The name of the second link this objective is applied to |
+|`link1`|`Position Mirroring`, `Orientation Mirroring`|string|no|none|The name of the first link this objective is applied to |
+|`link2`|`Position Mirroring`, `Orientation Mirroring`|string|no|none|The name of the second link this objective is applied to |
 |`joint1`|`Joint Mirroring`|string|no|none|The name of the first joint or joint this objective is applied to|
 |`joint2`|`Joint Mirroring`|string|no|none|The name of the second joint or joint this objective is applied to|
 |`goal`|all of the objectives mentioned above|[`Goal`](../Goals/goal)|yes|origin for `Translation`, no rotation for `Rotation`, and 0.0 for `Scalar`|The goal for objectives to achieve|

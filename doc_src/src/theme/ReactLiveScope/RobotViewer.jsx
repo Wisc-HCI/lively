@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { memo, useEffect } from "react";
 import { Scene, useSceneStore } from "robot-scene";
 import { mapValues } from 'lodash';
 import MeshLookupTable from "./Meshes";
@@ -25,6 +25,13 @@ export const RobotViewer = ({state,links=[],showCollision=false}) => {
     }, [state,links])
 
     return (
+        <SceneWrapper/>
+        
+    )
+}
+
+const SceneWrapper = memo(()=>{
+    return (
         <div style={{height:500, marginTop:4, marginBottom:4}}>
             <Scene
             displayGrid={true}
@@ -39,9 +46,8 @@ export const RobotViewer = ({state,links=[],showCollision=false}) => {
             // paused={paused}
         />
         </div>
-        
     )
-}
+})
 
 function shape2item(shape, isCollision) {
     let item = {
