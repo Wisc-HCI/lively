@@ -16,7 +16,9 @@ Since Lively is still in beta, the design is subject to change and should not be
 function InitializationExample(props) {
     const [livelySolver, setLivelySolver] = useState(null);
     const [robot, setRobot] = useState('panda');
-    const [robotState, setRobotState] = useState(null)
+    const [robotState, setRobotState] = useState(null);
+    const [visualRobotState, setVisualRobotState] = useState(null);
+   
     
     useEffect(()=>{
         /* 
@@ -29,42 +31,86 @@ function InitializationExample(props) {
         because the lively library is built on web assembly (WASM),
         which needs to be imported asynchronously.
         */
+        var currentSolver;
         const init = async ()=>{
             // Initialize the lively package (WASM)
             await lively.init();
             // Instantiate a new solver
             const newSolver = new lively.Solver(
-                urdfs[robot], // The urdf of the robot
+                urdfs.panda, // The urdf of the robot
                 {
-                    'smoothness': {  // An example objective (smoothness macro)
+                     // some objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
+                     'smoothness': { 
                         name: 'MySmoothnessObjective',
                         type: 'SmoothnessMacro',
-                        weight: 5
-                    }
-                }
+                        weight: 1
+                     },                       
+                },
+                [ 
+                    { value: 0.0, delta: 0.0 },
+                    { value: 0.0, delta: 0.0 },
+                    { value: 0.0, delta: 0.0 }, // Translational
+                    { value: 0.0, delta: 0.0 },
+                    { value: 0.0, delta: 0.0 },
+                    { value: 0.0, delta: 0.0 }, // Rotational
+                ],
+                [{
+                    type:"Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+                    name:"box", // name can be arbitrary
+                    frame: "world", // or 'world'
+                    physical: true, // physical collision
+                    x:0.5,y:0.5,z:0.2, // dimension of the box
+                    localTransform: {translation:[0.05,0.05,0.05],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
+                }],
             );
+            currentSolver = newSolver; //assign new solver to the current solver in use
             // Assign the solver to the value
             setLivelySolver(newSolver)
             // Run solve to get a solved state
             const newState = newSolver.solve({},{},0.0);
             // Update the solver's current state
-            setRobotState(newState)
+            setRobotState(newState);
+            setVisualRobotState(newState)
         }
         init();
+
+        const updateSolver = () => {
+
+            if (currentSolver) {
+                const d = new Date();
+                let time = d.getTime(); // Get the time used in Math.sin
+            let goal = { // An goal example with defined Translation and Rotation
+            
+           
+            
+           
+            }
+            const newState = currentSolver.solve({},{},0.0); // Pass the new goal into solve function 
+            // Update the solver's current state
+            
+            setRobotState(newState)
+            } 
         
+        }
+        
+
+        const interval = setInterval(updateSolver, (1000/30)); // Update the solver 30fps
+             
         return ()=>{
             // Provide a function to clear previous values
             setLivelySolver(null);
             setRobotState(null);
+            setVisualRobotState(null);
+            clearInterval(interval);
         }
     },[robot]) // Rerun this code if the robot changes
 
   return (
     <div>
-       <Button active={robot==='panda'} onClick={()=>setRobot('panda')}>Panda</Button>
-       <Button active={robot==='ur3e'} onClick={()=>setRobot('ur3e')}>UR3e</Button>
+       
        <RobotViewer state={robotState} links={livelySolver ? livelySolver.links : []}/>
-       <Tree label='state' data={robotState}/>
+       <Button active={robot==='panda'} onClick={()=>setVisualRobotState(robotState)}>Update State</Button> 
+       <Tree label='state' data={visualRobotState}/>
     </div>
   );
 }

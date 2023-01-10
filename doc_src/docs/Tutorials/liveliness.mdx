@@ -39,12 +39,7 @@ function InitializationExample(props) {
             const newSolver = new lively.Solver(
                 urdfs.panda, // The urdf of the robot
                 {
-                     // some objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
-                    // 'smoothness': { 
-                    //     name: 'MySmoothnessObjective',
-                    //     type: 'SmoothnessMacro',
-                    //     weight: 1
-                    // }, 
+                     // some lively objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
                     'jointLively1':{
                         name: 'MyLivelinessObjective1',
                         type: 'JointLiveliness',
@@ -93,11 +88,8 @@ function InitializationExample(props) {
             if (currentSolver) {
                 const d = new Date();
                 let time = d.getTime(); // Get the time used in Math.sin
-            let goal = { // An goal example with defined Translation and Rotation
+            let goal = { // An goal example with defined Scalar and Size values for the lively objectives
             
-            // 'size':{
-            //     Size:[ 0.05,0.05,0.05]
-            // },
             'jointLively1':{
                 Scalar:0.5
             },
@@ -112,7 +104,7 @@ function InitializationExample(props) {
             }
            
             }
-            const newState = currentSolver.solve(goal,{},Math.sin(time/1000)/4+0.95); // Pass the new goal into solve function 
+            const newState = currentSolver.solve(goal,{},Math.sin(time/1000)/4+0.95); // The time parameter for the solve cannot be 0.0. 
             // Update the solver's current state
             
             setRobotState(newState)
