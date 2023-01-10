@@ -4,14 +4,11 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-_NOTE: Since Lively is still in beta, the design is subject to change and should not be considered final!_
+:::note 
+Since Lively is still in beta, the design is subject to change and should not be considered final!
+:::
 
-'position' : {
-                        name: 'MyPositionMatchObjective',
-                        type: 'EE Position',
-                        link: 'wrist_3_link', 
-                        weight : 5
-                    }
+
 
 
 <Tabs>
@@ -36,7 +33,7 @@ function InitializationExample(props) {
         because the lively library is built on web assembly (WASM),
         which needs to be imported asynchronously.
         */
-        var currSolver;
+        var currentSolver;
         const init = async ()=>{
             // Initialize the lively package (WASM)
             await lively.init();
@@ -44,12 +41,13 @@ function InitializationExample(props) {
             const newSolver = new lively.Solver(
                 urdfs.panda, // The urdf of the robot
                 {
-                    'smoothness': {  // An example objective (smoothness macro)
+                     // some objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
+                    'smoothness': { 
                         name: 'MySmoothnessObjective',
                         type: 'SmoothnessMacro',
                         weight: 10
                     }, 
-                    'position' : {
+                    'position' : { 
                         name: 'MyPositionMatchObjective',
                         type: 'PositionMatch',
                         link: 'panda_hand', 
@@ -72,28 +70,16 @@ function InitializationExample(props) {
                         weight : 5
                     },
                     'jointMatch': {
-                        name : 'MyJointMatch',
+                        name : 'MyJointMatchFinger1',
                         type : 'JointMatch',
                         weight : 5,
                         joint: 'panda_finger_joint1',
-                        goal : 0.0
                     },
-                    'jointMatch': {
-                        name : 'MyJointMatch',
-                        type : 'JointMatch',
-                        weight : 5,
-                        joint: 'panda_finger_joint2',
-                        goal: 0.0
-                    },
-
-                    //jointmatch on the fingers
-                    
-                   
-                    
+                               
                 }
             );
             newSolver.computeAverageDistanceTable();
-            currSolver = newSolver;
+            currentSolver = newSolver; //assign new solver to the current solver in use
             // Assign the solver to the value
             setLivelySolver(newSolver)
             // Run solve to get a solved state
@@ -106,37 +92,35 @@ function InitializationExample(props) {
 
         const updateSolver = () => {
 
-            if (currSolver) {
+            if (currentSolver) {
                 const d = new Date();
-                let time = d.getTime() ;
-            let goal = {
+                let time = d.getTime(); // Get the time used in Math.sin
+            let goal = { // An goal example with defined Translation and Rotation
             'position':{
                 Translation :[
                     0.0,
                     0.5,
-                    Math.sin(time/1000)/4+0.75
+                    Math.sin(time/1000)/4+0.75 // The sin function alternating between -1 and 1 to have the robot to swing back and forth along the z-axis
                 ]
                 },
             'orientation':{
-                Rotation:[0.0,0.707,0.0,0.0]
+                Rotation:[0.0,0.707,0.0,0.0]// A defined Rotation to make the gripper facing downward 
+            }, 
+            'jointMatch':{
+                Scalar:0.5
             }
+
             }
-            const newState = currSolver.solve(goal,{},0.0);
-            //console.log(newState);
+            const newState = currentSolver.solve(goal,{},0.0); // Pass the new goal into solve function 
             // Update the solver's current state
             setRobotState(newState)
-            } else {
-                console.log(currSolver)
-            }
+            } 
         
         }
         
 
-        const interval = setInterval(updateSolver, (1000/30));
-        
-        
-
-        
+        const interval = setInterval(updateSolver, (1000/30)); // Update the solver 30fps
+             
         return ()=>{
             // Provide a function to clear previous values
             setLivelySolver(null);
@@ -148,7 +132,7 @@ function InitializationExample(props) {
 
   return (
     <div>
-       <Button active={robot==='panda'} onClick={()=>setVisualRobotState(robotState)}>Update State</Button>
+       <Button active={robot==='panda'} onClick={()=>setVisualRobotState(robotState)}>Update State</Button> 
        <RobotViewer state={robotState} links={livelySolver ? livelySolver.links : []}/>
        <Tree label='state' data={visualRobotState}/>
     </div>
