@@ -71,6 +71,21 @@ function InitializationExample(props) {
                         type : 'JointLimits',
                         weight : 5
                     },
+                    'jointMatch': {
+                        name : 'MyJointMatch',
+                        type : 'JointMatch',
+                        weight : 5,
+                        joint: 'panda_finger_joint1',
+                        goal : 0.0
+                    },
+                    'jointMatch': {
+                        name : 'MyJointMatch',
+                        type : 'JointMatch',
+                        weight : 5,
+                        joint: 'panda_finger_joint2',
+                        goal: 0.0
+                    },
+
                     //jointmatch on the fingers
                     
                    
