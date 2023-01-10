@@ -24,8 +24,6 @@ function InitializationExample(props) {
     const [robotState, setRobotState] = useState(null);
     const [visualRobotState, setVisualRobotState] = useState(null);
    
-   
-   
     
     useEffect(()=>{
         /* 
@@ -38,7 +36,7 @@ function InitializationExample(props) {
         because the lively library is built on web assembly (WASM),
         which needs to be imported asynchronously.
         */
-        var currSolver ;
+        var currSolver;
         const init = async ()=>{
             // Initialize the lively package (WASM)
             await lively.init();
@@ -49,7 +47,7 @@ function InitializationExample(props) {
                     'smoothness': {  // An example objective (smoothness macro)
                         name: 'MySmoothnessObjective',
                         type: 'SmoothnessMacro',
-                        weight: 5
+                        weight: 10
                     }, 
                     'position' : {
                         name: 'MyPositionMatchObjective',
@@ -62,11 +60,24 @@ function InitializationExample(props) {
                         type: 'OrientationMatch',
                         link: 'panda_hand',
                         weight : 10
-                    }
+                    },
+                    'collision': {
+                        name : 'MyCollisionDetection',
+                        type: 'CollisionAvoidance',
+                        weight : 3
+                    },
+                    'jointLimit': {
+                        name : 'MyJointLimit',
+                        type : 'JointLimits',
+                        weight : 5
+                    },
+                    //jointmatch on the fingers
+                    
                    
                     
                 }
             );
+            newSolver.computeAverageDistanceTable();
             currSolver = newSolver;
             // Assign the solver to the value
             setLivelySolver(newSolver)
@@ -78,14 +89,11 @@ function InitializationExample(props) {
         }
         init();
 
-        const interval = setInterval(updateSolver, (1000/30));
-        
-        function updateSolver(){
+        const updateSolver = () => {
 
-        const d = new Date();
-        let time = d.getTime() ;
-        {/* console.log(Math.sin(time/1000)); */}
-            //const time = 
+            if (currSolver) {
+                const d = new Date();
+                let time = d.getTime() ;
             let goal = {
             'position':{
                 Translation :[
@@ -102,7 +110,16 @@ function InitializationExample(props) {
             //console.log(newState);
             // Update the solver's current state
             setRobotState(newState)
+            } else {
+                console.log(currSolver)
+            }
+        
         }
+        
+
+        const interval = setInterval(updateSolver, (1000/30));
+        
+        
 
         
         return ()=>{
