@@ -2,9 +2,9 @@ use crate::objectives::objective::{groove_loss, Callable};
 use crate::utils::state::State;
 use crate::utils::vars::Vars;
 use nalgebra::Vector3;
-use serde::{Deserialize, Serialize};
 #[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
 
 const Y_OFFSET: f64 = 0.8808; //1.0 / (1.0 as f64 + (-2.0 as f64).exp());
 
@@ -52,10 +52,10 @@ impl Callable<bool> for CollisionAvoidanceObjective {
 #[pymethods]
 impl CollisionAvoidanceObjective {
     #[new]
-    pub fn from_python(name:String,weight:f64) -> Self {
-        CollisionAvoidanceObjective::new(name,weight)
+    pub fn from_python(name: String, weight: f64) -> Self {
+        CollisionAvoidanceObjective::new(name, weight)
     }
-    
+
     #[getter]
     pub fn get_name(&self) -> PyResult<String> {
         Ok(self.name.clone())
@@ -114,10 +114,10 @@ impl Callable<bool> for JointLimitsObjective {
 #[pymethods]
 impl JointLimitsObjective {
     #[new]
-    pub fn from_python(name:String,weight:f64) -> Self {
-        JointLimitsObjective::new(name,weight)
+    pub fn from_python(name: String, weight: f64) -> Self {
+        JointLimitsObjective::new(name, weight)
     }
-    
+
     #[getter]
     pub fn get_name(&self) -> PyResult<String> {
         Ok(self.name.clone())
@@ -147,8 +147,15 @@ impl Callable<bool> for VelocityMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
+            let time_diff = state.timestamp - v.history.prev1.timestamp;
             let joint_value: f64 = state.get_joint_position(&joint.name);
-            x_val += ((joint_value - v.history.prev1.get_joint_position(&joint.name))/(state.timestamp - v.history.prev1.timestamp)).powi(2);
+            if time_diff > 0.0 {
+                x_val += ((joint_value - v.history.prev1.get_joint_position(&joint.name))
+                    / time_diff)
+                    .powi(2);
+            } else {
+                x_val += (joint_value - v.history.prev1.get_joint_position(&joint.name)).powi(2);
+            }
         }
         x_val = x_val.sqrt();
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
@@ -163,10 +170,10 @@ impl Callable<bool> for VelocityMinimizationObjective {
 #[pymethods]
 impl VelocityMinimizationObjective {
     #[new]
-    pub fn from_python(name:String,weight:f64) -> Self {
-        VelocityMinimizationObjective::new(name,weight)
+    pub fn from_python(name: String, weight: f64) -> Self {
+        VelocityMinimizationObjective::new(name, weight)
     }
-    
+
     #[getter]
     pub fn get_name(&self) -> PyResult<String> {
         Ok(self.name.clone())
@@ -195,7 +202,14 @@ impl OriginVelocityMinimizationObjective {
 impl Callable<bool> for OriginVelocityMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let past: Vector3<f64> = v.history.prev1.origin.translation.vector;
-        let x_val: f64 = (state.origin.translation.vector - past).norm().powi(2);
+        let time_diff = state.timestamp - v.history.prev1.timestamp;
+        let x_val: f64;
+        if time_diff > 0.0 {
+            x_val = ((state.origin.translation.vector - past).norm() / time_diff).powi(2);
+        } else {
+            x_val = (state.origin.translation.vector - past).norm().powi(2);
+        }
+
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
     }
 
@@ -208,10 +222,10 @@ impl Callable<bool> for OriginVelocityMinimizationObjective {
 #[pymethods]
 impl OriginVelocityMinimizationObjective {
     #[new]
-    pub fn from_python(name:String,weight:f64) -> Self {
-        OriginVelocityMinimizationObjective::new(name,weight)
+    pub fn from_python(name: String, weight: f64) -> Self {
+        OriginVelocityMinimizationObjective::new(name, weight)
     }
-    
+
     #[getter]
     pub fn get_name(&self) -> PyResult<String> {
         Ok(self.name.clone())
@@ -240,12 +254,18 @@ impl AccelerationMinimizationObjective {
 impl Callable<bool> for AccelerationMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
+        let time_diff1 = state.timestamp - v.history.prev1.timestamp;
+        let time_diff2 = v.history.prev1.timestamp - v.history.prev2.timestamp;
         for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
             let v1: f64 = joint_value - v.history.prev1.get_joint_position(&joint.name);
             let v2: f64 = v.history.prev1.get_joint_position(&joint.name)
                 - v.history.prev2.get_joint_position(&joint.name);
-            x_val += (v1 - v2).powi(2);
+            if time_diff1 > 0.0 && time_diff2 > 0.0 {
+                x_val += (v1 / time_diff1 - v2 / time_diff2).powi(2);
+            } else {
+                x_val += (v1 - v2).powi(2);
+            }
         }
         x_val = x_val.sqrt();
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
@@ -260,10 +280,10 @@ impl Callable<bool> for AccelerationMinimizationObjective {
 #[pymethods]
 impl AccelerationMinimizationObjective {
     #[new]
-    pub fn from_python(name:String,weight:f64) -> Self {
-        AccelerationMinimizationObjective::new(name,weight)
+    pub fn from_python(name: String, weight: f64) -> Self {
+        AccelerationMinimizationObjective::new(name, weight)
     }
-    
+
     #[getter]
     pub fn get_name(&self) -> PyResult<String> {
         Ok(self.name.clone())
@@ -293,9 +313,17 @@ impl Callable<bool> for OriginAccelerationMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let pos1 = state.origin.translation.vector;
         let pos2: Vector3<f64> = v.history.prev1.origin.translation.vector;
-            let pos3: Vector3<f64> = v.history.prev2.origin.translation.vector;
-            let x_val: f64 = ((pos1 - pos2) - (pos2 - pos3)).norm().powi(2);
-            return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
+        let pos3: Vector3<f64> = v.history.prev2.origin.translation.vector;
+        let time_diff1 = state.timestamp - v.history.prev1.timestamp;
+        let time_diff2 = v.history.prev1.timestamp - v.history.prev2.timestamp;
+        let x_val: f64;
+        if time_diff1 > 0.0 && time_diff2 > 0.0 {
+            x_val = ((pos1 - pos2)/time_diff1 - (pos2 - pos3)/time_diff2).norm().powi(2);
+        } else {
+            x_val = ((pos1 - pos2) - (pos2 - pos3)).norm().powi(2);
+        }
+
+        return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
     }
 
     fn set_weight(&mut self, weight: f64) {
@@ -307,10 +335,10 @@ impl Callable<bool> for OriginAccelerationMinimizationObjective {
 #[pymethods]
 impl OriginAccelerationMinimizationObjective {
     #[new]
-    pub fn from_python(name:String,weight:f64) -> Self {
-        OriginAccelerationMinimizationObjective::new(name,weight)
+    pub fn from_python(name: String, weight: f64) -> Self {
+        OriginAccelerationMinimizationObjective::new(name, weight)
     }
-    
+
     #[getter]
     pub fn get_name(&self) -> PyResult<String> {
         Ok(self.name.clone())
@@ -339,17 +367,26 @@ impl JerkMinimizationObjective {
 impl Callable<bool> for JerkMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
+        let time_diff1 = state.timestamp - v.history.prev1.timestamp;
+        let time_diff2 = v.history.prev1.timestamp - v.history.prev2.timestamp;
+        let time_diff3 = v.history.prev2.timestamp - v.history.prev3.timestamp;
         for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
             let v1: f64;
             let v2: f64;
             let v3: f64;
             v1 = joint_value - v.history.prev1.get_joint_position(&joint.name);
-                v2 = v.history.prev1.get_joint_position(&joint.name)
-                    - v.history.prev2.get_joint_position(&joint.name);
-                v3 = v.history.prev2.get_joint_position(&joint.name)
-                    - v.history.prev3.get_joint_position(&joint.name);
-            x_val += ((v1 - v2) - (v2 - v3)).powi(2);
+            v2 = v.history.prev1.get_joint_position(&joint.name)
+                - v.history.prev2.get_joint_position(&joint.name);
+            v3 = v.history.prev2.get_joint_position(&joint.name)
+                - v.history.prev3.get_joint_position(&joint.name);
+            if time_diff1 > 0.0 && time_diff2 > 0.0 && time_diff3 > 0.0 {
+                x_val += ((v1 / time_diff1 - v2 / time_diff2)
+                    - (v2 / time_diff2 - v3 / time_diff3))
+                    .powi(2);
+            } else {
+                x_val += ((v1 - v2) - (v2 - v3)).powi(2);
+            }
         }
         x_val = x_val.sqrt();
         // println!("JerkMinimizationObjective error: {:?}",x_val);
@@ -365,10 +402,10 @@ impl Callable<bool> for JerkMinimizationObjective {
 #[pymethods]
 impl JerkMinimizationObjective {
     #[new]
-    pub fn from_python(name:String,weight:f64) -> Self {
-        JerkMinimizationObjective::new(name,weight)
+    pub fn from_python(name: String, weight: f64) -> Self {
+        JerkMinimizationObjective::new(name, weight)
     }
-    
+
     #[getter]
     pub fn get_name(&self) -> PyResult<String> {
         Ok(self.name.clone())
@@ -401,9 +438,19 @@ impl Callable<bool> for OriginJerkMinimizationObjective {
         let pos2: Vector3<f64> = v.history.prev1.origin.translation.vector;
         let pos3: Vector3<f64> = v.history.prev2.origin.translation.vector;
         let pos4: Vector3<f64> = v.history.prev3.origin.translation.vector;
-        x_val = (((pos1 - pos2) - (pos2 - pos3)) - ((pos2 - pos3) - (pos3 - pos4)))
+        let time_diff1 = state.timestamp - v.history.prev1.timestamp;
+        let time_diff2 = v.history.prev1.timestamp - v.history.prev2.timestamp;
+        let time_diff3 = v.history.prev2.timestamp - v.history.prev3.timestamp;
+        if time_diff1 > 0.0 && time_diff2 > 0.0 && time_diff3 > 0.0 {
+            x_val = (((pos1 - pos2)/time_diff1 - (pos2 - pos3)/time_diff2) - ((pos2 - pos3)/time_diff2 - (pos3 - pos4)/time_diff3))
             .norm()
             .powi(2);
+        } else {
+            x_val = (((pos1 - pos2) - (pos2 - pos3)) - ((pos2 - pos3) - (pos3 - pos4)))
+            .norm()
+            .powi(2);
+        }
+        
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
     }
 
@@ -416,10 +463,10 @@ impl Callable<bool> for OriginJerkMinimizationObjective {
 #[pymethods]
 impl OriginJerkMinimizationObjective {
     #[new]
-    pub fn from_python(name:String,weight:f64) -> Self {
-        OriginJerkMinimizationObjective::new(name,weight)
+    pub fn from_python(name: String, weight: f64) -> Self {
+        OriginJerkMinimizationObjective::new(name, weight)
     }
-    
+
     #[getter]
     pub fn get_name(&self) -> PyResult<String> {
         Ok(self.name.clone())
@@ -550,10 +597,10 @@ impl Callable<bool> for SmoothnessMacroObjective {
 #[pymethods]
 impl SmoothnessMacroObjective {
     #[new]
-    pub fn from_python(name:String,weight:f64) -> Self {
-        SmoothnessMacroObjective::new(name,weight)
+    pub fn from_python(name: String, weight: f64) -> Self {
+        SmoothnessMacroObjective::new(name, weight)
     }
-    
+
     #[getter]
     pub fn get_name(&self) -> PyResult<String> {
         Ok(self.name.clone())

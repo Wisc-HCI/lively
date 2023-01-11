@@ -57,6 +57,12 @@ impl State {
     pub fn get_joint_position(&self, joint: &String) -> f64 {
         return *self.joints.get(joint).unwrap_or(&self.default_joint_position)
     }
+
+    pub fn stepped(&self, time: f64) -> Self {
+        let mut stepped = self.clone();
+        stepped.timestamp -= time;
+        return stepped;
+    }
 }
 
 #[cfg(feature = "pybindings")]

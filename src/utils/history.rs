@@ -10,8 +10,8 @@ impl History {
     pub fn new(state: &State) -> Self {
         Self {
             prev1: state.clone(),
-            prev2: state.clone(),
-            prev3: state.clone()}
+            prev2: state.stepped(1.0/100000.0),
+            prev3: state.stepped(2.0/100000.0)}
     }
 
     pub fn update(&mut self, new: &State) {
@@ -21,8 +21,8 @@ impl History {
     }
 
     pub fn reset(&mut self, new: &State) {
-        self.prev3 = new.clone();
-        self.prev2 = new.clone();
+        self.prev3 = new.stepped(2.0/100000.0);
+        self.prev2 = new.stepped(1.0/100000.0);
         self.prev1 = new.clone();
     }
 }
