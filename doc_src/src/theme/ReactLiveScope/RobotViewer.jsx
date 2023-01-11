@@ -1,9 +1,9 @@
-import React, { useEffect } from "react";
+import React, { memo, useEffect } from "react";
 import { Scene, useSceneStore } from "robot-scene";
 import { mapValues } from 'lodash';
 import MeshLookupTable from "./Meshes";
 
-export const RobotViewer = ({state,links=[],showCollision=false}) => {
+export const RobotViewer = ({state,links=[],showCollision=false,shapes}) => {
 
     useEffect(()=>{
         let items = {};
@@ -20,10 +20,20 @@ export const RobotViewer = ({state,links=[],showCollision=false}) => {
               });
             }
           });
+          shapes?.forEach((shape,i) => {
+            items[`env-shape-${shape.name}-${i}`] = shape2item(shape, false);
+          })
         let tfs = state2tfs(state);
         useSceneStore.setState({items,tfs})
     }, [state,links])
 
+    return (
+        <SceneWrapper/>
+        
+    )
+}
+
+const SceneWrapper = memo(()=>{
     return (
         <div style={{height:500, marginTop:4, marginBottom:4}}>
             <Scene
@@ -39,9 +49,8 @@ export const RobotViewer = ({state,links=[],showCollision=false}) => {
             // paused={paused}
         />
         </div>
-        
     )
-}
+})
 
 function shape2item(shape, isCollision) {
     let item = {

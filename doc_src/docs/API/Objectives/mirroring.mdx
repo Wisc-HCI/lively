@@ -8,11 +8,13 @@ Mirroring objectives allow users to mirror the current state of a link's positio
 | Orientation Mirroring |  [`Rotation`](../Goals/goal)   | Mirror the rotations of two links with an optional offset |
 | Joint Mirroring|  [`Scalar`](../Goals/goal)  | Mirror the values of two joints with an optional offset |
 
-## Parameters
-|Parameter|Type|Optional|Defauly value/behavior|Description|
-|---|---|---|---|---|
-|`name`|string|no|none|Name can be arbitrary and should be unqiue|
-|`weight`|float|no|none|Indicates the prioritization of the objective|
-|`link1` or `joint1`|string|no|none|The name of the first link or joint this objective is applied to. The parameter is `joint1` if `Joint Mirroring` is used|
-|`link2` or `joint2`|string|no|none|The name of the first link or joint this objective is applied to. The parameter is `joint2` if `Joint Mirroring` is used|
-|`goal`|[`Goal`](../Goals/goal)|yes|origin for `Translation`, no rotation for `Rotation`, and 0.0 for `Scalar`|The goal for objectives to achieve|
+## Parameters for constructing Mirroring Objectives
+|Parameter|Objectives|Type|Optional|Defauly value/behavior|Description|
+|---|---|---|---|---|---|
+|`name`|all of the objectives mentioned above|string|no|none|Name can be arbitrary and should be unqiue|
+|`weight`|all of the objectives mentioned above|float|no|none|Indicates the prioritization of the objective|
+|`link1`|`Position Mirroring`, `Orientation Mirroring`|string|no|none|The name of the first link this objective is applied to |
+|`link2`|`Position Mirroring`, `Orientation Mirroring`|string|no|none|The name of the second link this objective is applied to |
+|`joint1`|`Joint Mirroring`|string|no|none|The name of the first joint or joint this objective is applied to|
+|`joint2`|`Joint Mirroring`|string|no|none|The name of the second joint or joint this objective is applied to|
+|`goal`|all of the objectives mentioned above|[`Goal`](../Goals/goal)|yes|origin for `Translation`, no rotation for `Rotation`, and 0.0 for `Scalar`|The goal for objectives to achieve|

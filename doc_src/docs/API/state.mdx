@@ -12,8 +12,8 @@ For [`Solver initialization`](docs/API/Solver/initialization.mdx), only `origin`
 | Parameter |Type|Optional | Description |
 |---|---|---|---|
 |`origin`|isometry consisted of translation and rotation|no|The transform of the root of the robot. This data is also included in `frames`|
-|`joints`|lookup table(string, float)|no|A lookup table of the joint values for each movable joint|
-|`frames`|lookup table(string, [`TransformInfo`](../API/Info/transformInfo))|can be ignored for [`Solver initialization`](docs/API/Solver/initialization.mdx)|A lookup table of each link’s position in both world and local coordinates|
+|`joints`|lookup table of float indexed by a string key|no|A lookup table of the joint values for each movable joint|
+|`frames`|lookup table of [`TransformInfo`](../API/Info/transformInfo) indexed by string key|can be ignored for [`Solver initialization`](docs/API/Solver/initialization.mdx)|A lookup table of each link’s position in both world and local coordinates|
 |`proximity`|list of [`ProximityInfo`](../API/Info/proximityInfo)|can be ignored for [`Solver initialization`](docs/API/Solver/initialization.mdx)|A vector of data representing pairwise proximity between the robot’s parts and other robot parts and the environment. Each entry contains distance, as well as the closest points between the pair of colliders|
 |`center_of_mass`|list of float|can be ignored for [`Solver initialization`](docs/API/Solver/initialization.mdx)|A 3-vector representing the center of mass of the robot in the world frame|
 

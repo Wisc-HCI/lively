@@ -4,8 +4,9 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-_NOTE: Since Lively is still in beta, the design is subject to change and should not be considered final!_
-
+:::note 
+Since Lively is still in beta, the design is subject to change and should not be considered final!
+:::
 
 <Tabs>
   <TabItem value="jsx" label="Live">

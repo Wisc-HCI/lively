@@ -7,8 +7,8 @@ The **optional** field can be left empty if the no specification is needed. The 
 
 | Field | Type | Optional |Description |
 | --- | --- |---|---|
-|`goals`|a look-up table of <string,[`goal`](../../Goals/goal)> key-value pairs|no| The key of the look-up table should match with that of the [`objectives`](../../Objectives) to which the `goals` are corresponded.|
-|`weights`|A look-up table of <string,floats> |no|The key of the look-up table should match with that of the [`objectives`](../../Objectives) to which the weights are corresponded.|
+|`goals`|look-up table of [`goal`](../../Goals/goal) indexed by a string key|no| The key of the look-up table should match with that of the [`objectives`](../../Objectives) to which the `goals` are corresponded.|
+|`weights`|look-up table of float value indexed by a string key |no|The key of the look-up table should match with that of the [`objectives`](../../Objectives) to which the weights are corresponded.|
 |`time`|float|no|The current time. If no liveliness [`objectives`](../../Objectives) are used, this has no effect.|
 |`shapes`|list of [`shape`](../../shapes) objects|yes|The list of environmental shapes that should be considered in `solve`.|
 

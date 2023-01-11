@@ -4,7 +4,11 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-_NOTE: Since Lively is still in beta, the design is subject to change and should not be considered final!_
+:::note 
+Since Lively is still in beta, the design is subject to change and should not be considered final!
+:::
+
+
 
 
 <Tabs>
@@ -14,7 +18,9 @@ _NOTE: Since Lively is still in beta, the design is subject to change and should
 function InitializationExample(props) {
     const [livelySolver, setLivelySolver] = useState(null);
     const [robot, setRobot] = useState('panda');
-    const [robotState, setRobotState] = useState(null)
+    const [robotState, setRobotState] = useState(null);
+    const [visualRobotState, setVisualRobotState] = useState(null);
+   
     
     useEffect(()=>{
         /* 
@@ -27,42 +33,108 @@ function InitializationExample(props) {
         because the lively library is built on web assembly (WASM),
         which needs to be imported asynchronously.
         */
+        var currentSolver;
         const init = async ()=>{
             // Initialize the lively package (WASM)
             await lively.init();
             // Instantiate a new solver
             const newSolver = new lively.Solver(
-                urdfs[robot], // The urdf of the robot
+                urdfs.panda, // The urdf of the robot
                 {
-                    'smoothness': {  // An example objective (smoothness macro)
+                     // some objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
+                    'smoothness': { 
                         name: 'MySmoothnessObjective',
                         type: 'SmoothnessMacro',
-                        weight: 5
-                    }
+                        weight: 10
+                    }, 
+                    'position' : { 
+                        name: 'MyPositionMatchObjective',
+                        type: 'PositionMatch',
+                        link: 'panda_hand', 
+                        weight : 15
+                    },
+                    'orientation': {
+                        name: 'MyOrientationMatchObjective',
+                        type: 'OrientationMatch',
+                        link: 'panda_hand',
+                        weight : 10
+                    },
+                    'collision': {
+                        name : 'MyCollisionDetection',
+                        type: 'CollisionAvoidance',
+                        weight : 3
+                    },
+                    'jointLimit': {
+                        name : 'MyJointLimit',
+                        type : 'JointLimits',
+                        weight : 5
+                    },
+                    'jointMatch': {
+                        name : 'MyJointMatchFinger1',
+                        type : 'JointMatch',
+                        weight : 5,
+                        joint: 'panda_finger_joint1',
+                    },
+                               
                 }
             );
+            newSolver.computeAverageDistanceTable();
+            currentSolver = newSolver; //assign new solver to the current solver in use
             // Assign the solver to the value
             setLivelySolver(newSolver)
             // Run solve to get a solved state
             const newState = newSolver.solve({},{},0.0);
             // Update the solver's current state
-            setRobotState(newState)
+            setRobotState(newState);
+            setVisualRobotState(newState)
         }
         init();
+
+        const updateSolver = () => {
+
+            if (currentSolver) {
+                const d = new Date();
+                let time = d.getTime(); // Get the time used in Math.sin
+            let goal = { // An goal example with defined Translation and Rotation
+            'position':{
+                Translation :[
+                    0.0,
+                    0.5,
+                    Math.sin(time/1000)/4+0.75 // The sin function alternating between -1 and 1 to have the robot to swing back and forth along the z-axis
+                ]
+                },
+            'orientation':{
+                Rotation:[0.0,0.707,0.0,0.0]// A defined Rotation to make the gripper facing downward 
+            }, 
+            'jointMatch':{
+                Scalar:0.5
+            }
+
+            }
+            const newState = currentSolver.solve(goal,{},0.0); // Pass the new goal into solve function 
+            // Update the solver's current state
+            setRobotState(newState)
+            } 
         
+        }
+        
+
+        const interval = setInterval(updateSolver, (1000/30)); // Update the solver 30fps
+             
         return ()=>{
             // Provide a function to clear previous values
             setLivelySolver(null);
             setRobotState(null);
+            setVisualRobotState(null);
+            clearInterval(interval);
         }
     },[robot]) // Rerun this code if the robot changes
 
   return (
     <div>
-       <Button active={robot==='panda'} onClick={()=>setRobot('panda')}>Panda</Button>
-       <Button active={robot==='ur3e'} onClick={()=>setRobot('ur3e')}>UR3e</Button>
+       <Button active={robot==='panda'} onClick={()=>setVisualRobotState(robotState)}>Update State</Button> 
        <RobotViewer state={robotState} links={livelySolver ? livelySolver.links : []}/>
-       <Tree label='state' data={robotState}/>
+       <Tree label='state' data={visualRobotState}/>
     </div>
   );
 }
