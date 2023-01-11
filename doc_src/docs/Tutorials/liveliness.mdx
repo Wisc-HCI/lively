@@ -1,199 +1,193 @@
-
-
 # Adding Liveliness
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
-:::note 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+:::note
 Since Lively is still in beta, the design is subject to change and should not be considered final!
 :::
-
 
 <Tabs>
   <TabItem value="jsx" label="Live">
 
-  ```jsx live
+```jsx live
 function InitializationExample(props) {
-    const [livelySolver, setLivelySolver] = useState(null);
-    const [robot, setRobot] = useState('panda');
-    const [robotState, setRobotState] = useState(null);
-    const [visualRobotState, setVisualRobotState] = useState(null);
-   
-    
-    useEffect(()=>{
-        /* 
-        Given that we are showing this example in a declarative
-        react context, we need to use the useEffect hook to execute
-        imperative (sequential) code. That means that if you are
-        writing standard javascript, your code will look like the
-        contents of the "init" function.
-        * Note also that the "init" function is async. This is
-        because the lively library is built on web assembly (WASM),
-        which needs to be imported asynchronously.
-        */
-        var currentSolver;
-        const init = async ()=>{
-            // Initialize the lively package (WASM)
-            await lively.init();
-            // Instantiate a new solver
-            const newSolver = new lively.Solver(
-                urdfs.panda, // The urdf of the robot
-                {
-                     // some lively objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
-                    'jointLively1':{
-                        name: 'MyLivelinessObjective1',
-                        type: 'JointLiveliness',
-                        weight: 25,
-                        joint: 'panda_joint5',
-                        frequency: 25
-                    },
-                    'jointLively2':{
-                        name: 'MyLivelinessObjective2',
-                        type: 'JointLiveliness',
-                        weight: 20,
-                        joint: 'panda_joint7',
-                        frequency: 25
-                    },
-                     'positionLively':{
-                        name: 'MyLivelinessObjective3',
-                        type: 'PositionLiveliness',
-                        weight: 19,
-                        link: 'panda_hand',
-                        frequency: 25
-                    },
-                     'orientationLively':{
-                         name: 'MyOrientationObjective2',
-                         type: 'OrientationLiveliness',
-                         weight: 15,
-                         link: 'panda_link2',
-                         frequency : 20
-                     },
-                    
-                               
-                }
-            );
-            currentSolver = newSolver; //assign new solver to the current solver in use
-            // Assign the solver to the value
-            setLivelySolver(newSolver)
-            // Run solve to get a solved state
-            const newState = newSolver.solve({},{},0.0);
-            // Update the solver's current state
-            setRobotState(newState);
-            setVisualRobotState(newState)
-        }
-        init();
+  const [livelySolver, setLivelySolver] = useState(null);
+  const [robot, setRobot] = useState("panda");
+  const [robotState, setRobotState] = useState(null);
+  const [visualRobotState, setVisualRobotState] = useState(null);
 
-        const updateSolver = () => {
-
-            if (currentSolver) {
-                const d = new Date();
-                let time = d.getTime(); // Get the time used in Math.sin
-            let goal = { // An goal example with defined Scalar and Size values for the lively objectives
-            
-            'jointLively1':{
-                Scalar:0.5
-            },
-            'jointLively2':{
-                Scalar:1.0
-            },
-            'positionLively':{
-                Size:[0.07,0.05,0.08]
-            },
-            'orientationLively':{
-                Size:[0.07,0.05,0.08]
-            }
-           
-            }
-            const newState = currentSolver.solve(goal,{},Math.sin(time/1000)/4+0.95); // The time parameter for the solve cannot be 0.0. 
-            // Update the solver's current state
-            
-            setRobotState(newState)
-            } 
-        
+  useEffect(() => {
+    /* 
+      Given that we are showing this example in a declarative
+      react context, we need to use the useEffect hook to execute
+      imperative (sequential) code. That means that if you are
+      writing standard javascript, your code will look like the
+      contents of the "init" function.
+      * Note also that the "init" function is async. This is
+      because the lively library is built on web assembly (WASM),
+      which needs to be imported asynchronously.
+      */
+    var currentSolver;
+    const init = async () => {
+      // Initialize the lively package (WASM)
+      await lively.init();
+      // Instantiate a new solver
+      const newSolver = new lively.Solver(
+        urdfs.panda, // The urdf of the robot
+        {
+          // some lively objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
+          smoothness: {
+            name: "MySmoothnessObjective",
+            type: "SmoothnessMacro",
+            weight: 0,
+          },
+          positionLively: {
+            name: "MyLivelinessObjective3",
+            type: "PositionLiveliness",
+            weight: 19,
+            link: "panda_hand",
+            frequency: 15,
+          },
+          orientationLively: {
+            name: "MyOrientationObjective2",
+            type: "OrientationLiveliness",
+            weight: 15,
+            link: "panda_link2",
+            frequency: 20,
+          },
+          finger_joint_control: {
+            name: "FingerJointControl",
+            type: "JointMatch",
+            weight: 25,
+            joint: "panda_finger_joint1",
+            frequency: 25,
+          },
         }
-        
+      );
+      currentSolver = newSolver; //assign new solver to the current solver in use
+      // Assign the solver to the value
+      setLivelySolver(newSolver);
+      // Run solve to get a solved state
+      const newState = newSolver.solve({}, {}, 0.0);
+      // Update the solver's current state
+      setRobotState(newState);
+      setVisualRobotState(newState);
+    };
+    init();
 
-        const interval = setInterval(updateSolver, (1000/30)); // Update the solver 30fps
-             
-        return ()=>{
-            // Provide a function to clear previous values
-            setLivelySolver(null);
-            setRobotState(null);
-            setVisualRobotState(null);
-            clearInterval(interval);
-        }
-    },[robot]) // Rerun this code if the robot changes
+    const updateSolver = () => {
+      if (currentSolver) {
+        const d = new Date();
+        let time = d.getTime(); // Get the time used in Math.sin
+        let goals = {
+          // An goal example with defined Scalar and Size values for the lively objectives
+
+          finger_joint_control: {
+            Scalar: 0.02,
+          },
+          positionLively: {
+            Size: [0.07, 0.05, 0.08],
+          },
+          orientationLively: {
+            Size: [0.07, 0.05, 0.08],
+          },
+        };
+        const newState = currentSolver.solve(goals, {}, time / 1000); // The time parameter for the solve cannot be 0.0.
+        // Update the solver's current state
+
+        setRobotState(newState);
+      }
+    };
+
+    const interval = setInterval(updateSolver, 1000 / 30); // Update the solver 30fps
+
+    return () => {
+      // Provide a function to clear previous values
+      setLivelySolver(null);
+      setRobotState(null);
+      setVisualRobotState(null);
+      clearInterval(interval);
+    };
+  }, [robot]); // Rerun this code if the robot changes
 
   return (
     <div>
-       
-       <RobotViewer state={robotState} links={livelySolver ? livelySolver.links : []}/>
-       <Button active={robot==='panda'} onClick={()=>setVisualRobotState(robotState)}>Update State</Button> 
-       <Tree label='state' data={visualRobotState}/>
+      <RobotViewer
+        state={robotState}
+        links={livelySolver ? livelySolver.links : []}
+      />
+      <Button
+        active={robot === "panda"}
+        onClick={() => setVisualRobotState(robotState)}
+      >
+        Update State
+      </Button>
+      <Tree label="state" data={visualRobotState} />
     </div>
   );
 }
-  ```
+```
 
   </TabItem>
 
   <TabItem value="js" label="Javascript">
 
-  ```js
-import init, {Solver} from 'lively';
+```js
+import init, { Solver } from "lively";
 
 async function start() {
-    // Initialize the lively package (WASM)
-    await init();
-    // Instantiate a new solver
-    let solver = new Solver(
-        "<?xml version='1.0' ?><robot name='panda'>...</robot>", // Full urdf as a string
-        {
-            'smoothness': {  // An example objective (smoothness macro)
-                name: 'MySmoothnessObjective',
-                type: 'SmoothnessMacro',
-                weight: 5
-            }
-        }
-    );
-    // Run solve to get a solved state
-    let state = solver.solve({},{},0.0);
-    // Log the initial state
-    console.log(state)
+  // Initialize the lively package (WASM)
+  await init();
+  // Instantiate a new solver
+  let solver = new Solver(
+    "<?xml version='1.0' ?><robot name='panda'>...</robot>", // Full urdf as a string
+    {
+      smoothness: {
+        // An example objective (smoothness macro)
+        name: "MySmoothnessObjective",
+        type: "SmoothnessMacro",
+        weight: 5,
+      },
+    }
+  );
+  // Run solve to get a solved state
+  let state = solver.solve({}, {}, 0.0);
+  // Log the initial state
+  console.log(state);
 }
 
 // Could be executed from anywhere that supports async actions
 start();
-
-  ```
+```
 
   </TabItem>
 
   <TabItem value="py" label="Python">
 
-  ```py
+```py
 from lively import Solver, SmoothnessMacroObjective
 
 # Instantiate a new solver
 solver = Solver(
-    urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
-    objectives={
-        # An example objective (smoothness macro)
-        "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5)
-    }
+  urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
+  objectives={
+      # An example objective (smoothness macro)
+      "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5)
+  }
 )
 
 # Run solve to get a solved state
 state = solver.solve({},{},0.0)
 # Log the initial state
 print(state)
-  ```
+```
 
   </TabItem>
 
   <TabItem value="rs" label="Rust">
 
-  ```rust
+```rust
 use lively::lively::Solver;
 use lively::objectives::core::base::SmoothnessMacroObjective;
 use lively::objectives::objective::Objective;
@@ -203,33 +197,28 @@ use std::collections::HashMap;
 let mut objectives: HashMap<String,Objective> = HashMap::new();
 // Add a Smoothness Macro Objective
 objectives.insert(
-    "smoothness".into(),
-    // An example objective (smoothness macro)
-    Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective",5.0))
+  "smoothness".into(),
+  // An example objective (smoothness macro)
+  Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective",5.0))
 );
 
 // Instantiate a new solver struct
 let mut solver = Solver::new(
-    urdf:'<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
-    objectives
+  urdf:'<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
+  objectives
 );
 
 // Run solve to get a solved state
 let state = solver.solve(
-    HashMap::new(), 
-    HashMap::new(), 
-    0.0, 
-    None
+  HashMap::new(),
+  HashMap::new(),
+  0.0,
+  None
 );
 // Log the initial state
 println!("{:?}",state);
-  ```
+```
 
   </TabItem>
 
-</Tabs> 
-
-
-
-
-
+</Tabs>

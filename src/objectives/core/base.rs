@@ -148,7 +148,7 @@ impl Callable<bool> for VelocityMinimizationObjective {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
-            x_val += (joint_value - v.history.prev1.get_joint_position(&joint.name)).powi(2);
+            x_val += ((joint_value - v.history.prev1.get_joint_position(&joint.name))/(state.timestamp - v.history.prev1.timestamp)).powi(2);
         }
         x_val = x_val.sqrt();
         return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
