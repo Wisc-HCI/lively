@@ -42,6 +42,16 @@ function InitializationExample(props) {
             type: "SmoothnessMacro",
             weight: 5,
           },
+          collision: {
+            name : 'MyCollisionDetection',
+            type: 'CollisionAvoidance',
+            weight : 5
+          },
+          jointLimit: {
+            name : 'MyJointLimit',
+            type : 'JointLimits',
+            weight : 5
+          },
           //collision, jointlimit
           positionLively: {
             name: "MyLivelinessObjective3",
@@ -93,6 +103,9 @@ function InitializationExample(props) {
           orientationLively: {
             Size: [0.007, 0.005, 0.008],
           },
+          jointMatch:{
+            Scalar:0.02
+          }
         };
         const newState = currentSolver.solve(goals, {}, time / 1000); // Convert the time to second
         // Update the solver's current state
