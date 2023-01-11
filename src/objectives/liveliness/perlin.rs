@@ -8,6 +8,8 @@ use noise::{NoiseFn, Perlin, Seedable};
 use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "pybindings")]
+use pyo3::prelude::*;
 
 fn get_default_perlin() -> Perlin {
     let mut rng: ThreadRng = thread_rng();
@@ -26,7 +28,8 @@ fn get_default_offsets() -> [f64; 3] {
 }
 
 #[repr(C)]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct PositionLivelinessObjective {
     // Adds position liveliness to the specified link
     pub name: String,
@@ -112,8 +115,38 @@ impl Callable<Vector3<f64>> for PositionLivelinessObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl PositionLivelinessObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,link:String,frequency:f64) -> Self {
+        PositionLivelinessObjective::new(name,weight,link,frequency)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_link(&self) -> PyResult<String> {
+        Ok(self.link.clone())
+    }
+
+    #[getter]
+    pub fn get_frequency(&self) -> PyResult<f64> {
+        Ok(self.frequency.clone())
+    }
+}
+
 #[repr(C)]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct OrientationLivelinessObjective {
     // Adds orientation liveliness to the link
     pub name: String,
@@ -204,8 +237,38 @@ impl Callable<Vector3<f64>> for OrientationLivelinessObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl OrientationLivelinessObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,link:String,frequency:f64) -> Self {
+        OrientationLivelinessObjective::new(name,weight,link,frequency)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_link(&self) -> PyResult<String> {
+        Ok(self.link.clone())
+    }
+
+    #[getter]
+    pub fn get_frequency(&self) -> PyResult<f64> {
+        Ok(self.frequency.clone())
+    }
+}
+
 #[repr(C)]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct JointLivelinessObjective {
     // Adds joint liveliness to the specified joint
     pub name: String,
@@ -272,8 +335,38 @@ impl Callable<f64> for JointLivelinessObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl JointLivelinessObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,joint:String,frequency:f64) -> Self {
+        JointLivelinessObjective::new(name,weight,joint,frequency)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_joint(&self) -> PyResult<String> {
+        Ok(self.joint.clone())
+    }
+
+    #[getter]
+    pub fn get_frequency(&self) -> PyResult<f64> {
+        Ok(self.frequency.clone())
+    }
+}
+
 #[repr(C)]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct RelativeMotionLivelinessObjective {
     // Defining a vector line between two links (link1 and link2), this objective promotes lively motion of the second link along that vector
     pub name: String,
@@ -354,5 +447,39 @@ impl Callable<f64> for RelativeMotionLivelinessObjective {
 
     fn set_weight(&mut self, weight: f64) {
         self.weight = weight;
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl RelativeMotionLivelinessObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,link1:String,link2:String,frequency:f64) -> Self {
+        RelativeMotionLivelinessObjective::new(name,weight,link1,link2,frequency)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_link1(&self) -> PyResult<String> {
+        Ok(self.link1.clone())
+    }
+
+    #[getter]
+    pub fn get_link2(&self) -> PyResult<String> {
+        Ok(self.link2.clone())
+    }
+
+    #[getter]
+    pub fn get_frequency(&self) -> PyResult<f64> {
+        Ok(self.frequency.clone())
     }
 }

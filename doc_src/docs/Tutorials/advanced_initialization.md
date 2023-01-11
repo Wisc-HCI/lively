@@ -13,7 +13,6 @@ _NOTE: Since Lively is still in beta, the design is subject to change and should
   ```jsx live
 function InitializationExample(props) {
     const [livelySolver, setLivelySolver] = useState(null);
-    const [robot, setRobot] = useState('panda');
     const [robotState, setRobotState] = useState(null)
     
     useEffect(()=>{
@@ -32,17 +31,30 @@ function InitializationExample(props) {
             await lively.init();
             // Instantiate a new solver
             const newSolver = new lively.Solver(
-                urdfs[robot], // The urdf of the robot
+                urdfs.ur3e, // The urdf of the robot
                 {
                     'smoothness': {  // An example objective (smoothness macro)
                         name: 'MySmoothnessObjective',
                         type: 'SmoothnessMacro',
                         weight: 5
                     }
-                }
+                },
+                [
+                    {value:0.0,delta:0.0},
+                    {value:0.25,delta:0.0},
+                    {value:0.5,delta:0.0},
+                    {value:0.0,delta:0.0},
+                    {value:0.0,delta:0.0},
+                    {value:0.0,delta:0.0},
+                ]
             );
+
+            // Run collision normalization
+            newSolver.computeAverageDistanceTable()
+
             // Assign the solver to the value
             setLivelySolver(newSolver)
+
             // Run solve to get a solved state
             const newState = newSolver.solve({},{},0.0);
             // Update the solver's current state
@@ -55,12 +67,10 @@ function InitializationExample(props) {
             setLivelySolver(null);
             setRobotState(null);
         }
-    },[robot]) // Rerun this code if the robot changes
+    },[])
 
   return (
     <div>
-       <Button active={robot==='panda'} onClick={()=>setRobot('panda')}>Panda</Button>
-       <Button active={robot==='ur3e'} onClick={()=>setRobot('ur3e')}>UR3e</Button>
        <RobotViewer state={robotState} links={livelySolver ? livelySolver.links : []}/>
        <Tree label='state' data={robotState}/>
     </div>

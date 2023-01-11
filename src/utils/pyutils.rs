@@ -7,117 +7,63 @@ use nalgebra::geometry::{Translation3, Isometry3, Quaternion, UnitQuaternion};
 #[cfg(feature = "pybindings")]
 use nalgebra::{Vector3};
 
-#[cfg(feature = "pybindings")]
-#[pyclass]
+#[cfg_attr(feature = "pybindings", pyclass(name="Size"))]
 #[derive(Clone,Debug)]
-pub struct Size {
+pub struct PySize {
     pub value: Vector3<f64>
 }
 
-#[cfg(feature = "pybindings")]
-#[pyclass]
+#[cfg_attr(feature = "pybindings", pyclass(name="Translation"))]
 #[derive(Clone,Debug)]
-pub struct Translation {
+pub struct PyTranslation {
     pub value: Translation3<f64>
 }
 
-#[cfg(feature = "pybindings")]
-#[pyclass]
+#[cfg_attr(feature = "pybindings", pyclass(name="Rotation"))]
 #[derive(Clone,Debug)]
-pub struct Rotation {
+pub struct PyRotation {
     pub value: UnitQuaternion<f64>
 }
 
-#[cfg(feature = "pybindings")]
-#[pyclass]
+#[cfg_attr(feature = "pybindings", pyclass(name="Transform"))]
 #[derive(Clone,Debug)]
-pub struct Transform {
+pub struct PyTransform {
     #[pyo3(get)]
-    pub translation: Py<Translation>,
+    pub translation: Py<PyTranslation>,
     #[pyo3(get)]
-    pub rotation: Py<Rotation>
+    pub rotation: Py<PyRotation>
 }
 
 #[cfg(feature = "pybindings")]
-#[pyclass]
-#[derive(Clone,Debug)]
-pub struct Ellipse {
-    #[pyo3(get)]
-    pub translation: Translation,
-    #[pyo3(get)]
-    pub rotation: Rotation,
-    #[pyo3(get)]
-    pub size: Size
-}
-
-#[cfg(feature = "pybindings")]
-#[pyclass]
-#[derive(Clone,Debug)]
-pub struct RotationRange {
-    #[pyo3(get)]
-    pub rotation: Rotation,
-    #[pyo3(get)]
-    pub delta: f64
-}
-
-#[cfg(feature = "pybindings")]
-#[pyclass]
-#[derive(Clone,Debug)]
-pub struct ScalarRange {
-    #[pyo3(get)]
-    pub value: f64,
-    #[pyo3(get)]
-    pub delta: f64
-}
-
-#[cfg(feature = "pybindings")]
-impl Size {
+impl PySize {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { value: Vector3::new(x, y, z) }
     }
 }
 #[cfg(feature = "pybindings")]
-impl Translation {
+impl PyTranslation {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { value: Translation3::new(x, y, z) }
     }
 }
 #[cfg(feature = "pybindings")]
-impl Rotation {
+impl PyRotation {
     pub fn new(w: f64, x: f64, y: f64, z: f64) -> Self {
         Self { value: UnitQuaternion::new_normalize(Quaternion::new(w, x, y, z )) }
     }
 }
 #[cfg(feature = "pybindings")]
-impl Transform {
+impl PyTransform {
     pub fn get_isometry(&self, py: Python) -> Isometry3<f64> {
-        let t: Translation = self.translation.extract(py).unwrap();
-        let r: Rotation = self.rotation.extract(py).unwrap();
+        let t: PyTranslation = self.translation.extract(py).unwrap();
+        let r: PyRotation = self.rotation.extract(py).unwrap();
         return Isometry3::from_parts(t.value, r.value)
-    }
-}
-#[cfg(feature = "pybindings")]
-impl Ellipse {
-    pub fn new(translation: Translation, rotation: Rotation, size: Size) -> Self {
-        Self { translation, rotation, size }
-    }
-}
-#[cfg(feature = "pybindings")]
-impl RotationRange {
-    pub fn new(rotation: Rotation, delta: f64) -> Self {
-        Self { rotation, delta }
-    }
-}
-#[cfg(feature = "pybindings")]
-impl ScalarRange {
-    pub fn new(value: f64, delta: f64) -> Self {
-        Self { value, delta }
     }
 }
 
 #[cfg(feature = "pybindings")]
 #[pymethods]
-impl Size {
+impl PySize {
     #[new]
     pub fn from_python(x: f64, y: f64, z: f64) -> Self {
         Self::new(x, y, z)
@@ -171,7 +117,7 @@ impl Size {
 
 #[cfg(feature = "pybindings")]
 #[pymethods]
-impl Translation {
+impl PyTranslation {
     #[new]
     pub fn from_python(x: f64, y: f64, z: f64) -> Self {
         Self::new(x, y, z)
@@ -225,7 +171,7 @@ impl Translation {
 
 #[cfg(feature = "pybindings")]
 #[pymethods]
-impl Rotation {
+impl PyRotation {
     #[new]
     pub fn from_python(w: f64, x: f64, y: f64, z: f64) -> Self {
         Self::new(w, x, y, z)
@@ -275,9 +221,9 @@ impl Rotation {
 
 #[cfg(feature = "pybindings")]
 #[pymethods]
-impl Transform {
+impl PyTransform {
     #[new]
-    pub fn from_python(py: Python, translation: Translation, rotation: Rotation) -> PyResult<Self> {
+    pub fn from_python(py: Python, translation: PyTranslation, rotation: PyRotation) -> PyResult<Self> {
         Ok(Self {
             translation: Py::new(py, translation)?,
             rotation: Py::new(py, rotation)?
@@ -287,20 +233,20 @@ impl Transform {
     #[staticmethod]
     pub fn identity(py: Python) -> PyResult<Self> {
         Ok(Self {
-            translation: Py::new(py, Translation::new(0.0,0.0,0.0))?, 
-            rotation: Py::new(py, Rotation::new(1.0,0.0,0.0,0.0))?
+            translation: Py::new(py, PyTranslation::new(0.0,0.0,0.0))?, 
+            rotation: Py::new(py, PyRotation::new(1.0,0.0,0.0,0.0))?
         })
     }
 
     pub fn as_vecs(&self, py: Python) -> PyResult<([f64; 3],[f64; 4])> {
-        let t: Translation = self.translation.extract(py).unwrap();
-        let r: Rotation = self.rotation.extract(py).unwrap();
+        let t: PyTranslation = self.translation.extract(py).unwrap();
+        let r: PyRotation = self.rotation.extract(py).unwrap();
         Ok(([t.value.vector.x, t.value.vector.y, t.value.vector.z], 
             [r.value.coords[3], r.value.coords[0], r.value.coords[1], r.value.coords[2]]))
     }
     pub fn as_dicts(&self, py: Python) -> PyResult<(HashMap<&str,f64>,HashMap<&str,f64>)> {
-        let t: Translation = self.translation.extract(py).unwrap();
-        let r: Rotation = self.rotation.extract(py).unwrap();
+        let t: PyTranslation = self.translation.extract(py).unwrap();
+        let r: PyRotation = self.rotation.extract(py).unwrap();
         let mut vec_map: HashMap<&str,f64> = HashMap::new();
         vec_map.insert(&"x",t.value.vector.x);
         vec_map.insert(&"y",t.value.vector.y);
@@ -316,35 +262,35 @@ impl Transform {
 }
 
 #[cfg(feature = "pybindings")]
-impl From<Vector3<f64>> for Translation {
+impl From<Vector3<f64>> for PyTranslation {
     fn from(vector: Vector3<f64>) -> Self {
         Self { value: Translation3::new(vector.x, vector.y, vector.z) }
     }
 }
 
-#[cfg(feature = "pybindings")]
-#[pymethods]
-impl Ellipse {
-    #[new]
-    pub fn from_python(translation: Translation, rotation: Rotation, size: Size) -> Self {
-        Self { translation, rotation, size }
-    }
-}
+// #[cfg(feature = "pybindings")]
+// #[pymethods]
+// impl Ellipse {
+//     #[new]
+//     pub fn from_python(translation: Translation, rotation: Rotation, size: Size) -> Self {
+//         Self { translation, rotation, size }
+//     }
+// }
 
-#[cfg(feature = "pybindings")]
-#[pymethods]
-impl RotationRange {
-    #[new]
-    pub fn from_python(rotation: Rotation, delta: f64) -> Self {
-        Self { rotation, delta }
-    }
-}
+// #[cfg(feature = "pybindings")]
+// #[pymethods]
+// impl RotationRange {
+//     #[new]
+//     pub fn from_python(rotation: Rotation, delta: f64) -> Self {
+//         Self { rotation, delta }
+//     }
+// }
 
-#[cfg(feature = "pybindings")]
-#[pymethods]
-impl ScalarRange {
-    #[new]
-    pub fn from_python(value: f64, delta: f64) -> Self {
-        Self { value, delta }
-    }
-}
+// #[cfg(feature = "pybindings")]
+// #[pymethods]
+// impl ScalarRange {
+//     #[new]
+//     pub fn from_python(value: f64, delta: f64) -> Self {
+//         Self { value, delta }
+//     }
+// }

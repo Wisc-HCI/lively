@@ -2,9 +2,12 @@ use serde::{Serialize, Deserialize};
 use crate::utils::vars::Vars;
 use crate::utils::state::State;
 use crate::objectives::objective::{groove_loss,Callable};
+#[cfg(feature = "pybindings")]
+use pyo3::prelude::*;
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct GravityObjective {
     pub name: String,
     pub weight: f64,
@@ -34,5 +37,29 @@ impl Callable<bool> for GravityObjective {
 
     fn set_weight(&mut self, weight: f64) {
         self.weight = weight;
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl GravityObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,link:String) -> Self {
+        GravityObjective::new(name,weight,link)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_link(&self) -> PyResult<String> {
+        Ok(self.link.clone())
     }
 }

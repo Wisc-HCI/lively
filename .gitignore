@@ -17,3 +17,4 @@ lively/__pycache__/__init__.*
 lively/lively_tk.cpython-*
 tests/.ipynb_checkpoints
 .DS_Store
+.secrets

@@ -1,11 +1,11 @@
 #[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
+// #[cfg(feature = "pybindings")]
+// use nalgebra::Isometry3;
 #[cfg(feature = "pybindings")]
-use nalgebra::Isometry3;
-#[cfg(feature = "pybindings")]
-use crate::utils::info::{CollisionSettingInfo,TransformInfo,MimicInfo,LinkInfo,JointInfo,ProximityInfo,ShapeUpdate};
-#[cfg(feature = "pybindings")]
-use crate::utils::shapes::Shape;
+use crate::utils::info::{CollisionSettingInfo,TransformInfo,MimicInfo,LinkInfo,JointInfo,ProximityInfo};
+// #[cfg(feature = "pybindings")]
+// use crate::utils::shapes::Shape;
 #[cfg(feature = "pybindings")]
 use crate::wrappers::python::shapes::{PyShape};
 #[cfg(feature = "pybindings")]
@@ -287,13 +287,13 @@ pub enum PyShapeUpdate {
 //     }
 // }
 
-#[cfg(feature = "pybindings")]
-impl From<PyShapeUpdate> for ShapeUpdate {
-    fn from(pyshape:PyShapeUpdate) -> ShapeUpdate {
-        match pyshape {
-            PyShapeUpdate::Add{id,shape} => ShapeUpdate::Add{id,shape:Shape::from(shape)},
-            PyShapeUpdate::Move{id,translation,rotation} => ShapeUpdate::Move{id,pose:Isometry3::from_parts(translation.value,rotation.value)},
-            PyShapeUpdate::Delete(id) => ShapeUpdate::Delete(id)
-        }
-    }
-}
+// #[cfg(feature = "pybindings")]
+// impl From<PyShapeUpdate> for ShapeUpdate {
+//     fn from(pyshape:PyShapeUpdate) -> ShapeUpdate {
+//         match pyshape {
+//             PyShapeUpdate::Add{id,shape} => ShapeUpdate::Add{id,shape:Shape::from(shape)},
+//             PyShapeUpdate::Move{id,translation,rotation} => ShapeUpdate::Move{id,pose:Isometry3::from_parts(translation.value,rotation.value)},
+//             PyShapeUpdate::Delete(id) => ShapeUpdate::Delete(id)
+//         }
+//     }
+// }

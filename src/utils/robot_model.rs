@@ -28,10 +28,11 @@ pub struct RobotModel {
 
 impl RobotModel {
     
-    pub fn new(urdf: String, collision_objects: Vec<Shape>, collision_settings: &Option<CollisionSettingInfo>, displacement_bounds: Vec<(f64,f64)>) -> Self {
+    pub fn new(urdf: String, collision_objects: Vec<Shape>, collision_settings: &Option<CollisionSettingInfo>, displacement_bounds: Vec<ScalarRange>) -> Self {
         
         let description: Robot = read_from_string(&urdf.as_str()).unwrap();
         let chain: Chain<f64> = Chain::from(description.clone());
+        println!("{:?}",description);
 
         let mut joints: Vec<JointInfo> = Vec::new();
         let mut links: Vec<LinkInfo> = Vec::new();
@@ -162,7 +163,7 @@ impl RobotModel {
 
         let mut start_vec = vec![];
         for bound in displacement_bounds {
-            start_vec.push(bound.0)
+            start_vec.push(bound.value)
         }
 
         Self { description, chain, collision_manager, child_map, joint_names, joints, links, joint_converters, dims, origin_link,collision_objects,start_vec }
@@ -171,7 +172,7 @@ impl RobotModel {
     pub fn get_environmental_objects(&self) -> Vec<Shape>{
         return self.collision_objects.clone();
     }
-    pub fn get_state(&self, x: &Vec<f64>,include_proximity: bool) -> State {
+    pub fn get_state(&self, x: &Vec<f64>,include_proximity: bool,timestamp: f64) -> State {
         let translation: Translation3<f64> = Translation3::new(x[0],x[1],x[2]);
         let rotation: UnitQuaternion<f64> = UnitQuaternion::from_euler_angles(x[3],x[4],x[5]);
         let origin = Isometry3::from_parts(translation,rotation);
@@ -221,10 +222,9 @@ impl RobotModel {
         }
         
         let center_of_mass_vec = center_of_mass(&self.chain);
-        println!("{:?} {:?}",x,center_of_mass_vec);
 
         // Return the current state.
-        return State::new(origin, joints, frames, proximity, center_of_mass_vec)
+        return State::new(origin, joints, frames, proximity, center_of_mass_vec, timestamp)
     }
 
     pub fn get_default_state(&self) -> State {
@@ -240,7 +240,7 @@ impl RobotModel {
             }
         }
 
-        return self.get_state(&x,true)
+        return self.get_state(&x,true,0.0)
     }
     
     pub fn get_filled_state(&self, state: &State) -> State {
@@ -250,7 +250,7 @@ impl RobotModel {
         */
 
         // Turn the state into a vector and then get the state from it.
-        return self.get_state(&self.get_x(state),true)
+        return self.get_state(&self.get_x(state),true,0.0)
     }
 
     pub fn get_x(&self, state: &State) -> Vec<f64> {

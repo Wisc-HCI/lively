@@ -1,12 +1,17 @@
 use crate::utils::shapes::{BoxShape, CapsuleShape, CylinderShape, MeshShape, Shape, SphereShape};
 use k::urdf::isometry_from;
-use nalgebra::geometry::Point3;
-use nalgebra::Isometry3;
+use nalgebra::geometry::{Point3, Isometry3, UnitQuaternion};
+use nalgebra::Vector3;
 use serde::{Deserialize, Serialize};
 use urdf_rs::{Geometry, Link, Mimic};
+#[cfg(feature = "pybindings")]
+use pyo3::prelude::*;
+#[cfg(feature = "pybindings")]
+use crate::utils::pyutils::*;
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct TransformInfo {
     #[serde(skip_deserializing, default = "Isometry3::identity")]
     pub world: Isometry3<f64>,
@@ -21,6 +26,7 @@ impl TransformInfo {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct MimicInfo {
     pub joint: String,
     pub multiplier: f64,
@@ -61,6 +67,7 @@ impl From<&Mimic> for MimicInfo {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct JointInfo {
     pub name: String,
     pub joint_type: String,
@@ -106,6 +113,7 @@ impl JointInfo {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct LinkInfo {
     pub name: String,
     pub parent_joint: String,
@@ -286,6 +294,7 @@ impl From<Link> for LinkInfo {
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct ProximityInfo {
     pub shape1: String,
     pub shape2: String,
@@ -321,6 +330,7 @@ impl ProximityInfo {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct CollisionSettingInfo {
     pub d_max: f64,
     pub r: f64,
@@ -341,15 +351,6 @@ impl CollisionSettingInfo {
     }
 }
 
-// const D_MAX: f64 = 1.0;
-// const R: f64 = 0.0;
-// const A_MAX: f64 = 0.5;
-// const TIME_BUDGET: Duration = Duration::from_micros(100);
-
-// const TIMED: bool = true;
-// const A_VALUE: f64 = 1.0;
-// const OPTIMA_NUMBER: usize = 600;
-
 impl Default for CollisionSettingInfo {
     fn default() -> Self {
         Self {
@@ -364,8 +365,106 @@ impl Default for CollisionSettingInfo {
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct AddShape {
+    pub id: String,
+    pub shape: Shape
+}
+
+#[repr(C)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct MoveShape {
+    pub id: String,
+    pub transform: Isometry3<f64>
+}
+
+#[repr(C)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "pybindings", derive(FromPyObject))]
 pub enum ShapeUpdate {
-    Add { id: String, shape: Shape },
-    Move { id: String, pose: Isometry3<f64> },
+    Add(AddShape),
+    Move(MoveShape),
     Delete(String),
+}
+
+#[cfg(feature = "pybindings")]
+impl IntoPy<PyObject> for ShapeUpdate {
+    fn into_py(self, py: Python) -> PyObject {
+        match self {
+            Self::Add(obj) => obj.into_py(py),
+            Self::Move(obj) => obj.into_py(py),
+            Self::Delete(obj) => obj.into_py(py)
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default,Copy)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct ScalarRange {
+    pub value: f64,
+    pub delta: f64
+}
+
+impl ScalarRange {
+    pub fn new(value:f64, delta:f64) -> Self {
+        Self {value,delta}
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl ScalarRange {
+    #[new]
+    pub fn from_python(value: f64, delta: f64) -> Self {
+        Self::new(value,delta)
+    }
+}
+
+
+#[repr(C)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default,Copy)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct RotationRange {
+    pub rotation: UnitQuaternion<f64>,
+    pub delta: f64
+}
+
+impl RotationRange {
+    pub fn new(rotation:UnitQuaternion<f64>, delta:f64) -> Self {
+        Self {rotation,delta}
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl RotationRange {
+    #[new]
+    pub fn from_python(rotation: PyRotation, delta: f64) -> Self {
+        Self::new(rotation.value,delta)
+    }
+}
+
+#[repr(C)]
+#[derive(Serialize,Deserialize,Clone,Debug,Default,Copy)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct Ellipse {
+    pub transform: Isometry3<f64>,
+    pub size: Vector3<f64>
+}
+
+impl Ellipse {
+    pub fn new(transform:Isometry3<f64>, size:Vector3<f64>) -> Self {
+        Self {transform,size}
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl Ellipse {
+    #[new]
+    pub fn from_python(translation: PyTranslation, rotation: PyRotation, size: PySize) -> Self {
+        Self::new(Isometry3::from_parts(translation.value,rotation.value),size.value)
+    }
 }

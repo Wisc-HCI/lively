@@ -9,10 +9,13 @@ use crate::objectives::core::mirroring::{*};
 use crate::objectives::liveliness::forces::{*};
 use crate::objectives::liveliness::perlin::{*};
 use nalgebra::Translation3;
+#[cfg(feature = "pybindings")]
+use pyo3::prelude::*;
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug)]
 #[serde(tag = "type")]
+#[cfg_attr(feature = "pybindings", derive(FromPyObject))]
 pub enum Objective {
     PositionMatch(PositionMatchObjective),
     OrientationMatch(OrientationMatchObjective),
@@ -155,13 +158,13 @@ impl Objective {
             Self::OrientationLiveliness(obj) => return Some(Goal::Size(obj.goal)),
             Self::PositionMirroring(obj) => return Some(Goal::Translation(Translation3::from(obj.goal))),
             Self::OrientationMirroring(obj) => return Some(Goal::Rotation(obj.goal)),
-            Self::PositionBounding(obj) => return Some(Goal::Ellipse {pose: obj.goal.0, size: obj.goal.1 }),
-            Self::OrientationBounding(obj) => return Some(Goal::RotationRange {rotation: obj.goal.0, delta: obj.goal.1}),
+            Self::PositionBounding(obj) => return Some(Goal::Ellipse(obj.goal)),
+            Self::OrientationBounding(obj) => return Some(Goal::RotationRange(obj.goal)),
             Self::JointMatch(obj) => return Some(Goal::Scalar(obj.goal)),
             Self::JointLiveliness(obj) => return Some(Goal::Scalar(obj.goal)),
             Self::JointMirroring(obj) => return Some(Goal::Scalar(obj.goal)),
             Self::JointLimits(_obj) => return None,
-            Self::JointBounding(obj) => return Some(Goal::ScalarRange {value: obj.goal.0, delta: obj.goal.1}),
+            Self::JointBounding(obj) => return Some(Goal::ScalarRange(obj.goal)),
             Self::CollisionAvoidance(_obj) => return None,
             Self::VelocityMinimization(_obj) => return None,
             Self::AccelerationMinimization(_obj) => return None,
@@ -190,9 +193,9 @@ impl Objective {
             (Goal::Scalar(scalar_goal),Self::RelativeMotionLiveliness(obj)) => obj.set_goal(*scalar_goal),
             (Goal::Size(size_goal),Self::PositionLiveliness(obj)) => obj.set_goal(*size_goal),
             (Goal::Size(size_goal),Self::OrientationLiveliness(obj)) => obj.set_goal(*size_goal),
-            (Goal::Ellipse{pose,size},Self::PositionBounding(obj)) => obj.set_goal((*pose,*size)),
-            (Goal::RotationRange{rotation,delta},Self::OrientationBounding(obj)) => obj.set_goal((*rotation,*delta)),
-            (Goal::ScalarRange{value,delta},Self::JointBounding(obj)) => obj.set_goal((*value,*delta)),
+            (Goal::Ellipse(ellipse_goal),Self::PositionBounding(obj)) => obj.set_goal(*ellipse_goal),
+            (Goal::RotationRange(rotation_range_goal),Self::OrientationBounding(obj)) => obj.set_goal(*rotation_range_goal),
+            (Goal::ScalarRange(scalar_range_goal),Self::JointBounding(obj)) => obj.set_goal(*scalar_range_goal),
             (g,o) => {
                 println!("Unexpected goal {:?} provided for Objective {:?}",g,o.clone())
             }
@@ -220,4 +223,36 @@ pub trait Callable<T> {
     fn call(&self,
         v: &Vars,
         state: &State) -> f64;
+}
+
+#[cfg(feature = "pybindings")]
+impl IntoPy<PyObject> for Objective {
+    fn into_py(self, py: Python) -> PyObject {
+        match self {
+			Self::PositionMatch(obj) => obj.into_py(py),
+			Self::OrientationMatch(obj) => obj.into_py(py),
+			Self::PositionLiveliness(obj) => obj.into_py(py),
+			Self::OrientationLiveliness(obj) => obj.into_py(py),
+			Self::PositionMirroring(obj) => obj.into_py(py),
+			Self::OrientationMirroring(obj) => obj.into_py(py),
+			Self::PositionBounding(obj) => obj.into_py(py),
+			Self::OrientationBounding(obj) => obj.into_py(py),
+			Self::JointMatch(obj) => obj.into_py(py),
+			Self::JointLiveliness(obj) => obj.into_py(py),
+			Self::JointMirroring(obj) => obj.into_py(py),
+			Self::JointBounding(obj) => obj.into_py(py),
+			Self::JointLimits(obj) => obj.into_py(py),
+			Self::CollisionAvoidance(obj) => obj.into_py(py),
+			Self::VelocityMinimization(obj) => obj.into_py(py),
+			Self::AccelerationMinimization(obj) => obj.into_py(py),
+			Self::JerkMinimization(obj) => obj.into_py(py),
+			Self::OriginVelocityMinimization(obj) => obj.into_py(py),
+			Self::OriginAccelerationMinimization(obj) => obj.into_py(py),
+			Self::OriginJerkMinimization(obj) => obj.into_py(py),
+			Self::RelativeMotionLiveliness(obj) => obj.into_py(py),
+			Self::Gravity(obj) => obj.into_py(py),
+			Self::SmoothnessMacro(obj) => obj.into_py(py),
+			Self::DistanceMatch(obj) => obj.into_py(py),
+        }
+    }
 }

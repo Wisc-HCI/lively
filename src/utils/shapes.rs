@@ -8,15 +8,15 @@ use bevy::prelude::{Mesh, Transform};
 use nalgebra::geometry::Isometry3;
 use nalgebra::Vector3;
 use serde::{Deserialize, Serialize};
-// use std::f64::consts::PI;
-// use nalgebra::Transform;
-// use urdf_rs::Vec3;
+#[cfg(feature = "pybindings")]
+use pyo3::prelude::*;
 
 
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct BoxShape {
     pub frame: String,
     pub name: String,
@@ -53,6 +53,7 @@ impl BoxShape {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct CylinderShape {
     pub frame: String,
     pub name: String,
@@ -87,6 +88,7 @@ impl CylinderShape {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct CapsuleShape {
     pub frame: String,
     pub name: String,
@@ -121,6 +123,7 @@ impl CapsuleShape {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct SphereShape {
     pub frame: String,
     pub name: String,
@@ -151,6 +154,7 @@ impl SphereShape {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct MeshShape {
     pub frame: String,
     pub name: String,
@@ -190,6 +194,7 @@ impl MeshShape {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct HullShape {
     pub frame: String,
     pub name: String,
@@ -220,6 +225,7 @@ impl HullShape {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[serde(tag = "type")]
+#[cfg_attr(feature = "pybindings", derive(FromPyObject))]
 pub enum Shape {
     Box(BoxShape),
     Cylinder(CylinderShape),
@@ -253,123 +259,20 @@ impl Shape {
         }
     }
 
-    // pub fn get_transform(self) -> Transform {
-    //     match self {
-    //         Self::Box(box_object) => {
-    //             let translation = Vec3::new(
-    //                 box_object.local_transform.translation.vector.x as f32,
-    //                 box_object.local_transform.translation.vector.y as f32,
-    //                 box_object.local_transform.translation.vector.z as f32,
-    //             );
+}
 
-    //             let scale = Vec3::new(1.0, 1.0, 1.0);
-
-    //             let rotation: Quat = Quat::from_xyzw(
-    //                 box_object.local_transform.rotation.coords[0] as f32,
-    //                 box_object.local_transform.rotation.coords[1] as f32,
-    //                 box_object.local_transform.rotation.coords[2] as f32,
-    //                 box_object.local_transform.rotation.coords[3] as f32,
-    //             );
-
-    //             return Transform {
-    //                 translation: translation,
-    //                 rotation: rotation,
-    //                 scale: scale,
-    //             };
-    //         }
-    //         Self::Cylinder(cylinder_object) => {
-    //             let transform_offset = Isometry3::rotation(Vector3::x() * 0.5 * PI);
-    //             let local_transform = cylinder_object.local_transform * transform_offset;
-    //             let translation = Vec3::new(
-    //                 local_transform.translation.vector.x as f32,
-    //                 local_transform.translation.vector.y as f32,
-    //                 local_transform.translation.vector.z as f32,
-    //             );
-
-    //             let scale = Vec3::new(1.0, 1.0, 1.0);
-
-    //             let rotation: Quat = Quat::from_xyzw(
-    //                 local_transform.rotation.coords[0] as f32,
-    //                 local_transform.rotation.coords[1] as f32,
-    //                 local_transform.rotation.coords[2] as f32,
-    //                 local_transform.rotation.coords[3] as f32,
-    //             );
-
-    //             return Transform {
-    //                 translation: translation,
-    //                 rotation: rotation,
-    //                 scale: scale,
-    //             };
-    //         }
-    //         Self::Sphere(sphere_object) => {
-    //             let translation = Vec3::new(
-    //                 sphere_object.local_transform.translation.vector.x as f32,
-    //                 sphere_object.local_transform.translation.vector.y as f32,
-    //                 sphere_object.local_transform.translation.vector.z as f32,
-    //             );
-
-    //             let scale = Vec3::new(1.0, 1.0, 1.0);
-
-    //             let rotation: Quat = Quat::from_xyzw(
-    //                 sphere_object.local_transform.rotation.coords[0] as f32,
-    //                 sphere_object.local_transform.rotation.coords[1] as f32,
-    //                 sphere_object.local_transform.rotation.coords[2] as f32,
-    //                 sphere_object.local_transform.rotation.coords[3] as f32,
-    //             );
-
-    //             return Transform {
-    //                 translation: translation,
-    //                 rotation: rotation,
-    //                 scale: scale,
-    //             };
-    //         }
-    //         Self::Capsule(capsule_object) => {
-    //             let translation = Vec3::new(
-    //                 capsule_object.local_transform.translation.vector.x as f32,
-    //                 capsule_object.local_transform.translation.vector.y as f32,
-    //                 capsule_object.local_transform.translation.vector.z as f32,
-    //             );
-
-    //             let scale = Vec3::new(1.0, 1.0, 1.0);
-
-    //             let rotation: Quat = Quat::from_xyzw(
-    //                 capsule_object.local_transform.rotation.coords[0] as f32,
-    //                 capsule_object.local_transform.rotation.coords[1] as f32,
-    //                 capsule_object.local_transform.rotation.coords[2] as f32,
-    //                 capsule_object.local_transform.rotation.coords[3] as f32,
-    //             );
-
-    //             return Transform {
-    //                 translation: translation,
-    //                 rotation: rotation,
-    //                 scale: scale,
-    //             };
-    //         }
-    //         Self::Hull(hull_object) => {
-    //             let translation = Vec3::new(
-    //                 hull_object.local_transform.translation.vector.x as f32,
-    //                 hull_object.local_transform.translation.vector.y as f32,
-    //                 hull_object.local_transform.translation.vector.z as f32,
-    //             );
-
-    //             let scale = Vec3::new(1.0, 1.0, 1.0);
-
-    //             let rotation: Quat = Quat::from_xyzw(
-    //                 hull_object.local_transform.rotation.coords[0] as f32,
-    //                 hull_object.local_transform.rotation.coords[1] as f32,
-    //                 hull_object.local_transform.rotation.coords[2] as f32,
-    //                 hull_object.local_transform.rotation.coords[3] as f32,
-    //             );
-
-    //             return Transform {
-    //                 translation: translation,
-    //                 rotation: rotation,
-    //                 scale: scale,
-    //             };
-    //         }
-    //         Self::Mesh(_) => return Transform::identity(),
-    //     }
-    // }
+#[cfg(feature = "pybindings")]
+impl IntoPy<PyObject> for Shape {
+    fn into_py(self, py: Python) -> PyObject {
+        match self {
+            Self::Box(obj) => obj.into_py(py),
+            Self::Cylinder(obj) => obj.into_py(py),
+            Self::Sphere(obj) => obj.into_py(py),
+            Self::Capsule(obj) => obj.into_py(py),
+            Self::Mesh(obj) => obj.into_py(py),
+            Self::Hull(obj) => obj.into_py(py)
+        }
+    }
 }
 
 // #[cfg(feature = "bevy")]
@@ -413,18 +316,6 @@ impl Shape {
 //                 return bevy::prelude::Mesh::from(bevy::prelude::shape::Cube { size: 1.0 });
 //             }
 //             Shape::Hull(_) => {
-//                 // for points in hull_object.points{
-
-//                 // }
-//                 // let hull_points: Vec<Vec<f32>> = hull_object
-//                 //         .points
-//                 //         .iter()
-//                 //         .map(|p| vec![p.x, p.y, p.z])
-//                 //         .collect();
-//                 // let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
-//                 // mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION,  vec![[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [1.0, 1.0, 0.0]]);
-//                 // mesh.set_indices(Some(Indices::U32(vec![0,1,2])));
-//                 // return mesh;
 //                 return Mesh::from(bevy::prelude::shape::Cube { size: 1.0 });
 //             }
 //         }

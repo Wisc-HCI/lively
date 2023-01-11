@@ -1,4 +1,7 @@
+
 use optimization_engine::{constraints::*, panoc::*, *};
+#[cfg(feature = "jsbindings")]
+use serde::{Serialize};
 use crate::utils::info::{*};
 use crate::utils::vars::{*};
 use crate::utils::shapes::{*};
@@ -10,23 +13,40 @@ use crate::objectives::objective::Objective;
 use rand::{thread_rng, Rng};
 use rand::rngs::ThreadRng;
 use std::collections::HashMap;
+#[cfg(feature = "pybindings")]
+use pyo3::prelude::*;
+// #[cfg(feature = "jsbindings")]
+use wasm_bindgen::prelude::*;
+#[cfg(feature = "jsbindings")]
+use serde_wasm_bindgen;
 
 #[repr(C)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+#[cfg_attr(feature = "jsbindings", wasm_bindgen)]
 pub struct Solver {
+    #[wasm_bindgen(skip)]
     pub robot_model: RobotModel,
 
     // Optimization utility
+    #[wasm_bindgen(skip)]
     pub vars: Vars,
+    #[wasm_bindgen(skip)]
     pub panoc_cache: PANOCCache,
+    #[wasm_bindgen(skip)]
     pub lower_bounds: Vec<f64>,
+    #[wasm_bindgen(skip)]
     pub upper_bounds: Vec<f64>,
+    #[wasm_bindgen(skip)]
     pub objective_set: ObjectiveSet,
 
     // Optimization values
+    #[wasm_bindgen(skip)]
     pub xopt: Vec<f64>,
 
     // Optimization Settings
+    #[wasm_bindgen(skip)]
     pub max_retries: usize,
+    #[wasm_bindgen(skip)]
     pub max_iterations: usize,
 }
 
@@ -34,7 +54,7 @@ impl Solver {
     pub fn new(
         urdf: String, 
         objectives: HashMap<String,Objective>, 
-        root_bounds: Option<Vec<(f64,f64)>>,
+        root_bounds: Option<Vec<ScalarRange>>,
         shapes: Option<Vec<Shape>>,
         initial_state: Option<State>,
         max_retries: Option<usize>,
@@ -44,20 +64,20 @@ impl Solver {
 
         // Parse the bounds that were given
 
-        let displacement_bounds: Vec<(f64,f64)> = root_bounds.unwrap_or(vec![
-            (0.0,0.0),
-            (0.0,0.0),
-            (0.0,0.0),
-            (0.0,0.0),
-            (0.0,0.0),
-            (0.0,0.0),
+        let displacement_bounds: Vec<ScalarRange> = root_bounds.unwrap_or(vec![
+            ScalarRange {value:0.0,delta:0.0},
+            ScalarRange {value:0.0,delta:0.0},
+            ScalarRange {value:0.0,delta:0.0},
+            ScalarRange {value:0.0,delta:0.0},
+            ScalarRange {value:0.0,delta:0.0},
+            ScalarRange {value:0.0,delta:0.0},
         ]);
         let mut lower_bounds: Vec<f64> = vec![];
         let mut upper_bounds: Vec<f64> = vec![];
 
         for bound in &displacement_bounds {
-            lower_bounds.push(bound.0 - bound.1);
-            upper_bounds.push(bound.0 + bound.1);
+            lower_bounds.push(bound.value - bound.delta);
+            upper_bounds.push(bound.value + bound.delta);
         }
 
         // Define the robot model, which is used for kinematics and handling collisions
@@ -151,7 +171,6 @@ impl Solver {
     ) -> State {
         
         let xopt = self.xopt.clone();
-        // let xopt_core = self.xopt_core.clone();
 
         if self.objective_set.objectives.len() == 0 {
             return self.get_current_state();
@@ -178,29 +197,20 @@ impl Solver {
             None => {}
         }
 
-        // First, do xopt_core to develop a non-lively baseline
-        self.xopt = self.solve_with_retries(xopt,&mut rng);
-        let state = self.robot_model.get_state(&self.xopt,true);
+        // Solve with the given number of retries
+        self.xopt = self.solve_with_retries(xopt,&mut rng, time);
+        let state = self.robot_model.get_state(&self.xopt,true,time);
         // println!("State Core Frames {:?}",self.vars.state_core.frames);
         self.vars.history.update(&state);
 
         return state;
-        // if self.only_core {
-        //     self.vars.history.update(&self.vars.state_core);
-        //     return self.vars.state_core.clone()
-        // } else {
-        //     self.xopt = self.solve_with_retries(xopt,false,true,&mut rng);
-        //     let state = self.robot_model.get_state(&self.xopt,true);
-        //     // println!("Solve with retries, prox: {:?}",state.proximity);
-        //     self.vars.history.update(&state);
-        //     return state
-        // }
     }
     
     pub fn solve_with_retries(
         &mut self,
         x: Vec<f64>,
-        rng: &mut ThreadRng
+        rng: &mut ThreadRng,
+        time: f64
     ) -> Vec<f64> {
         
         // Run until the max_retries is met, or the solution could be improved
@@ -230,7 +240,8 @@ impl Solver {
                 &mut self.panoc_cache, 
                 &self.lower_bounds, 
                 &self.upper_bounds, 
-                self.max_iterations
+                self.max_iterations,
+                time
             );
             if try_cost < best_cost {
                 best_x = xopt.clone();
@@ -240,6 +251,10 @@ impl Solver {
         }
         // println!("Best {:?}",best_x);
         return best_x.to_vec();
+    }
+
+    pub fn get_objectives(&self) -> HashMap<String,Objective> {
+        self.objective_set.objectives.clone()
     }
 
     pub fn set_objectives(&mut self, objectives: HashMap<String,Objective>) {
@@ -278,7 +293,7 @@ impl Solver {
                 }
             }
            // println!("x: {:?}",x);
-            let state = self.robot_model.get_state(&x, false);
+            let state = self.robot_model.get_state(&x, false, 0.0);
             sampled_states.push(state.frames);
         }
         
@@ -290,6 +305,186 @@ impl Solver {
     }
 }
 
+#[cfg(feature = "jsbindings")]
+fn serialize<T>(obj: &T) -> Result<JsValue, serde_wasm_bindgen::Error>
+where
+    T: Serialize
+{
+    Ok(obj.serialize(&serde_wasm_bindgen::Serializer::json_compatible())?)
+}
+
+
+#[cfg(feature = "jsbindings")]
+#[wasm_bindgen]
+impl Solver {
+    #[wasm_bindgen(constructor)]
+    pub fn from_javascript(
+        urdf: String, 
+        objectives: JsValue, 
+        root_bounds: JsValue,
+        shapes: JsValue,
+        initial_state: JsValue,
+        max_retries: Option<usize>,
+        max_iterations: Option<usize>,
+        collision_settings: JsValue
+    ) -> Self {
+            console_error_panic_hook::set_once();
+            let inner_objectives:HashMap<String,Objective> = serde_wasm_bindgen::from_value(objectives).unwrap();
+            let inner_bounds:Option<Vec<ScalarRange>> = serde_wasm_bindgen::from_value(root_bounds).unwrap();
+            let inner_shapes:Option<Vec<Shape>> = serde_wasm_bindgen::from_value(shapes).unwrap();
+            let inner_state:Option<State> = serde_wasm_bindgen::from_value(initial_state).unwrap();
+            let inner_collision_settings:Option<CollisionSettingInfo> = serde_wasm_bindgen::from_value(collision_settings).unwrap();
+            Self::new(urdf, inner_objectives, inner_bounds, inner_shapes, inner_state, max_retries, max_iterations, inner_collision_settings)
+    }
+
+    #[wasm_bindgen(getter = objectives)]
+    pub fn objectives_javascript(&self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(&self.objective_set.objectives)
+    }
+
+    #[wasm_bindgen(setter = objectives)]
+    pub fn set_objectives_javascript(&mut self, objectives: JsValue) {
+        let inner_objectives: HashMap<String,Objective> = serde_wasm_bindgen::from_value(objectives).unwrap();
+        self.set_objectives(inner_objectives);
+    }
+
+    #[wasm_bindgen(getter = currentState)]
+    pub fn current_state_javascript(&self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(&self.get_current_state())
+    }
+
+    #[wasm_bindgen(getter = currentGoals)]
+    pub fn current_goals_javascript(&self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(&self.get_goals())
+    }
+
+    #[wasm_bindgen(getter = links)]
+    pub fn links_javascript(&self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(self.get_links())
+    }
+
+    #[wasm_bindgen(getter = joints)]
+    pub fn joints_javascript(&self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(self.get_joints())
+    }
+
+    #[wasm_bindgen(js_name = reset)]
+    pub fn reset_javascript(
+        &mut self, 
+        state: JsValue,
+        weights: JsValue,
+    ) {
+        let inner_state:State = serde_wasm_bindgen::from_value(state).unwrap();
+        let inner_weights:HashMap<String,f64> = serde_wasm_bindgen::from_value(weights).unwrap();
+        self.reset(inner_state,inner_weights);
+    }
+
+    #[wasm_bindgen(js_name = solve)]
+    pub fn solve_javascript(
+        &mut self,
+        goals: JsValue,
+        weights: JsValue,
+        time: f64,
+        shape_updates: JsValue
+    ) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        let inner_goals: HashMap<String,Goal> = serde_wasm_bindgen::from_value(goals).unwrap();
+        let inner_weights:HashMap<String,f64> = serde_wasm_bindgen::from_value(weights).unwrap();
+        let inner_updates: Option<Vec<ShapeUpdate>> = serde_wasm_bindgen::from_value(shape_updates).unwrap();
+        let state:State = self.solve(inner_goals,inner_weights,time,inner_updates);
+        return serialize(&state);
+    }
+
+    #[wasm_bindgen(js_name = computeAverageDistanceTable)]
+    pub fn compute_average_distance_table_javascript(&mut self) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        return serialize(&self.compute_average_distance_table())
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl Solver {
+    #[new]
+    fn from_python(
+        urdf: String, 
+        objectives: std::collections::HashMap<String,Objective>, 
+        root_bounds: Option<Vec<ScalarRange>>,
+        shapes: Option<Vec<Shape>>,
+        initial_state: Option<State>,
+        max_retries: Option<usize>,
+        max_iterations: Option<usize>,
+        collision_settings: Option<CollisionSettingInfo>
+    ) -> Self {
+            Solver::new(urdf, objectives, root_bounds, shapes, initial_state, max_retries, max_iterations, collision_settings)
+    }
+
+    #[getter(objectives)]
+    pub fn get_objectives_python(&self) -> PyResult<HashMap<String,Objective>>{
+        return Ok(self.objective_set.objectives.clone());
+    }
+
+    #[setter(objectives)]
+    pub fn set_objectives_python(&mut self, objectives: HashMap<String,Objective>) {
+        self.set_objectives(objectives);
+    }
+
+    #[getter(current_state)]
+    pub fn get_current_state_python(&self) -> PyResult<State> {
+        Ok(self.get_current_state())
+    }
+
+    #[getter(current_goals)]
+    pub fn get_current_goals_python(&self) -> PyResult<HashMap<String,Option<Goal>>> {
+        Ok(self.get_goals())
+    }
+
+    #[getter(links)]
+    pub fn get_links_python(&self) -> PyResult<Vec<LinkInfo>> {
+        Ok(self.get_links().to_vec())
+    }
+
+    #[getter(joints)]
+    pub fn get_joints_python(&self) -> PyResult<Vec<JointInfo>> {
+        Ok(self.get_joints().to_vec())
+    }
+
+    #[pyo3(name="reset")]
+    fn reset_python(
+        &mut self, 
+        state: State,
+        weights: HashMap<String,f64>
+    ) -> PyResult<()> {
+        Ok(self.reset(state,weights))
+    }
+
+    #[pyo3(name="solve")]
+    fn solve_python(
+        &mut self,
+        goals:  HashMap<String,Goal>,
+        weights: HashMap<String,f64>,
+        time: f64,
+        shape_updates: Option<Vec<ShapeUpdate>>
+    ) -> PyResult<State> {
+        // let mut inner_goals: std::collections::HashMap<String, Goal> = HashMap::new();
+        // for (key,goal) in goals{
+        //     inner_goals.insert(key,Goal::from(goal));
+        // }
+        // // let inner_goals = goals.map(|gs| gs.iter().map(|og| og.as_ref().map(|g| Goal::from(g.clone()))).collect());
+        //  let inner_updates = shape_updates.map(|cs| cs.iter().map(|s| ShapeUpdate::from(s.clone())).collect());
+        Ok(self.solve(
+            goals,
+            weights,
+            time,
+            shape_updates)
+        )
+        
+    }
+
+    #[pyo3(name="compute_average_distance_table")]
+    fn compute_average_distance_table_python(&mut self) -> PyResult<Vec<ProximityInfo>> {
+        Ok(self.compute_average_distance_table())
+    }
+}
+
 pub fn optimize(
     x: &mut [f64],
     objective_set: &ObjectiveSet,
@@ -298,11 +493,12 @@ pub fn optimize(
     cache: &mut PANOCCache,
     lower_bounds: &Vec<f64>,
     upper_bounds: &Vec<f64>,
-    max_iter: usize
+    max_iter: usize,
+    timestamp: f64
 ) -> f64 {
 
     let df = |u: &[f64], grad: &mut [f64]| -> Result<(), SolverError> {
-        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u);
+        let (_my_obj, my_grad) = objective_set.gradient(&robot_model, &vars, u, timestamp);
         for i in 0..my_grad.len() {
             grad[i] = my_grad[i];
         }
@@ -310,7 +506,7 @@ pub fn optimize(
     };
 
     let f = |u: &[f64], c: &mut f64| -> Result<(), SolverError> {
-        *c = objective_set.call(&robot_model, &vars, u);
+        *c = objective_set.call(&robot_model, &vars, u, timestamp);
         Ok(())
     };
 

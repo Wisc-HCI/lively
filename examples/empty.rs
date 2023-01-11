@@ -31,7 +31,7 @@ use std::time::{Instant};
 
 fn main() {
     let data =
-        fs::read_to_string("./tests/ur3e.xml").expect("Something went wrong reading the file");
+        fs::read_to_string("./tests/basic.xml").expect("Something went wrong reading the file");
 
     let pos_match_obj =
         PositionMatchObjective::new("EE Position".to_string(), 20.0, "wrist_3_link".to_string());

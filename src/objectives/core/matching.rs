@@ -4,9 +4,12 @@ use crate::utils::vars::Vars;
 use nalgebra::geometry::UnitQuaternion;
 use nalgebra::{vector, Vector3};
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "pybindings")]
+use pyo3::prelude::*;
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct PositionMatchObjective {
     pub name: String,
     pub weight: f64,
@@ -46,8 +49,33 @@ impl Callable<Vector3<f64>> for PositionMatchObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl PositionMatchObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,link:String) -> Self {
+        PositionMatchObjective::new(name,weight,link)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_link(&self) -> PyResult<String> {
+        Ok(self.link.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct OrientationMatchObjective {
     pub name: String,
     pub weight: f64,
@@ -87,8 +115,33 @@ impl Callable<UnitQuaternion<f64>> for OrientationMatchObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl OrientationMatchObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,link:String) -> Self {
+        OrientationMatchObjective::new(name,weight,link)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_link(&self) -> PyResult<String> {
+        Ok(self.link.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct JointMatchObjective {
     // Sets a joint to a value given in scalar goal
     pub name: String,
@@ -125,8 +178,33 @@ impl Callable<f64> for JointMatchObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl JointMatchObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,joint:String) -> Self {
+        JointMatchObjective::new(name,weight,joint)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_joint(&self) -> PyResult<String> {
+        Ok(self.joint.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct DistanceMatchObjective {
     // Specify that the cartesian distance between two links is maintained
     pub name: String,
@@ -164,5 +242,34 @@ impl Callable<f64> for DistanceMatchObjective {
 
     fn set_weight(&mut self, weight: f64) {
         self.weight = weight;
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl DistanceMatchObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,link1:String,link2:String) -> Self {
+        DistanceMatchObjective::new(name,weight,link1,link2)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_link1(&self) -> PyResult<String> {
+        Ok(self.link1.clone())
+    }
+
+    #[getter]
+    pub fn get_link2(&self) -> PyResult<String> {
+        Ok(self.link2.clone())
     }
 }

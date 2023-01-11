@@ -3,11 +3,14 @@ use crate::utils::state::State;
 use crate::utils::vars::Vars;
 use nalgebra::Vector3;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "pybindings")]
+use pyo3::prelude::*;
 
 const Y_OFFSET: f64 = 0.8808; //1.0 / (1.0 as f64 + (-2.0 as f64).exp());
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct CollisionAvoidanceObjective {
     pub name: String,
     pub weight: f64,
@@ -45,8 +48,28 @@ impl Callable<bool> for CollisionAvoidanceObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl CollisionAvoidanceObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64) -> Self {
+        CollisionAvoidanceObjective::new(name,weight)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct JointLimitsObjective {
     pub name: String,
     pub weight: f64,
@@ -87,8 +110,28 @@ impl Callable<bool> for JointLimitsObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl JointLimitsObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64) -> Self {
+        JointLimitsObjective::new(name,weight)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct VelocityMinimizationObjective {
     pub name: String,
     pub weight: f64,
@@ -116,8 +159,28 @@ impl Callable<bool> for VelocityMinimizationObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl VelocityMinimizationObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64) -> Self {
+        VelocityMinimizationObjective::new(name,weight)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct OriginVelocityMinimizationObjective {
     pub name: String,
     pub weight: f64,
@@ -141,8 +204,28 @@ impl Callable<bool> for OriginVelocityMinimizationObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl OriginVelocityMinimizationObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64) -> Self {
+        OriginVelocityMinimizationObjective::new(name,weight)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct AccelerationMinimizationObjective {
     pub name: String,
     pub weight: f64,
@@ -173,8 +256,28 @@ impl Callable<bool> for AccelerationMinimizationObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl AccelerationMinimizationObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64) -> Self {
+        AccelerationMinimizationObjective::new(name,weight)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct OriginAccelerationMinimizationObjective {
     pub name: String,
     pub weight: f64,
@@ -200,8 +303,28 @@ impl Callable<bool> for OriginAccelerationMinimizationObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl OriginAccelerationMinimizationObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64) -> Self {
+        OriginAccelerationMinimizationObjective::new(name,weight)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct JerkMinimizationObjective {
     pub name: String,
     pub weight: f64,
@@ -238,8 +361,28 @@ impl Callable<bool> for JerkMinimizationObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl JerkMinimizationObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64) -> Self {
+        JerkMinimizationObjective::new(name,weight)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct OriginJerkMinimizationObjective {
     pub name: String,
     pub weight: f64,
@@ -269,8 +412,28 @@ impl Callable<bool> for OriginJerkMinimizationObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl OriginJerkMinimizationObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64) -> Self {
+        OriginJerkMinimizationObjective::new(name,weight)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 // A macro wrapping the velocity/acceleration/jerk minimization objectives with sensible defaults.
 pub struct SmoothnessMacroObjective {
     pub name: String,
@@ -380,5 +543,24 @@ impl Callable<bool> for SmoothnessMacroObjective {
 
     fn set_weight(&mut self, weight: f64) {
         self.weight = weight;
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl SmoothnessMacroObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64) -> Self {
+        SmoothnessMacroObjective::new(name,weight)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
     }
 }

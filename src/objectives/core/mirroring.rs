@@ -4,9 +4,12 @@ use crate::utils::state::State;
 use crate::objectives::objective::{groove_loss,Callable};
 use nalgebra::geometry::{UnitQuaternion};
 use nalgebra::{Vector3, vector};
+#[cfg(feature = "pybindings")]
+use pyo3::prelude::*;
 
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct PositionMirroringObjective {
     // Matches the position between two joints, with a difference according to the Vector3 provided in goals.
     pub name: String,
@@ -47,8 +50,38 @@ impl Callable<Vector3<f64>> for PositionMirroringObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl PositionMirroringObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,link1:String,link2:String) -> Self {
+        PositionMirroringObjective::new(name,weight,link1,link2)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_link1(&self) -> PyResult<String> {
+        Ok(self.link1.clone())
+    }
+
+    #[getter]
+    pub fn get_link2(&self) -> PyResult<String> {
+        Ok(self.link2.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct OrientationMirroringObjective {
     // Matches the orientation between two joints, with a difference according to the Quaternion provided in goals.
     pub name: String,
@@ -89,8 +122,38 @@ impl Callable<UnitQuaternion<f64>> for OrientationMirroringObjective {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl OrientationMirroringObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,link1:String,link2:String) -> Self {
+        OrientationMirroringObjective::new(name,weight,link1,link2)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_link1(&self) -> PyResult<String> {
+        Ok(self.link1.clone())
+    }
+
+    #[getter]
+    pub fn get_link2(&self) -> PyResult<String> {
+        Ok(self.link2.clone())
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize,Deserialize,Clone,Debug,Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
 pub struct JointMirroringObjective {
     // Match joint values according to the difference specified in goals
     pub name: String,
@@ -128,5 +191,34 @@ impl Callable<f64> for JointMirroringObjective {
 
     fn set_weight(&mut self, weight: f64) {
         self.weight = weight;
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl JointMirroringObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,joint1:String,joint2:String) -> Self {
+        JointMirroringObjective::new(name,weight,joint1,joint2)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_joint1(&self) -> PyResult<String> {
+        Ok(self.joint1.clone())
+    }
+
+    #[getter]
+    pub fn get_joint2(&self) -> PyResult<String> {
+        Ok(self.joint2.clone())
     }
 }

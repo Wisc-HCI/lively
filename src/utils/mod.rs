@@ -8,3 +8,5 @@ pub mod goals;
 pub mod vars;
 pub mod state;
 pub mod objective_set;
+#[cfg(feature = "pybindings")]
+pub mod pyutils;
