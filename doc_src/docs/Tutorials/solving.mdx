@@ -100,14 +100,14 @@ function InitializationExample(props) {
                 Translation :[
                     0.0,
                     0.5,
-                    Math.sin(time/1000)/4+0.75 // The sin function alternating between -1 and 1 to have the robot to swing back and forth along the z-axis
+                    Math.sin(time/1000)/5+0.5 // The sin function alternating between -1 and 1 to have the robot to swing back and forth along the z-axis
                 ]
                 },
             'orientation':{
                 Rotation:[0.0,0.707,0.0,0.0]// A defined Rotation to make the gripper facing downward 
             }, 
             'jointMatch':{
-                Scalar:0.5
+                Scalar:0.02
             }
 
             }
