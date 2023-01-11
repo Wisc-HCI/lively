@@ -12,9 +12,8 @@ Since Lively is still in beta, the design is subject to change and should not be
 
 ```jsx live
 function InitializationExample(props) {
-
   const [livelySolver, setLivelySolver] = useState(null);
-  const [robot, setRobot] = useState('panda');
+  const [robot, setRobot] = useState("panda");
   const [robotState, setRobotState] = useState(null);
   const [visualRobotState, setVisualRobotState] = useState(null);
 
@@ -41,8 +40,9 @@ function InitializationExample(props) {
           smoothness: {
             name: "MySmoothnessObjective",
             type: "SmoothnessMacro",
-            weight: 0,
+            weight: 5,
           },
+          //collision, jointlimit
           positionLively: {
             name: "MyLivelinessObjective3",
             type: "PositionLiveliness",
@@ -56,7 +56,7 @@ function InitializationExample(props) {
             weight: 15,
             link: "panda_link2",
             frequency: 20,
-          }, 
+          },
           finger_joint_control: {
             name: "FingerJointControl",
             type: "JointMatch",
@@ -80,7 +80,7 @@ function InitializationExample(props) {
     const updateSolver = () => {
       if (currentSolver) {
         const d = new Date();
-        let time = d.getTime(); // Get the time used in Math.sin
+        let time = d.getTime(); // Get the time in milliseconds
         let goals = {
           // An goal example with defined Scalar and Size values for the lively objectives
 
@@ -94,7 +94,7 @@ function InitializationExample(props) {
             Size: [0.007, 0.005, 0.008],
           },
         };
-        const newState = currentSolver.solve(goals, {}, time / 1000); // The time parameter for the solve cannot be 0.0.
+        const newState = currentSolver.solve(goals, {}, time / 1000); // Convert the time to second
         // Update the solver's current state
 
         setRobotState(newState);
