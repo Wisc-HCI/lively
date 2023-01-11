@@ -48,7 +48,7 @@ function InitializationExample(props) {
             type: "PositionLiveliness",
             weight: 19,
             link: "panda_hand",
-            frequency: 15,
+            frequency: 25,
           },
           orientationLively: {
             name: "MyOrientationObjective2",
@@ -56,7 +56,7 @@ function InitializationExample(props) {
             weight: 15,
             link: "panda_link2",
             frequency: 20,
-          },
+          }, 
           finger_joint_control: {
             name: "FingerJointControl",
             type: "JointMatch",
@@ -88,10 +88,10 @@ function InitializationExample(props) {
             Scalar: 0.02,
           },
           positionLively: {
-            Size: [0.07, 0.05, 0.08],
+            Size: [0.007, 0.005, 0.008],
           },
           orientationLively: {
-            Size: [0.07, 0.05, 0.08],
+            Size: [0.007, 0.005, 0.008],
           },
         };
         const newState = currentSolver.solve(goals, {}, time / 1000); // The time parameter for the solve cannot be 0.0.
