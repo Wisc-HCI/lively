@@ -39,6 +39,11 @@ function InitializationExample(props) {
             const newSolver = new lively.Solver(
                 urdfs.panda, // The urdf of the robot
                 {
+                    'smoothness': { 
+                        name: 'MySmoothnessObjective',
+                        type: 'SmoothnessMacro',
+                        weight: 10
+                     }, 
                      // some lively objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
                     'jointLively1':{
                         name: 'MyLivelinessObjective1',
