@@ -1,5 +1,5 @@
 import React, { memo, useEffect } from "react";
-import { Scene, useSceneStore, useDefaultSceneStore } from "robot-scene";
+import { Scene, useSceneStore } from "robot-scene";
 import { mapValues } from "lodash";
 import MeshLookupTable from "./Meshes";
 
@@ -8,7 +8,8 @@ export const RobotViewer = ({
   links = [],
   showCollision = false,
   shapes,
-  controller,
+  transformMode,
+  transformControl,
   onMove,
 }) => {
   useEffect(() => {
@@ -19,17 +20,17 @@ export const RobotViewer = ({
       });
       if (showCollision) {
         link.collisions.forEach((collision, i) => {
-          items[`collision-${link.name}-${i}`] = shape2item(collision, true);
+          items[`collision-${link.name}-${i}`] = shape2item(collision, false);
         });
       }
     });
     shapes?.forEach((shape, i) => {
       items[`env-shape-${shape.name}-${i}`] = shape2item(shape, false);
     });
-    if (controller) {
-      //console.log("controller", controller);
-      items[`transformController-${controller.name}`] = shape2item(
-        controller,
+    if (transformControl) {
+      //console.log("transformControl", transformControl);
+      items[`transformController-${transformControl.name}`] = shape2item(
+        transformControl,
         false
       );
     }
@@ -41,7 +42,7 @@ export const RobotViewer = ({
 
     //useDefaultSceneStore.setState({items,tfs})
   }, [state, links, onMove]);
-  //items[`controller-${controller.name}`] = shape2item(controller,false);
+  //items[`transformControl-${transformControl.name}`] = shape2item(transformControl,false);
 
   return <SceneWrapper />;
 };
@@ -88,6 +89,11 @@ function shape2item(shape, isCollision) {
     wireframe: isCollision,
   };
   switch (shape.type) {
+    case "Arrow": 
+      item.shape = "arrow";
+      item.scale = { x: 0.5, y: 0.5, z: 0.5 };
+      item.transformMode = "rotate";
+      break;
     case "Box":
       item.shape = "cube";
       item.scale = { x: shape.x, y: shape.y, z: shape.z };

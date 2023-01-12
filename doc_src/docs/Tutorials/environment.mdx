@@ -16,37 +16,107 @@ function InitializationExample(props) {
   const [robot, setRobot] = useState("panda");
   const [robotState, setRobotState] = useState(null);
   const [visualRobotState, setVisualRobotState] = useState(null);
+  const [transformMode, setTransformMode] = useState("translate");
 
-  const controller = {
-    type: "Sphere",
-    name: "control",
+  const arrowTransformControl = {
+    // the visual reresentation for the rotation transform control.
+    type: "Arrow",
+    name: "arrow transform control",
     frame: "world",
     physical: false,
-    radius: 0.05,
     localTransform: {
       translation: [0.0, -0.7718020867888795, 0.8679405432017822],
       rotation: [0.0, 0.0, 0.0, 1.0],
     }, // [x, y, z, w] ordering for quaternion
   };
-  const originalGoal = {
+
+  const sphereTransformControl = {
+    // the visual reresentation for the translation transform control.
+    type: "Sphere",
+    name: "sphere transform control",
+    frame: "world",
+    radius: 0.05,
+    localTransform: {
+      translation: [0.0, -0.7718020867888795, 0.8679405432017822],
+      rotation: [0.0, 0.0, 0.0, 1.0],
+    },
+  };
+
+  const [arrowTransformControlVisual, setArrowTransformControlVisual] =
+    useState(arrowTransformControl);
+  const [sphereTransformControlVisual, setSphereTransformControlVisual] =
+    useState(sphereTransformControl);
+
+  const initialGoal = {
+    // the inital goal to be fed into the the solver representing the the initial translation and rotation.
     position: {
       Translation: [0.0, -0.7718020867888795, 0.8679405432017822],
     },
+    orientation: {
+      Rotation: [0.0, 0.0, 0.0, 1.0],
+    },
   };
-  const [controllerPosition, setControllerPosition] = useState(controller);
-  const [controllerGoal, setControllerGoal] = useState(originalGoal);
 
-  function updateControllerPosition(transform) {
-    console.log("updatentransform" , transform);
-    let newController = controllerPosition;
-    newController.localTransform.translation = transform.position;
-    let newGoal = controllerGoal;
-    newGoal.position.Translation[0] = transform.position.x;
-    newGoal.position.Translation[1] = transform.position.y;
-    newGoal.position.Translation[2] = transform.position.z;
-    //console.log("updatenewgoal" , newGoal);
-    setControllerPosition(newController);
-    setControllerGoal(newGoal);
+  const [transformControl, setTransformControl] = useState(
+    sphereTransformControl
+  ); // the visual representation of the transformMode.
+
+  const [goal, setGoal] = useState(initialGoal);
+
+  //console.log("goal" , goal);
+
+  function updateTransformMode() {
+    transformMode === "translate"
+      ? setTransformMode("rotate")
+      : setTransformMode("translate");
+    transformControl.type === "Arrow"
+      ? setTransformControl(sphereTransformControlVisual)
+      : setTransformControl(arrowTransformControlVisual);
+  }
+
+  function updateTransform(transform) {
+    let newGoal = goal;
+    newGoal.position.Translation = [
+      transform.position.x,
+      transform.position.y,
+      transform.position.z,
+    ];
+    newGoal.orientation.Rotation = [
+      transform.quaternion.x,
+      transform.quaternion.y,
+      transform.quaternion.z,
+      transform.quaternion.w,
+    ];
+    let newArrowTransformControl = arrowTransformControlVisual;
+    let newSphereTransformControl = sphereTransformControlVisual;
+    newSphereTransformControl.localTransform.translation = [
+      transform.position.x,
+      transform.position.y,
+      transform.position.z,
+    ];
+    newSphereTransformControl.localTransform.rotation = [
+      transform.quaternion.x,
+      transform.quaternion.y,
+      transform.quaternion.z,
+      transform.quaternion.w,
+    ];
+    newArrowTransformControl.localTransform.translation = [
+      transform.position.x,
+      transform.position.y,
+      transform.position.z,
+    ];
+    newArrowTransformControl.localTransform.rotation = [
+      transform.quaternion.x,
+      transform.quaternion.y,
+      transform.quaternion.z,
+      transform.quaternion.w,
+    ];
+    setArrowTransformControlVisual(newArrowTransformControl);
+    setSphereTransformControlVisual(newSphereTransformControl);
+    setGoal(newGoal);
+    transformMode === "translate"
+      ? setTransformControl(newSphereTransformControl)
+      : setTransformControl(newArrowTransformControl);
   }
 
   const shapes = [
@@ -90,7 +160,7 @@ function InitializationExample(props) {
   ];
 
   useEffect(() => {
-    /* 
+    /*
       Given that we are showing this example in a declarative
       react context, we need to use the useEffect hook to execute
       imperative (sequential) code. That means that if you are
@@ -113,7 +183,10 @@ function InitializationExample(props) {
           smoothness: {
             name: "MySmoothnessObjective",
             type: "SmoothnessMacro",
-            weight: 5,
+            weight: 0,
+            joints: false,
+            origin: false,
+            links: true,
           },
           collision: {
             name: "MyCollisionDetection",
@@ -128,6 +201,12 @@ function InitializationExample(props) {
           position: {
             name: "MyPositionMatchObjective",
             type: "PositionMatch",
+            link: "panda_hand",
+            weight: 15,
+          },
+          orientation: {
+            name: "MyOrientationMatchObjective",
+            type: "OrientationMatch",
             link: "panda_hand",
             weight: 15,
           },
@@ -147,7 +226,7 @@ function InitializationExample(props) {
       // Assign the solver to the value
       setLivelySolver(newSolver);
       // Run solve to get a solved state
-      const newState = newSolver.solve(controllerGoal, {}, 0.0);
+      const newState = newSolver.solve(goal, {}, 0.0);
 
       // Update the solver's current state
       setRobotState(newState);
@@ -157,7 +236,9 @@ function InitializationExample(props) {
 
     const updateSolver = () => {
       if (currentSolver) {
-        const newState = currentSolver.solve(controllerGoal, {}, 0.0); // Pass the new goal into solve function
+        const d = new Date();
+        let time = d.getTime(); // Get the time in milliseconds
+        const newState = currentSolver.solve(goal, {}, time / 1000); // Pass the new goal into solve function
         // Update the solver's current state
         setRobotState(newState);
       }
@@ -180,16 +261,29 @@ function InitializationExample(props) {
         state={robotState}
         links={livelySolver ? livelySolver.links : []}
         shapes={shapes}
-        controller={controllerPosition}
-        onMove={(id, source, worldTransform, localTransform) => {
-          updateControllerPosition(localTransform);
-        }}
+        transformMode={transformMode}
+        transformControl={transformControl}
+        onMove={(id, source, worldTransform, localTransform) =>
+          updateTransform(localTransform)
+        }
       />
       <Button
         active={robot === "panda"}
         onClick={() => setVisualRobotState(robotState)}
       >
         Update State
+      </Button>
+      <Button
+        active={transformMode === "translate"}
+        onClick={() => updateTransformMode()}
+      >
+        Position Match
+      </Button>
+      <Button
+        active={transformMode === "rotate"}
+        onClick={() => updateTransformMode()}
+      >
+        Orientation Match
       </Button>
       <Tree label="state" data={visualRobotState} />
     </div>

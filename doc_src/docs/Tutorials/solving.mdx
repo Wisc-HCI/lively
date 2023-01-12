@@ -40,7 +40,10 @@ function InitializationExample(props) {
           smoothness: {
             name: "MySmoothnessObjective",
             type: "SmoothnessMacro",
-            weight: 10,
+            weight: 5,
+            joints: true,
+            origin: false,
+            links: true
           },
           position: {
             name: "MyPositionMatchObjective",
@@ -104,7 +107,7 @@ function InitializationExample(props) {
             Scalar: 0.02,
           },
         };
-        const newState = currentSolver.solve(goal, {}, 0.0); // Pass the new goal into solve function
+        const newState = currentSolver.solve(goal, {},  time / 1000); // Pass the new goal into solve function
         // Update the solver's current state
         setRobotState(newState);
       }
