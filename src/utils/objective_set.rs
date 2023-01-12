@@ -1,5 +1,5 @@
 use crate::objectives::objective::{Objective,Callable};
-use crate::objectives::core::base::VelocityMinimizationObjective;
+use crate::objectives::core::base::JointVelocityMinimizationObjective;
 use crate::utils::robot_model::RobotModel;
 use crate::utils::vars::Vars;
 use std::collections::HashMap;
@@ -7,12 +7,12 @@ use std::collections::HashMap;
 #[derive(Debug)]
 pub struct ObjectiveSet {
     pub objectives: HashMap<String,Objective>,
-    pub baseline: VelocityMinimizationObjective
+    pub baseline: JointVelocityMinimizationObjective
 }
 
 impl ObjectiveSet {
     pub fn new(objectives: &HashMap<String,Objective>) -> Self {
-        Self { objectives: objectives.clone(), baseline: VelocityMinimizationObjective::new("Baseline".into(),0.1)}
+        Self { objectives: objectives.clone(), baseline: JointVelocityMinimizationObjective::new("Baseline".into(),0.1)}
     }
 
     pub fn call(&self, robot_model: &RobotModel, vars: &Vars, x: &[f64], timestamp: f64) -> f64 {

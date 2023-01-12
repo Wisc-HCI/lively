@@ -8,6 +8,9 @@ use serde::{Deserialize, Serialize};
 
 const Y_OFFSET: f64 = 0.8808; //1.0 / (1.0 as f64 + (-2.0 as f64).exp());
 
+/*
+Collision Avoidance
+*/
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "pybindings", pyclass)]
@@ -67,6 +70,9 @@ impl CollisionAvoidanceObjective {
     }
 }
 
+/*
+Joint Limits
+*/
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "pybindings", pyclass)]
@@ -129,21 +135,24 @@ impl JointLimitsObjective {
     }
 }
 
+/*
+# Velocity-Based Smoothness
+*/
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "pybindings", pyclass)]
-pub struct VelocityMinimizationObjective {
+pub struct JointVelocityMinimizationObjective {
     pub name: String,
     pub weight: f64,
 }
 
-impl VelocityMinimizationObjective {
+impl JointVelocityMinimizationObjective {
     pub fn new(name: String, weight: f64) -> Self {
         Self { name, weight }
     }
 }
 
-impl Callable<bool> for VelocityMinimizationObjective {
+impl Callable<bool> for JointVelocityMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
         for joint in v.joints.iter() {
@@ -168,10 +177,10 @@ impl Callable<bool> for VelocityMinimizationObjective {
 
 #[cfg(feature = "pybindings")]
 #[pymethods]
-impl VelocityMinimizationObjective {
+impl JointVelocityMinimizationObjective {
     #[new]
     pub fn from_python(name: String, weight: f64) -> Self {
-        VelocityMinimizationObjective::new(name, weight)
+        JointVelocityMinimizationObjective::new(name, weight)
     }
 
     #[getter]
@@ -240,18 +249,74 @@ impl OriginVelocityMinimizationObjective {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "pybindings", pyclass)]
-pub struct AccelerationMinimizationObjective {
+pub struct LinkVelocityMinimizationObjective {
     pub name: String,
     pub weight: f64,
 }
 
-impl AccelerationMinimizationObjective {
+impl LinkVelocityMinimizationObjective {
     pub fn new(name: String, weight: f64) -> Self {
         Self { name, weight }
     }
 }
 
-impl Callable<bool> for AccelerationMinimizationObjective {
+impl Callable<bool> for LinkVelocityMinimizationObjective {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
+        let mut x_val: f64 = 0.0;
+        for link in v.links.iter() {
+            let past: Vector3<f64> = v.history.prev1.get_link_transform(&link.name).translation.vector;
+            let current: Vector3<f64> = state.get_link_transform(&link.name).translation.vector;
+            let time_diff = state.timestamp - v.history.prev1.timestamp;
+            if time_diff > 0.0 {
+                x_val += ((current - past).norm() / time_diff).powi(2);
+            } else {
+                x_val += (current - past).norm().powi(2);
+            }
+        }
+        
+
+        return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl LinkVelocityMinimizationObjective {
+    #[new]
+    pub fn from_python(name: String, weight: f64) -> Self {
+        LinkVelocityMinimizationObjective::new(name, weight)
+    }
+
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
+#[repr(C)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct JointAccelerationMinimizationObjective {
+    pub name: String,
+    pub weight: f64,
+}
+
+impl JointAccelerationMinimizationObjective {
+    pub fn new(name: String, weight: f64) -> Self {
+        Self { name, weight }
+    }
+}
+
+impl Callable<bool> for JointAccelerationMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
         let time_diff1 = state.timestamp - v.history.prev1.timestamp;
@@ -278,10 +343,10 @@ impl Callable<bool> for AccelerationMinimizationObjective {
 
 #[cfg(feature = "pybindings")]
 #[pymethods]
-impl AccelerationMinimizationObjective {
+impl JointAccelerationMinimizationObjective {
     #[new]
     pub fn from_python(name: String, weight: f64) -> Self {
-        AccelerationMinimizationObjective::new(name, weight)
+        JointAccelerationMinimizationObjective::new(name, weight)
     }
 
     #[getter]
@@ -311,7 +376,7 @@ impl OriginAccelerationMinimizationObjective {
 
 impl Callable<bool> for OriginAccelerationMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
-        let pos1 = state.origin.translation.vector;
+        let pos1: Vector3<f64> = state.origin.translation.vector;
         let pos2: Vector3<f64> = v.history.prev1.origin.translation.vector;
         let pos3: Vector3<f64> = v.history.prev2.origin.translation.vector;
         let time_diff1 = state.timestamp - v.history.prev1.timestamp;
@@ -353,18 +418,76 @@ impl OriginAccelerationMinimizationObjective {
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "pybindings", pyclass)]
-pub struct JerkMinimizationObjective {
+pub struct LinkAccelerationMinimizationObjective {
     pub name: String,
     pub weight: f64,
 }
 
-impl JerkMinimizationObjective {
+impl LinkAccelerationMinimizationObjective {
     pub fn new(name: String, weight: f64) -> Self {
         Self { name, weight }
     }
 }
 
-impl Callable<bool> for JerkMinimizationObjective {
+impl Callable<bool> for LinkAccelerationMinimizationObjective {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
+        let mut x_val: f64 = 0.0;
+        let time_diff1:f64 = state.timestamp - v.history.prev1.timestamp;
+        let time_diff2:f64 = v.history.prev1.timestamp - v.history.prev2.timestamp;
+        for link in v.links.iter() {
+            let pos1: Vector3<f64> = state.get_link_transform(&link.name).translation.vector;
+            let pos2: Vector3<f64> = v.history.prev1.get_link_transform(&link.name).translation.vector;
+            let pos3: Vector3<f64> = v.history.prev2.get_link_transform(&link.name).translation.vector;
+            
+            if time_diff1 > 0.0 && time_diff2 > 0.0 {
+                x_val += ((pos1 - pos2)/time_diff1 - (pos2 - pos3)/time_diff2).norm().powi(2);
+            } else {
+                x_val += ((pos1 - pos2) - (pos2 - pos3)).norm().powi(2);
+            }
+        }
+
+        return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl LinkAccelerationMinimizationObjective {
+    #[new]
+    pub fn from_python(name: String, weight: f64) -> Self {
+        LinkAccelerationMinimizationObjective::new(name, weight)
+    }
+
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
+#[repr(C)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct JointJerkMinimizationObjective {
+    pub name: String,
+    pub weight: f64,
+}
+
+impl JointJerkMinimizationObjective {
+    pub fn new(name: String, weight: f64) -> Self {
+        Self { name, weight }
+    }
+}
+
+impl Callable<bool> for JointJerkMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
         let time_diff1 = state.timestamp - v.history.prev1.timestamp;
@@ -400,10 +523,10 @@ impl Callable<bool> for JerkMinimizationObjective {
 
 #[cfg(feature = "pybindings")]
 #[pymethods]
-impl JerkMinimizationObjective {
+impl JointJerkMinimizationObjective {
     #[new]
     pub fn from_python(name: String, weight: f64) -> Self {
-        JerkMinimizationObjective::new(name, weight)
+        JointJerkMinimizationObjective::new(name, weight)
     }
 
     #[getter]
@@ -434,7 +557,7 @@ impl OriginJerkMinimizationObjective {
 impl Callable<bool> for OriginJerkMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let x_val: f64;
-        let pos1 = state.origin.translation.vector;
+        let pos1: Vector3<f64> = state.origin.translation.vector;
         let pos2: Vector3<f64> = v.history.prev1.origin.translation.vector;
         let pos3: Vector3<f64> = v.history.prev2.origin.translation.vector;
         let pos4: Vector3<f64> = v.history.prev3.origin.translation.vector;
@@ -479,113 +602,42 @@ impl OriginJerkMinimizationObjective {
 }
 
 #[repr(C)]
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[cfg_attr(feature = "pybindings", pyclass)]
-// A macro wrapping the velocity/acceleration/jerk minimization objectives with sensible defaults.
-pub struct SmoothnessMacroObjective {
+pub struct LinkJerkMinimizationObjective {
     pub name: String,
     pub weight: f64,
-    #[serde(
-        skip_serializing,
-        default = "SmoothnessMacroObjective::default_velocity_objective"
-    )]
-    velocity_objective: VelocityMinimizationObjective,
-    #[serde(
-        skip_serializing,
-        default = "SmoothnessMacroObjective::default_acceleration_objective"
-    )]
-    acceleration_objective: AccelerationMinimizationObjective,
-    #[serde(
-        skip_serializing,
-        default = "SmoothnessMacroObjective::default_jerk_objective"
-    )]
-    jerk_objective: JerkMinimizationObjective,
-    #[serde(
-        skip_serializing,
-        default = "SmoothnessMacroObjective::default_origin_velocity_objective"
-    )]
-    base_velocity_objective: OriginVelocityMinimizationObjective,
-    #[serde(
-        skip_serializing,
-        default = "SmoothnessMacroObjective::default_origin_acceleration_objective"
-    )]
-    base_acceleration_objective: OriginAccelerationMinimizationObjective,
-    #[serde(
-        skip_serializing,
-        default = "SmoothnessMacroObjective::default_origin_jerk_objective"
-    )]
-    base_jerk_objective: OriginJerkMinimizationObjective,
 }
 
-impl SmoothnessMacroObjective {
+impl LinkJerkMinimizationObjective {
     pub fn new(name: String, weight: f64) -> Self {
-        Self {
-            name: name.clone(),
-            weight,
-            velocity_objective: VelocityMinimizationObjective::new(
-                format!("Macro {} Velocity", name),
-                0.21,
-            ),
-            acceleration_objective: AccelerationMinimizationObjective::new(
-                format!("Macro {} Accel", name),
-                0.08,
-            ),
-            jerk_objective: JerkMinimizationObjective::new(format!("Macro {} Jerk", name), 0.04),
-            base_velocity_objective: OriginVelocityMinimizationObjective::new(
-                format!("Macro {} Origin Velocity", name),
-                0.47,
-            ),
-            base_acceleration_objective: OriginAccelerationMinimizationObjective::new(
-                format!("Macro {} Origin Accel", name),
-                0.15,
-            ),
-            base_jerk_objective: OriginJerkMinimizationObjective::new(
-                format!("Macro {} Origin Jerk", name),
-                0.05,
-            ),
-        }
-    }
-
-    pub fn default_velocity_objective() -> VelocityMinimizationObjective {
-        VelocityMinimizationObjective::new("Macro Velocity".to_string(), 0.21)
-    }
-
-    pub fn default_acceleration_objective() -> AccelerationMinimizationObjective {
-        AccelerationMinimizationObjective::new("Macro Acceleration".to_string(), 0.08)
-    }
-
-    pub fn default_jerk_objective() -> JerkMinimizationObjective {
-        JerkMinimizationObjective::new("Macro Jerk".to_string(), 0.04)
-    }
-
-    pub fn default_origin_velocity_objective() -> OriginVelocityMinimizationObjective {
-        OriginVelocityMinimizationObjective::new("Macro Origin Velocity".to_string(), 0.47)
-    }
-
-    pub fn default_origin_acceleration_objective() -> OriginAccelerationMinimizationObjective {
-        OriginAccelerationMinimizationObjective::new("Macro Origin Acceleration".to_string(), 0.15)
-    }
-
-    pub fn default_origin_jerk_objective() -> OriginJerkMinimizationObjective {
-        OriginJerkMinimizationObjective::new("Macro Origin Jerk".to_string(), 0.05)
+        Self { name, weight }
     }
 }
 
-impl Callable<bool> for SmoothnessMacroObjective {
+impl Callable<bool> for LinkJerkMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
-        let velocity_cost = self.velocity_objective.call(v, state);
-        let acceleration_cost = self.acceleration_objective.call(v, state);
-        let jerk_cost = self.jerk_objective.call(v, state);
-        let base_velocity_cost = self.base_velocity_objective.call(v, state);
-        let base_acceleration_cost = self.base_acceleration_objective.call(v, state);
-        let base_jerk_cost = self.base_jerk_objective.call(v, state);
-        return self.weight
-            * (velocity_cost
-                + acceleration_cost
-                + jerk_cost
-                + base_velocity_cost
-                + base_acceleration_cost
-                + base_jerk_cost);
+        let mut x_val: f64 = 0.0;
+        let time_diff1: f64 = state.timestamp - v.history.prev1.timestamp;
+        let time_diff2: f64 = v.history.prev1.timestamp - v.history.prev2.timestamp;
+        let time_diff3: f64 = v.history.prev2.timestamp - v.history.prev3.timestamp;
+        for link in v.links.iter() {
+            let pos1: Vector3<f64> = state.get_link_transform(&link.name).translation.vector;
+            let pos2: Vector3<f64> = v.history.prev1.get_link_transform(&link.name).translation.vector;
+            let pos3: Vector3<f64> = v.history.prev2.get_link_transform(&link.name).translation.vector;
+            let pos4: Vector3<f64> = v.history.prev3.get_link_transform(&link.name).translation.vector;
+            
+            if time_diff1 > 0.0 && time_diff2 > 0.0 && time_diff3 > 0.0 {
+                x_val += (((pos1 - pos2)/time_diff1 - (pos2 - pos3)/time_diff2) - ((pos2 - pos3)/time_diff2 - (pos3 - pos4)/time_diff3))
+                .norm()
+                .powi(2);
+            } else {
+                x_val += (((pos1 - pos2) - (pos2 - pos3)) - ((pos2 - pos3) - (pos3 - pos4)))
+                .norm()
+                .powi(2);
+            }
+        }
+        return self.weight * groove_loss(x_val, 0.0, 2, 0.1, 10.0, 2);
     }
 
     fn set_weight(&mut self, weight: f64) {
@@ -595,10 +647,10 @@ impl Callable<bool> for SmoothnessMacroObjective {
 
 #[cfg(feature = "pybindings")]
 #[pymethods]
-impl SmoothnessMacroObjective {
+impl LinkJerkMinimizationObjective {
     #[new]
     pub fn from_python(name: String, weight: f64) -> Self {
-        SmoothnessMacroObjective::new(name, weight)
+        LinkJerkMinimizationObjective::new(name, weight)
     }
 
     #[getter]
@@ -611,3 +663,183 @@ impl SmoothnessMacroObjective {
         Ok(self.weight.clone())
     }
 }
+
+#[repr(C)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+#[serde(from="SmoothnessMacroWrapper")]
+// A macro wrapping the velocity/acceleration/jerk minimization objectives with sensible defaults.
+pub struct SmoothnessMacroObjective {
+    pub name: String,
+    pub weight: f64,
+    pub joints: bool,
+    pub origin: bool,
+    pub links: bool,
+    joint_velocity_objective: Option<JointVelocityMinimizationObjective>,
+    joint_acceleration_objective: Option<JointAccelerationMinimizationObjective>,
+    joint_jerk_objective: Option<JointJerkMinimizationObjective>,
+    origin_velocity_objective: Option<OriginVelocityMinimizationObjective>,
+    origin_acceleration_objective: Option<OriginAccelerationMinimizationObjective>,
+    origin_jerk_objective: Option<OriginJerkMinimizationObjective>,
+    link_velocity_objective: Option<LinkVelocityMinimizationObjective>,
+    link_acceleration_objective: Option<LinkAccelerationMinimizationObjective>,
+    link_jerk_objective: Option<LinkJerkMinimizationObjective>,
+}
+
+impl SmoothnessMacroObjective {
+    pub fn new(name: String, weight: f64, joints: bool, origin: bool, links: bool) -> Self {
+        let joint_velocity_objective: Option<JointVelocityMinimizationObjective>;
+        let joint_acceleration_objective: Option<JointAccelerationMinimizationObjective>;
+        let joint_jerk_objective: Option<JointJerkMinimizationObjective>;
+
+        if joints {
+            joint_velocity_objective = Some(JointVelocityMinimizationObjective::new(
+                format!("Macro {} Joint Velocity", name),
+                0.21,
+            ));
+            joint_acceleration_objective = Some(JointAccelerationMinimizationObjective::new(
+                format!("Macro {} Joint Accel", name),
+                0.08,
+            ));
+            joint_jerk_objective = Some(JointJerkMinimizationObjective::new(
+                format!("Macro {} Joint Jerk", name),
+                0.04,
+            ));
+        } else {
+            joint_velocity_objective = None;
+            joint_acceleration_objective = None;
+            joint_jerk_objective = None
+        }
+
+        let origin_velocity_objective: Option<OriginVelocityMinimizationObjective>;
+        let origin_acceleration_objective: Option<OriginAccelerationMinimizationObjective>;
+        let origin_jerk_objective: Option<OriginJerkMinimizationObjective>;
+
+        if origin {
+            origin_velocity_objective = Some(OriginVelocityMinimizationObjective::new(
+                format!("Macro {} Origin Velocity", name),
+                0.47
+            ));
+            origin_acceleration_objective = Some(OriginAccelerationMinimizationObjective::new(
+                format!("Macro {} Origin Accel", name),
+                0.15,
+            ));
+            origin_jerk_objective = Some(OriginJerkMinimizationObjective::new(
+                format!("Macro {} Origin Jerk", name),
+                0.05,
+            ));
+        } else {
+            origin_velocity_objective = None;
+            origin_acceleration_objective = None;
+            origin_jerk_objective = None
+        }
+
+        let link_velocity_objective: Option<LinkVelocityMinimizationObjective>;
+        let link_acceleration_objective: Option<LinkAccelerationMinimizationObjective>;
+        let link_jerk_objective: Option<LinkJerkMinimizationObjective>;
+
+        if links {
+            link_velocity_objective = Some(LinkVelocityMinimizationObjective::new(
+                format!("Macro {} Link Velocity", name),
+                0.47
+            ));
+            link_acceleration_objective = Some(LinkAccelerationMinimizationObjective::new(
+                format!("Macro {} Link Accel", name),
+                0.15,
+            ));
+            link_jerk_objective = Some(LinkJerkMinimizationObjective::new(
+                format!("Macro {} Link Jerk", name),
+                0.05,
+            ));
+        } else {
+            link_velocity_objective = None;
+            link_acceleration_objective = None;
+            link_jerk_objective = None;
+        }
+
+        Self {
+            name: name.clone(),
+            weight,
+            joints, origin, links,
+            joint_velocity_objective,
+            joint_acceleration_objective,
+            joint_jerk_objective,
+            origin_velocity_objective,
+            origin_acceleration_objective,
+            origin_jerk_objective,
+            link_velocity_objective,
+            link_acceleration_objective,
+            link_jerk_objective
+        }
+    }
+}
+
+impl Callable<bool> for SmoothnessMacroObjective {
+    fn call(&self, v: &Vars, state: &State) -> f64 {
+        let velocity_cost = self.joint_velocity_objective.as_ref().map_or_else(|| 0.0, |o| o.call(v,state));
+        let acceleration_cost = self.joint_acceleration_objective.as_ref().map_or_else(|| 0.0, |o| o.call(v,state));
+        let jerk_cost = self.joint_jerk_objective.as_ref().map_or_else(|| 0.0, |o| o.call(v,state));
+        let origin_velocity_cost = self.origin_velocity_objective.as_ref().map_or_else(|| 0.0, |o| o.call(v,state));
+        let origin_acceleration_cost = self.origin_acceleration_objective.as_ref().map_or_else(|| 0.0, |o| o.call(v,state));
+        let origin_jerk_cost = self.origin_jerk_objective.as_ref().map_or_else(|| 0.0, |o| o.call(v,state));
+        let link_velocity_cost = self.link_velocity_objective.as_ref().map_or_else(|| 0.0, |o| o.call(v,state));
+        let link_acceleration_cost = self.link_acceleration_objective.as_ref().map_or_else(|| 0.0, |o| o.call(v,state));
+        let link_jerk_cost = self.link_jerk_objective.as_ref().map_or_else(|| 0.0, |o| o.call(v,state));
+        return self.weight
+            * (velocity_cost
+                + acceleration_cost
+                + jerk_cost
+                + origin_velocity_cost
+                + origin_acceleration_cost
+                + origin_jerk_cost
+                + link_velocity_cost
+                + link_acceleration_cost
+                + link_jerk_cost
+            );
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl SmoothnessMacroObjective {
+    #[new]
+    pub fn from_python(name: String, weight: f64, joints: bool, origin: bool, links: bool) -> Self {
+        SmoothnessMacroObjective::new(name, weight, joints, origin, links)
+    }
+
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+}
+
+#[repr(C)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct SmoothnessMacroWrapper {
+    pub name: String,
+    pub weight: f64,
+    #[serde(default="get_true")]
+    pub joints: bool,
+    #[serde(default="get_false")]
+    pub origin: bool,
+    #[serde(default="get_true")]
+    pub links: bool
+}
+
+impl From<SmoothnessMacroWrapper> for SmoothnessMacroObjective {
+    fn from(wrapper: SmoothnessMacroWrapper) -> SmoothnessMacroObjective {
+        SmoothnessMacroObjective::new(wrapper.name,wrapper.weight,wrapper.joints,wrapper.origin,wrapper.links)
+    }
+}
+
+fn get_true() -> bool {true}
+fn get_false() -> bool {false}

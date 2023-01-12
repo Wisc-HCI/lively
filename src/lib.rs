@@ -15,31 +15,14 @@ pub mod lively;
 pub mod wrappers;
 // pub mod manager;
 
-// #[cfg(feature = "pybindings")]
-// use crate::wrappers::python::solver::PySolver;
 #[cfg(feature = "pybindings")]
 use crate::utils::pyutils::*;
-// #[cfg(feature = "pybindings")]
-// use crate::wrappers::python::objectives::{*};
-// #[cfg(feature = "pybindings")]
-// use crate::wrappers::python::shapes::{*};
-// #[cfg(feature = "pybindings")]
-// use crate::wrappers::python::state::PyState;
-// #[cfg(feature = "pybindings")]
-// use crate::wrappers::python::info::{*};
-
-// #[cfg(feature = "jsbindings")]
-// use std::collections::HashMap;
 #[cfg(feature = "pybindings")]
 use crate::utils::state::State;
-// #[cfg(feature = "pybindings")]
-// use crate::utils::goals::*;
 #[cfg(feature = "pybindings")]
 use crate::utils::info::*;
 #[cfg(feature = "pybindings")]
 use crate::utils::shapes::*;
-// #[cfg(feature = "pybindings")]
-// use crate::objectives::objective::*;
 
 // Export struct from lively
 pub use self::lively::Solver;
@@ -76,9 +59,9 @@ fn lively(_py: Python, m: &PyModule) -> PyResult<()> {
     // Objectives
     m.add_class::<objectives::core::base::JointLimitsObjective>()?;
     m.add_class::<objectives::core::base::CollisionAvoidanceObjective>()?;
-    m.add_class::<objectives::core::base::VelocityMinimizationObjective>()?;
-    m.add_class::<objectives::core::base::AccelerationMinimizationObjective>()?;
-    m.add_class::<objectives::core::base::JerkMinimizationObjective>()?;
+    m.add_class::<objectives::core::base::JointVelocityMinimizationObjective>()?;
+    m.add_class::<objectives::core::base::JointAccelerationMinimizationObjective>()?;
+    m.add_class::<objectives::core::base::JointJerkMinimizationObjective>()?;
     m.add_class::<objectives::core::base::OriginVelocityMinimizationObjective>()?;
     m.add_class::<objectives::core::base::OriginAccelerationMinimizationObjective>()?;
     m.add_class::<objectives::core::base::OriginJerkMinimizationObjective>()?;
