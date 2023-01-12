@@ -12,9 +12,8 @@ Since Lively is still in beta, the design is subject to change and should not be
 
 ```jsx live
 function InitializationExample(props) {
-
   const [livelySolver, setLivelySolver] = useState(null);
-  const [robot, setRobot] = useState('panda');
+  const [robot, setRobot] = useState("panda");
   const [robotState, setRobotState] = useState(null);
   const [visualRobotState, setVisualRobotState] = useState(null);
 
@@ -41,14 +40,25 @@ function InitializationExample(props) {
           smoothness: {
             name: "MySmoothnessObjective",
             type: "SmoothnessMacro",
-            weight: 1,
+            weight: 5,
           },
+          collision: {
+            name : 'MyCollisionDetection',
+            type: 'CollisionAvoidance',
+            weight : 5
+          },
+          jointLimit: {
+            name : 'MyJointLimit',
+            type : 'JointLimits',
+            weight : 5
+          },
+          //collision, jointlimit
           positionLively: {
             name: "MyLivelinessObjective3",
             type: "PositionLiveliness",
             weight: 19,
             link: "panda_hand",
-            frequency: 15,
+            frequency: 25,
           },
           orientationLively: {
             name: "MyOrientationObjective2",
@@ -80,7 +90,7 @@ function InitializationExample(props) {
     const updateSolver = () => {
       if (currentSolver) {
         const d = new Date();
-        let time = d.getTime(); // Get the time used in Math.sin
+        let time = d.getTime(); // Get the time in milliseconds
         let goals = {
           // An goal example with defined Scalar and Size values for the lively objectives
 
@@ -88,13 +98,16 @@ function InitializationExample(props) {
             Scalar: 0.02,
           },
           positionLively: {
-            Size: [0.07, 0.05, 0.08],
+            Size: [0.007, 0.005, 0.008],
           },
           orientationLively: {
-            Size: [0.07, 0.05, 0.08],
+            Size: [0.007, 0.005, 0.008],
           },
+          jointMatch:{
+            Scalar:0.02
+          }
         };
-        const newState = currentSolver.solve(goals, {}, time / 1000); // The time parameter for the solve cannot be 0.0.
+        const newState = currentSolver.solve(goals, {}, time / 1000); // Convert the time to second
         // Update the solver's current state
 
         setRobotState(newState);
