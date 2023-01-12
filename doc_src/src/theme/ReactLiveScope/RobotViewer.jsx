@@ -1,53 +1,64 @@
 import React, { memo, useEffect } from "react";
-import { Scene, useSceneStore } from "robot-scene";
+import { Scene, useSceneStore, useDefaultSceneStore } from "robot-scene";
 import { mapValues } from 'lodash';
 import MeshLookupTable from "./Meshes";
 
-export const RobotViewer = ({state,links=[],showCollision=false,shapes}) => {
+export const RobotViewer = ({ state, links = [], showCollision = false, shapes, controller, onMove }) => {
 
-    useEffect(()=>{
+
+    useEffect(() => {
         let items = {};
         links?.forEach((link) => {
             link.visuals.forEach((visual, i) => {
-              items[`visual-${link.name}-${i}`] = shape2item(visual, false);
+                items[`visual-${link.name}-${i}`] = shape2item(visual, false);
             });
             if (showCollision) {
-              link.collisions.forEach((collision, i) => {
-                items[`collision-${link.name}-${i}`] = shape2item(
-                  collision,
-                  true
-                );
-              });
+                link.collisions.forEach((collision, i) => {
+                    items[`collision-${link.name}-${i}`] = shape2item(
+                        collision,
+                        true
+                    );
+                });
             }
-          });
-          shapes?.forEach((shape,i) => {
+        });
+        shapes?.forEach((shape, i) => {
             items[`env-shape-${shape.name}-${i}`] = shape2item(shape, false);
-          })
+        })
+        if (controller) {
+            //console.log("controller", controller);
+            items[`transformController-${controller.name}`] = shape2item(controller, false);
+        }
+
         let tfs = state2tfs(state);
-        useSceneStore.setState({items,tfs})
-    }, [state,links])
+
+        useSceneStore.setState({ items, tfs, onMove })
+        //useSceneStore.setState(state => console.log(state));
+
+        //useDefaultSceneStore.setState({items,tfs})
+    }, [state, links, onMove])
+    //items[`controller-${controller.name}`] = shape2item(controller,false);
 
     return (
-        <SceneWrapper/>
-        
+        <SceneWrapper />
+
     )
 }
 
-const SceneWrapper = memo(()=>{
+const SceneWrapper = memo(() => {
     return (
-        <div style={{height:500, marginTop:4, marginBottom:4}}>
+        <div style={{ height: 500, marginTop: 4, marginBottom: 4 }}>
             <Scene
-            displayGrid={true}
-            backgroundColor="#1e1e1e"
-            planeColor="#141414"
-            highlightColor="#bf65d8"
-            plane={0}
-            fov={50}
-            // store={useStore}
-            meshLookup={MeshLookupTable}
+                displayGrid={true}
+                backgroundColor="#1e1e1e"
+                planeColor="#141414"
+                highlightColor="#bf65d8"
+                plane={0}
+                fov={50}
+                store={useSceneStore}
+                meshLookup={MeshLookupTable}
             // onPointerMissed={clearFocus}
             // paused={paused}
-        />
+            />
         </div>
     )
 })
@@ -79,15 +90,16 @@ function shape2item(shape, isCollision) {
             break;
         case 'Sphere':
             item.shape = 'sphere';
-            item.scale = { x: shape.radius*2, y: shape.radius*2, z: shape.radius*2 };
+            item.scale = { x: shape.radius * 2, y: shape.radius * 2, z: shape.radius * 2 };
+            item.transformMode = 'translate'
             break;
         case 'Cylinder':
             item.shape = 'cylinder';
-            item.scale = { x: shape.radius*2, y: shape.radius*2, z: shape.length };
+            item.scale = { x: shape.radius * 2, y: shape.radius * 2, z: shape.length };
             break;
         case 'Capsule':
             item.shape = 'capsule';
-            item.scale = { x: shape.radius*2, y: shape.radius*2, z: shape.length };
+            item.scale = { x: shape.radius * 2, y: shape.radius * 2, z: shape.length };
             break;
         case 'Mesh':
             item.shape = shape.filename;
@@ -103,19 +115,19 @@ function shape2item(shape, isCollision) {
 function state2tfs(state) {
     let tfs = {};
     // console.log(state.proximity);
-    Object.entries(state?.frames || {}).forEach(pair=>{
+    Object.entries(state?.frames || {}).forEach(pair => {
         tfs[pair[0]] = {
             frame: 'world',
-            position: { 
-                x: pair[1].world.translation[0], 
-                y: pair[1].world.translation[1], 
-                z: pair[1].world.translation[2] 
+            position: {
+                x: pair[1].world.translation[0],
+                y: pair[1].world.translation[1],
+                z: pair[1].world.translation[2]
             },
-            rotation: { 
-                w: pair[1].world.rotation[3], 
-                x: pair[1].world.rotation[0], 
-                y: pair[1].world.rotation[1], 
-                z: pair[1].world.rotation[2] 
+            rotation: {
+                w: pair[1].world.rotation[3],
+                x: pair[1].world.rotation[0],
+                y: pair[1].world.rotation[1],
+                z: pair[1].world.rotation[2]
             },
             scale: {
                 x: 1,

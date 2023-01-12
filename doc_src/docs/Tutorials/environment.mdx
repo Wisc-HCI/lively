@@ -18,8 +18,26 @@ function InitializationExample(props) {
     const [robot, setRobot] = useState('panda');
     const [robotState, setRobotState] = useState(null);
     const [visualRobotState, setVisualRobotState] = useState(null);
-   
-   const shapes = [{
+    
+    let controller = {type:'Sphere',
+                    name:'control',
+                    frame: 'world',
+                    physical: false,
+                    radius:0.05,
+                    localTransform: {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
+                };
+    const [controllerPosition, setControllerPosition] = useState(controller);
+    
+    function updateControllerPosition(transform){
+        console.log("updateControllerpos" , transform);
+        const newController = controller;
+        newController.localTransform.translation = transform.position;
+        setControllerPosition(newController);
+        
+    }
+    //console.log(controllerPosition);
+        
+    const shapes = [{
                     type:"Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
                     name:"box", // name can be arbitrary
                     frame: "world", // or 'world'
@@ -45,13 +63,9 @@ function InitializationExample(props) {
                     radius:0.1,
                     localTransform: {translation:[0.0,0.5,0.3],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
                 },
-                {   type:'Sphere',
-                    name:'bouncy ball',
-                    frame: 'world',
-                    physical: true,
-                    radius:0.1,
-                    localTransform: {translation:[0.0,-0.5,0.3],rotation:[0.0,0.0,0.0,1.0]} // [x, y, z, w] ordering for quaternion
-                }];
+                
+               ];
+        
     
     useEffect(()=>{
         /* 
@@ -78,7 +92,17 @@ function InitializationExample(props) {
                         name: 'MySmoothnessObjective',
                         type: 'SmoothnessMacro',
                         weight: 5
-                     },                       
+                     },    
+                     'collision' : {
+                        name: 'MyCollisionDetection',
+                        type: 'CollisionAvoidance',
+                        weight: 5
+                     },
+                     'jointLimit': {
+                        name : 'MyJointLimit',
+                        type : 'JointLimits',
+                        weight : 5
+                    },                  
                 },
                 [ 
                     { value: 0.0, delta: 0.0 },
@@ -92,10 +116,12 @@ function InitializationExample(props) {
                 ,
             );
             currentSolver = newSolver; //assign new solver to the current solver in use
+            newSolver.computeAverageDistanceTable();
             // Assign the solver to the value
             setLivelySolver(newSolver)
             // Run solve to get a solved state
             const newState = newSolver.solve({},{},0.0);
+
             // Update the solver's current state
             setRobotState(newState);
             setVisualRobotState(newState)
@@ -106,7 +132,7 @@ function InitializationExample(props) {
 
             if (currentSolver) {
                 const d = new Date();
-                let time = d.getTime(); // Get the time used in Math.sin
+                let time = d.getTime(); // Get the time used in milliseconds
             let goal = { // An goal example with defined Translation and Rotation
                       
             }
@@ -133,7 +159,7 @@ function InitializationExample(props) {
   return (
     <div>
        
-       <RobotViewer state={robotState} links={livelySolver ? livelySolver.links : []} shapes = {shapes}/>
+       <RobotViewer state={robotState} links={livelySolver ? livelySolver.links : []} shapes = {shapes} controller = {controllerPosition} onMove={(id, source, worldTransform, localTransform)=>{updateControllerPosition(localTransform)}}/>
        <Button active={robot==='panda'} onClick={()=>setVisualRobotState(robotState)}>Update State</Button> 
        <Tree label='state' data={visualRobotState}/>
     </div>
