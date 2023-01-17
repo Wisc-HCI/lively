@@ -8,9 +8,9 @@ export const RobotViewer = ({
   links = [],
   showCollision = false,
   shapes,
-  transformMode,
   transformControl,
   onMove,
+  activeEnvShapesTransform,
 }) => {
   useEffect(() => {
     let items = {};
@@ -24,12 +24,21 @@ export const RobotViewer = ({
         });
       }
     });
-    shapes?.forEach((shape, i) => {
-      items[`env-shape-${shape.name}-${i}`] = shape2item(shape, false);
-    });
+   
+
+    if (activeEnvShapesTransform === true){
+      shapes?.forEach((shape, i) => {
+        items[`env-shape-${shape.name}`] = shape2item(shape, false, true);
+      });
+    }else{
+      shapes?.forEach((shape, i) => {
+        items[`env-shape-${shape.name}`] = shape2item(shape, false);
+      });
+    }
+    
     if (transformControl) {
       //console.log("transformControl", transformControl);
-      items[`transformController-${transformControl.name}`] = shape2item(
+      items[`transform-controller-${transformControl.name}`] = shape2item(
         transformControl,
         false
       );
@@ -66,7 +75,7 @@ const SceneWrapper = memo(() => {
   );
 });
 
-function shape2item(shape, isCollision) {
+function shape2item(shape, isCollision, activeEnvShapesTransform) {
   let item = {
     name: shape.name,
     frame: shape.frame,
@@ -85,9 +94,10 @@ function shape2item(shape, isCollision) {
       ? { r: 100, g: 0, b: 0, a: 1 }
       : { r: 100, g: 100, b: 100, a: 1 },
     scale: { x: 1, y: 1, z: 1 },
-    transformMode: "inactive",
+    transformMode: activeEnvShapesTransform ? "translate" : "inactive",
     wireframe: isCollision,
   };
+
   switch (shape.type) {
     case "Arrow": 
       item.shape = "arrow";
