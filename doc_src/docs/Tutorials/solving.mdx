@@ -126,16 +126,17 @@ function InitializationExample(props) {
 
   return (
     <div>
+      
+      <RobotViewer
+        state={robotState}
+        links={livelySolver ? livelySolver.links : []}
+      />
       <Button
         active={robot === "panda"}
         onClick={() => setVisualRobotState(robotState)}
       >
         Update State
       </Button>
-      <RobotViewer
-        state={robotState}
-        links={livelySolver ? livelySolver.links : []}
-      />
       <Tree label="state" data={visualRobotState} />
     </div>
   );

@@ -26,8 +26,8 @@ function InitializationExample(props) {
     physical: false,
     localTransform: {
       translation: [0.0, -0.7718020867888795, 0.8679405432017822],
-      rotation: [0.0, 0.0, 0.0, 1.0],
-    }, // [x, y, z, w] ordering for quaternion
+      rotation: [0.0, 0.0, 0.0, 1.0], // The initial rotation is pointing to where the gripper is pointing at. 
+    }, 
   };
 
   const sphereTransformControl = {
@@ -37,7 +37,7 @@ function InitializationExample(props) {
     frame: "world",
     radius: 0.05,
     localTransform: {
-      translation: [0.0, -0.7718020867888795, 0.8679405432017822],
+      translation: [0.0, -0.7718020867888795, 0.8679405432017822], // The initial translation of the sphere is at where the gripper is supposed to be at. 
       rotation: [0.0, 0.0, 0.0, 1.0],
     },
   };
@@ -50,7 +50,7 @@ function InitializationExample(props) {
   const initialGoal = {
     // the inital goal to be fed into the the solver representing the the initial translation and rotation.
     position: {
-      Translation: [0.0, -0.7718020867888795, 0.8679405432017822],
+      Translation: [0.0, -0.7718020867888795, 0.8679405432017822], 
     },
     orientation: {
       Rotation: [0.0, 0.0, 0.0, 1.0],
@@ -59,13 +59,11 @@ function InitializationExample(props) {
 
   const [transformControl, setTransformControl] = useState(
     sphereTransformControl
-  ); // the visual representation of the transformMode.
+  ); // the visual representation of the transformMode. 
 
   const [goal, setGoal] = useState(initialGoal);
 
-  //console.log("goal" , goal);
-
-  function updateTransformMode() {
+  function updateTransformMode() {// switch between Position Match or Orientation Match
     transformMode === "translate"
       ? setTransformMode("rotate")
       : setTransformMode("translate");
@@ -111,15 +109,15 @@ function InitializationExample(props) {
       transform.quaternion.z,
       transform.quaternion.w,
     ];
-    setArrowTransformControlVisual(newArrowTransformControl);
-    setSphereTransformControlVisual(newSphereTransformControl);
-    setGoal(newGoal);
-    transformMode === "translate"
+    setArrowTransformControlVisual(newArrowTransformControl);// update the the transformation of the arrow transform control visual in the scene. 
+    setSphereTransformControlVisual(newSphereTransformControl);// update the the transformation of the sphere transform control visual in the scene. 
+    setGoal(newGoal);// update the goal being sent to the solver. 
+    transformMode === "translate" 
       ? setTransformControl(newSphereTransformControl)
       : setTransformControl(newArrowTransformControl);
   }
 
-  const shapes = [
+  const shapes = [// the environmental models in the scene.
     {
       type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
       name: "box", // name can be arbitrary
@@ -188,7 +186,7 @@ function InitializationExample(props) {
             origin: false,
             links: true,
           },
-          collision: {
+          collision: {// The main objective that allows the robot to avoid collision within the links, as well as with the environmental objects. 
             name: "MyCollisionDetection",
             type: "CollisionAvoidance",
             weight: 7,
@@ -198,13 +196,13 @@ function InitializationExample(props) {
             type: "JointLimits",
             weight: 5,
           },
-          position: {
+          position: {// The main objective that allows the pand hand to follow the position defined by the sphere transform control visual in the scene.
             name: "MyPositionMatchObjective",
             type: "PositionMatch",
             link: "panda_hand",
             weight: 15,
           },
-          orientation: {
+          orientation: {// The main objective that allows the pand hand to follow the orientation defined by the arrow transform control visual in the scene.
             name: "MyOrientationMatchObjective",
             type: "OrientationMatch",
             link: "panda_hand",
@@ -222,7 +220,6 @@ function InitializationExample(props) {
         shapes
       );
       currentSolver = newSolver; //assign new solver to the current solver in use
-      //newSolver.computeAverageDistanceTable();
       // Assign the solver to the value
       setLivelySolver(newSolver);
       // Run solve to get a solved state
