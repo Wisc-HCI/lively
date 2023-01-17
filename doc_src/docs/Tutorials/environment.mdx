@@ -48,7 +48,7 @@ function InitializationExample(props) {
 
   const initialEnvShapes = [
     // the environmental models in the scene.
-    {
+    /* {
       type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
       name: "box", // name can be arbitrary
       frame: "world", // or 'world'
@@ -60,8 +60,8 @@ function InitializationExample(props) {
         translation: [0.6, 0.05, 0.15],
         rotation: [0.0, 0.0, 0.0, 1.0],
       }, // [x, y, z, w] ordering for quaternion
-    },
-    {
+    }, */
+    /* {
       type: "Capsule",
       name: "pill",
       frame: "world",
@@ -84,7 +84,7 @@ function InitializationExample(props) {
         translation: [0.0, 0.5, 0.3],
         rotation: [0.0, 0.0, 0.0, 1.0],
       }, // [x, y, z, w] ordering for quaternion
-    },
+    }, */
   ];
 
   const [livelySolver, setLivelySolver] = useState(null);
@@ -102,8 +102,41 @@ function InitializationExample(props) {
   ); // the visual representation of the transformMode.
   const [goal, setGoal] = useState(initialGoal);
   const [envShapes, setEnvShapes] = useState(initialEnvShapes);
+  const [shapesUpdate, setShapesUpdate] = useState(null);
+  const [activeCube, setActiveCube] = useState(null);
 
-  
+
+  function addEnvCube(){
+    const cube =  {
+      Add : {
+      id: "env-box-1" ,// must be an unique id
+      shape : {type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+      name: "box", // name can be arbitrary
+      frame: "world", // or 'world'
+      physical: true, // physical collision
+      x: 0.25,
+      y: 0.25,
+      z: 0.25, // dimension of the box
+      localTransform: {
+        translation: [0.6, 0.05, 0.15],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+      }}
+    }};
+    setEnvShapes([{type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+      name: "box", // name can be arbitrary
+      frame: "world", // or 'world'
+      physical: true, // physical collision
+      x: 0.25,
+      y: 0.25,
+      z: 0.25, // dimension of the box
+      localTransform: {
+        translation: [0.6, 0.05, 0.15],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+      }}]);
+    setActiveCube(cube);
+
+
+  }
 
   function updateTransformMode() {
     // switch between Position Match or Orientation Match
@@ -159,8 +192,10 @@ function InitializationExample(props) {
       ? setTransformControl(newSphereTransformControl)
       : setTransformControl(newArrowTransformControl);
   }
+ // console.log(shapesUpdate);
   function updateEnvironmentalShapesTransform(id, transform) {
     let newEnvShapes = envShapes;
+    let newShapeUpdate = null;
     newEnvShapes.forEach((shape) => {
       if (id.includes(shape.name)) {
           shape.localTransform.translation = [
@@ -168,9 +203,15 @@ function InitializationExample(props) {
           transform.position.y,
           transform.position.z,
         ];
+        newShapeUpdate = shape;
       }
     });
     setEnvShapes(newEnvShapes);
+    if (newShapeUpdate){
+      setShapesUpdate({Move : {id: newShapeUpdate.name, transform: newShapeUpdate.localTransform  }});
+    }
+    
+    
   }
 
   function updateTransform(id, transform) {
@@ -243,8 +284,7 @@ function InitializationExample(props) {
           { value: 0.0, delta: 0.0 },
           { value: 0.0, delta: 0.0 },
           { value: 0.0, delta: 0.0 }, // Rotational
-        ],
-        envShapes
+        ]
       );
       currentSolver = newSolver; //assign new solver to the current solver in use
       // Assign the solver to the value
@@ -262,8 +302,8 @@ function InitializationExample(props) {
       if (currentSolver) {
         const d = new Date();
         let time = d.getTime(); // Get the time in milliseconds
-        const newState = currentSolver.solve(goal, {}, time / 1000); // Pass the new goal into solve function
-        // Update the solver's current state
+        const newState = currentSolver.solve(goal, {}, time / 1000, activeCube ); // Pass the new goal into solve function
+        // Update the solver's current state 
         setRobotState(newState);
       }
     };
@@ -311,10 +351,10 @@ function InitializationExample(props) {
         Orientation Match
       </Button>
       <Button
-        active={activeShapesTransform === true}
-        onClick={() => setShapesTransform(!activeShapesTransform)}
+        active={activeCube}
+        onClick={() => addEnvCube()}
       >
-        Toggle Environmental Shapes Transform Control
+        {activeCube ? 'Delete environmental shape - Cube' : 'Add environmental shape - Cube'}
       </Button>
       <Tree label="state" data={visualRobotState} />
     </div>
