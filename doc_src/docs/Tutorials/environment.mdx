@@ -46,46 +46,7 @@ function InitializationExample(props) {
     },
   };
 
-  const initialEnvShapes = [
-    // the environmental models in the scene.
-    /* {
-      type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
-      name: "box", // name can be arbitrary
-      frame: "world", // or 'world'
-      physical: true, // physical collision
-      x: 0.25,
-      y: 0.25,
-      z: 0.25, // dimension of the box
-      localTransform: {
-        translation: [0.6, 0.05, 0.15],
-        rotation: [0.0, 0.0, 0.0, 1.0],
-      }, // [x, y, z, w] ordering for quaternion
-    }, */
-    /* {
-      type: "Capsule",
-      name: "pill",
-      frame: "world",
-      physical: true,
-      length: 0.2,
-      radius: 0.1,
-      localTransform: {
-        translation: [-0.5, 0.0, 0.5],
-        rotation: [1.0, 0.0, 0.0, 0.0],
-      }, // [x, y, z, w] ordering for quaternion
-    },
-    {
-      type: "Cylinder",
-      name: "zone",
-      frame: "world",
-      physical: true,
-      length: 0.2,
-      radius: 0.1,
-      localTransform: {
-        translation: [0.0, 0.5, 0.3],
-        rotation: [0.0, 0.0, 0.0, 1.0],
-      }, // [x, y, z, w] ordering for quaternion
-    }, */
-  ];
+  const initialEnvShapes = [];
 
   const [livelySolver, setLivelySolver] = useState(null);
   const [robot, setRobot] = useState("panda");
@@ -377,7 +338,7 @@ function InitializationExample(props) {
           ? "Delete environmental shape - Cube"
           : "Add environmental shape - Cube"}
       </Button>
-      
+
       <Tree label="state" data={visualRobotState} />
     </div>
   );
