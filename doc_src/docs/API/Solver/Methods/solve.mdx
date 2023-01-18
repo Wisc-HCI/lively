@@ -20,7 +20,7 @@ The **optional** field can be left empty if the no specification is needed. The 
 The `shape_update` parameter in `solve` takes in a list of `ShapeUpdate` objects where the environmental shapes can be introduced, modified, and removed.
 The `ShapeUpdate` object allows for three functionalities or types: `Add`, `Move`, and `Delete` each corresponding to the tasks mentioned above. For more information please see the example below.
 :::note
-The [`shape`](../../Shapes/) objects passed in the `shapes` parameter in `solver` [`initialization`](../initialization) are static and can not be moved or deleted later. Only the shapes that are introduced (`Add`) to the environment in `ShapeUpdate` can be modified and removed by `Move` and `delete`.
+The [`shape`](../../Shapes/) objects passed in the `shapes` parameter in `solver` [`initialization`](../initialization) are static and can not be moved or deleted later. Only the shapes that are introduced (`Add`) to the environment in `ShapeUpdate` can be moved or deleted by `Move` and `delete`.
 :::
 
 ### adding a new environmental shape
