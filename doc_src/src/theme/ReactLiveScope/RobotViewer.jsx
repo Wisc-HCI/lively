@@ -9,8 +9,7 @@ export const RobotViewer = ({
   showCollision = false,
   shapes,
   transformControl,
-  onMove,
-  activeEnvShapesTransform,
+  onMove
 }) => {
   useEffect(() => {
     let items = {};
@@ -26,15 +25,11 @@ export const RobotViewer = ({
     });
    
 
-    if (activeEnvShapesTransform === true){
-      shapes?.forEach((shape, i) => {
-        items[`env-shape-${shape.name}`] = shape2item(shape, false, true);
-      });
-    }else{
+    
       shapes?.forEach((shape, i) => {
         items[`env-shape-${shape.name}`] = shape2item(shape, false);
       });
-    }
+    
     
     if (transformControl) {
       //console.log("transformControl", transformControl);
@@ -75,7 +70,7 @@ const SceneWrapper = memo(() => {
   );
 });
 
-function shape2item(shape, isCollision, activeEnvShapesTransform) {
+function shape2item(shape, isCollision, ) {
   let item = {
     name: shape.name,
     frame: shape.frame,
@@ -94,8 +89,7 @@ function shape2item(shape, isCollision, activeEnvShapesTransform) {
       ? { r: 100, g: 0, b: 0, a: 1 }
       : { r: 100, g: 100, b: 100, a: 1 },
     scale: { x: 1, y: 1, z: 1 },
-    transformMode: activeEnvShapesTransform ? "translate" : "inactive",
-    wireframe: isCollision,
+    
   };
 
   switch (shape.type) {
@@ -107,6 +101,7 @@ function shape2item(shape, isCollision, activeEnvShapesTransform) {
     case "Box":
       item.shape = "cube";
       item.scale = { x: shape.x, y: shape.y, z: shape.z };
+      item.transformMode = "translate";
       break;
     case "Sphere":
       item.shape = "sphere";
