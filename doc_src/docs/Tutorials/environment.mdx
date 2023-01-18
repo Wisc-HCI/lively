@@ -106,10 +106,22 @@ function InitializationExample(props) {
   const [activeCube, setActiveCube] = useState(null);
 
 
-  function addEnvCube(){
-    const cube =  {
+  function addOrRemoveEnvCube(){
+    if (activeCube) {
+      console.log(envShapes);
+      const newEnvShapes = envShapes.filter(shape => shape.name !== "box");
+      setEnvShapes(newEnvShapes);
+      setActiveCube(null);
+      setShapesUpdate(
+        {
+          Delete: "env-box"
+        }
+      );
+
+    }else{  
+      const cube =  {
       Add : {
-      id: "env-box-1" ,// must be an unique id
+      id: "env-box" ,// must be an unique id
       shape : {type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
       name: "box", // name can be arbitrary
       frame: "world", // or 'world'
@@ -122,7 +134,9 @@ function InitializationExample(props) {
         rotation: [0.0, 0.0, 0.0, 1.0],
       }}
     }};
-    setEnvShapes([{type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+    let newEnvShapes = initialEnvShapes;
+    newEnvShapes.push(
+      {type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
       name: "box", // name can be arbitrary
       frame: "world", // or 'world'
       physical: true, // physical collision
@@ -132,9 +146,13 @@ function InitializationExample(props) {
       localTransform: {
         translation: [0.6, 0.05, 0.15],
         rotation: [0.0, 0.0, 0.0, 1.0],
-      }}]);
+      }});
+    setShapesUpdate(cube);
+    setEnvShapes(newEnvShapes);
     setActiveCube(cube);
 
+    }
+    
 
   }
 
@@ -302,7 +320,7 @@ function InitializationExample(props) {
       if (currentSolver) {
         const d = new Date();
         let time = d.getTime(); // Get the time in milliseconds
-        const newState = currentSolver.solve(goal, {}, time / 1000, activeCube ); // Pass the new goal into solve function
+        const newState = currentSolver.solve(goal, {}, time / 1000, shapesUpdate ); // Pass the new goal into solve function
         // Update the solver's current state 
         setRobotState(newState);
       }
@@ -352,7 +370,7 @@ function InitializationExample(props) {
       </Button>
       <Button
         active={activeCube}
-        onClick={() => addEnvCube()}
+        onClick={() => addOrRemoveEnvCube()}
       >
         {activeCube ? 'Delete environmental shape - Cube' : 'Add environmental shape - Cube'}
       </Button>
