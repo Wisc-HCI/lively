@@ -84,9 +84,9 @@ If a wrong `id` is used, the solver will not change the transformation of any sh
 ```js
 const moveCube = {
   Move: {
-    // This is a Move ShapeUpdate functionality or type. This modifies the transform of the Cube introduced by Add in the environment.
+    // This is a Move ShapeUpdate functionality or type. This modifies the transform of the Cube introduced by Add in the environment
     id: "env-box", // must be identical to the id created in the shape is added
-    transform: {
+    transform: {// the shape will be moved to this transformation
       translation: [0.6, 0.05, 0.15],
       rotation: [0.0, 0.0, 0.0, 1.0],
     },
