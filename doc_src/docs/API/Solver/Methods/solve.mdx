@@ -13,13 +13,23 @@ The **optional** field can be left empty if the no specification is needed. The 
 | `goals`        | look-up table of [`goal`](../../Goals/goal) indexed by a string key | no       | The key of the look-up table should match with that of the [`objectives`](../../Objectives) to which the `goals` are corresponded. |
 | `weights`      | look-up table of float value indexed by a string key                | no       | The key of the look-up table should match with that of the [`objectives`](../../Objectives) to which the weights are corresponded. |
 | `time`         | float                                                               | no       | The current time stamp. It is advised to always pass in a increasing time stamp for the solver to have a more consistent behavior. |
-| `shape_update` | list of [`shape`](../../shapes) objects                             | yes      | see below                                                                                                                          |
+| `shape_update` | list of `ShapeUpdate` objects                                       | yes      | see below                                                                                                                          |
 
 ## shape_update
 
-`shape_update` parameter allows the users to add, move, and delete environmental shapes in the solver.
+The `shape_update` parameter in `solve` takes in a list of `ShapeUpdate` objects where the environmental shapes can be introduced, modified, and removed.
+The `ShapeUpdate` object allows for three functionalities or types: `Add`, `Move`, and `Delete` each corresponding to the tasks mentioned above. For more information please see the example below.
+:::note
+The [`shape`](../../Shapes/) objects passed in the `shapes` parameter in `solver` [`initialization`](../initialization) are static and can not be moved or deleted later. Only the shapes that are introduced (`Add`) to the environment in `ShapeUpdate` can be modified and removed by `Move` and `delete`.
+:::
 
 ### adding a new environmental shape
+
+When a new shape is introduced to the environment, the `id` associated with the new shape needs to be unique.
+The `id` will be used to identify the shape when a `Move` or `Delete` is performed on the same shape.
+:::note
+If another shape is added to the environment with the same `id`, the new shape will replace the old shape with the same `id`.
+:::
 
 <Tabs>
   <TabItem value="js" label="Javascript">
@@ -27,6 +37,7 @@ The **optional** field can be left empty if the no specification is needed. The 
 ```js
 const addCube = {
   Add: {
+    // This is an Add ShapeUpdate functionality or type. This introduce a new Cube with "env-box" as the id to the environment.
     id: "env-box", // must be an unique id
     shape: {
       type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
@@ -70,6 +81,8 @@ currentSolver.solve({}, {}, time / 1000, addCube);
 ```js
 const moveCube = {
   Move: {
+    // This is a Move ShapeUpdate functionality or type. This modifies the transform of the Cube introduced by Add in the environment.
+    id: "env-box", // must be an unique id
     id: "env-box", // must be identical to the id created in the shape is added
     transform: {
       translation: [0.6, 0.05, 0.15],
@@ -102,7 +115,7 @@ currentSolver.solve({}, {}, time / 1000, moveCube);
   <TabItem value="js" label="Javascript">
 
 ```js
-const deleteCube = {Delete: "env-box"};// must be identical to the id created in the shape is added
+const deleteCube = {Delete: "env-box"};/ This is a Delete ShapeUpdate functionality or type. This deletes the Cube introduced by Add in the environment.
 const d = new Date();
 let time = d.getTime(); // Get the time in milliseconds
 currentSolver.solve({}, {}, time / 1000, deleteCube);
