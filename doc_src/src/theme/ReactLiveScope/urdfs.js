@@ -425,19 +425,19 @@ export const ur3e = `<?xml version="1.0" ?>
     <collision>
       <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="-0.127 0 0.12"/>
       <geometry>
-        <cylinder length="0.16" radius="0.05"/>
+        <cylinder length="0.145" radius="0.05"/>
       </geometry>
     </collision>
     <collision>
       <origin rpy="0 0 -1.5707963267948966" xyz="0 0 0.125"/>
       <geometry>
-        <cylinder length="0.12" radius="0.05"/>
+        <cylinder length="0.11" radius="0.05"/>
       </geometry>
     </collision>
     <collision>
       <origin rpy="0 0 -1.5707963267948966" xyz="-0.245 0 0.125"/>
       <geometry>
-        <cylinder length="0.12" radius="0.04"/>
+        <cylinder length="0.11" radius="0.04"/>
       </geometry>
     </collision>
     <inertial>
@@ -459,7 +459,7 @@ export const ur3e = `<?xml version="1.0" ?>
     <collision>
       <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="-0.07 0 0.027"/>
       <geometry>
-        <cylinder length="0.21" radius="0.04"/>
+        <cylinder length="0.20" radius="0.04"/>
       </geometry>
     </collision>
     <collision>
@@ -508,7 +508,7 @@ export const ur3e = `<?xml version="1.0" ?>
       </material>
     </visual>
     <collision>
-      <origin rpy="1.5707963267948966 0 0" xyz="0 -0.008 0.01"/>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 -0.008 0.005"/>
       <geometry>
         <cylinder length="0.1" radius="0.04"/>
       </geometry>
@@ -521,7 +521,7 @@ export const ur3e = `<?xml version="1.0" ?>
   </link>
   <link name="wrist_3_link">
     <visual>
-      <origin rpy="1.5707963267948966 0 0" xyz="0 -0.01 -0.081"/>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 -0.0 -0.081"/>
       <geometry>
         <mesh filename="package://ur_description/meshes/ur3/visual/wrist3.dae"/>
       </geometry>
@@ -530,7 +530,7 @@ export const ur3e = `<?xml version="1.0" ?>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 -0.01 -0.015"/>
+      <origin rpy="0 0 0" xyz="0.005 0 -0.015"/>
       <geometry>
         <cylinder length="0.04" radius="0.04"/>
       </geometry>
@@ -617,10 +617,198 @@ export const ur3e = `<?xml version="1.0" ?>
     <parent link="flange"/>
     <child link="tool0"/>
   </joint>
-  <joint name="world_mapping" type="fixed">
-    <!-- default toolframe: X+ left, Y+ up, Z+ front -->
-    <origin rpy="0 0 0" xyz="0 0 0"/>
-    <parent link="world"/>
-    <child link="base_link"/>
+  <joint name="robotiq_85_base_joint" type="fixed">
+    <parent link="flange"/>
+    <child link="robotiq_85_base_link"/>
   </joint>
+
+  <link name="robotiq_85_base_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robotiq_85_description/meshes/visual/robotiq_85_base_link.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.07 0 0"/>
+      <geometry>
+        <box size="0.12 0.12 0.07"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.636951" />
+      <origin xyz="0.0 0.0 0.0" />
+      <inertia ixx = "0.000380" ixy = "0.000000" ixz = "0.000000"
+           iyx = "0.000000" iyy = "0.001110" iyz = "0.000000"
+           izx = "0.000000" izy = "0.000000" izz = "0.001171" />
+    </inertial>
+  </link>
+
+  <joint name="robotiq_85_left_knuckle_joint" type="revolute">
+    <parent link="robotiq_85_base_link"/>
+    <child link="robotiq_85_left_knuckle_link"/>
+    <axis xyz="0 0 1"/>
+    <origin rpy="3.14159265359 0.0 0.0" xyz="0.05490451627 0.03060114443 0.0"/>
+    <limit effort="1000" lower="0.0" upper="0.80285" velocity="0.5"/>
+  </joint>
+  <joint name="robotiq_85_right_knuckle_joint" type="continuous">
+    <parent link="robotiq_85_base_link"/>
+    <child link="robotiq_85_right_knuckle_link"/>
+    <axis xyz="0 0 1"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.05490451627 -0.03060114443 0.0"/>
+    <limit effort="1000" lower="-3.14" upper="3.14" velocity="100.0"/>
+    <mimic joint="robotiq_85_left_knuckle_joint"/>
+  </joint>
+  <link name="robotiq_85_left_knuckle_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robotiq_85_description/meshes/visual/robotiq_85_knuckle_link.dae"/>
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.018491"/>
+      <origin xyz="0.0 0.0 0.0"/>
+      <inertia ixx="0.000009" ixy="-0.000001" ixz="0.000000" iyy="0.000001" iyz="0.000000" izz="0.000010"/>
+    </inertial>
+  </link>
+  <link name="robotiq_85_right_knuckle_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robotiq_85_description/meshes/visual/robotiq_85_knuckle_link.dae"/>
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.018491"/>
+      <origin xyz="0.0 0.0 0.0"/>
+      <inertia ixx="0.000009" ixy="-0.000001" ixz="0.000000" iyy="0.000001" iyz="0.000000" izz="0.000010"/>
+    </inertial>
+  </link>
+
+  <joint name="robotiq_85_left_finger_joint" type="fixed">
+    <parent link="robotiq_85_left_knuckle_link"/>
+    <child link="robotiq_85_left_finger_link"/>
+    <origin rpy="0 0 0" xyz="-0.00408552455 -0.03148604435 0.0"/>
+  </joint>
+  <joint name="robotiq_85_right_finger_joint" type="fixed">
+    <parent link="robotiq_85_right_knuckle_link"/>
+    <child link="robotiq_85_right_finger_link"/>
+    <origin rpy="0 0 0" xyz="-0.00408552455 -0.03148604435 0.0"/>
+  </joint>
+  <link name="robotiq_85_left_finger_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robotiq_85_description/meshes/visual/robotiq_85_finger_link.dae"/>
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.027309"/>
+      <origin xyz="0.0 0.0 0.0"/>
+      <inertia ixx="0.000003" ixy="-0.000002" ixz="0.000000" iyy="0.000021" iyz="0.000000" izz="0.000020"/>
+    </inertial>
+  </link>
+  <link name="robotiq_85_right_finger_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robotiq_85_description/meshes/visual/robotiq_85_finger_link.dae"/>
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.027309"/>
+      <origin xyz="0.0 0.0 0.0"/>
+      <inertia ixx="0.000003" ixy="-0.000002" ixz="0.000000" iyy="0.000021" iyz="0.000000" izz="0.000020"/>
+    </inertial>
+  </link>
+
+  <joint name="robotiq_85_left_inner_knuckle_joint" type="continuous">
+    <parent link="robotiq_85_base_link"/>
+    <child link="robotiq_85_left_inner_knuckle_link"/>
+    <axis xyz="0 0 1"/>
+    <origin rpy="3.14159265359 0.0 0.0" xyz="0.06142 0.0127 0"/>
+    <limit effort="0.1" lower="-3.14" upper="3.14" velocity="100.0"/>
+    <mimic joint="robotiq_85_left_knuckle_joint" offset="0"/>
+  </joint>
+  <joint name="robotiq_85_right_inner_knuckle_joint" type="continuous">
+    <parent link="robotiq_85_base_link"/>
+    <child link="robotiq_85_right_inner_knuckle_link"/>
+    <axis xyz="0 0 1"/>
+    <origin rpy="0 0 0" xyz="0.06142 -0.0127 0"/>
+    <limit effort="0.1" lower="-3.14" upper="3.14" velocity="100.0"/>
+    <mimic joint="robotiq_85_left_knuckle_joint" offset="0"/>
+  </joint>
+  <link name="robotiq_85_left_inner_knuckle_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robotiq_85_description/meshes/visual/robotiq_85_inner_knuckle_link.dae"/>
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.029951"/>
+      <origin xyz="0.0 0.0 0.0"/>
+      <inertia ixx="0.000039" ixy="0.000000" ixz="0.000000" iyy="0.000005" iyz="0.000000" izz="0.000035"/>
+    </inertial>
+  </link>
+  <link name="robotiq_85_right_inner_knuckle_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robotiq_85_description/meshes/visual/robotiq_85_inner_knuckle_link.dae"/>
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.029951"/>
+      <origin xyz="0.0 0.0 0.0"/>
+      <inertia ixx="0.000039" ixy="0.000000" ixz="0.000000" iyy="0.000005" iyz="0.000000" izz="0.000035"/>
+    </inertial>
+  </link>
+
+  <joint name="robotiq_85_left_finger_tip_joint" type="continuous">
+    <parent link="robotiq_85_left_inner_knuckle_link"/>
+    <child link="robotiq_85_left_finger_tip_link"/>
+    <axis xyz="0 0 1"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.04303959807 -0.03759940821 0.0"/>
+    <limit effort="0.1" lower="-3.14" upper="3.14" velocity="100.0"/>
+    <mimic joint="robotiq_85_left_knuckle_joint" multiplier="-1"/>
+  </joint>
+  <joint name="robotiq_85_right_finger_tip_joint" type="continuous">
+    <parent link="robotiq_85_right_inner_knuckle_link"/>
+    <child link="robotiq_85_right_finger_tip_link"/>
+    <axis xyz="0 0 1"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.04303959807 -0.03759940821  0.0"/>
+    <limit effort="0.1" lower="-3.14" upper="3.14" velocity="100.0"/>
+    <mimic joint="robotiq_85_left_knuckle_joint" multiplier="-1"/>
+  </joint>
+  <link name="robotiq_85_left_finger_tip_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robotiq_85_description/meshes/visual/robotiq_85_finger_tip_link.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.03 0 0"/>
+      <geometry>
+        <box size="0.03 0.013 0.02"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.019555"/>
+      <origin xyz="0.0 0.0 0.0"/>
+      <inertia ixx="0.000002" ixy="0.000000" ixz="0.000000" iyy="0.000005" iyz="0.000000" izz="0.000006"/>
+    </inertial>
+  </link>
+  <link name="robotiq_85_right_finger_tip_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://robotiq_85_description/meshes/visual/robotiq_85_finger_tip_link.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.03 0 0"/>
+      <geometry>
+        <box size="0.03 0.013 0.02"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.019555"/>
+      <origin xyz="0.0 0.0 0.0"/>
+      <inertia ixx="0.000002" ixy="0.000000" ixz="0.000000" iyy="0.000005" iyz="0.000000" izz="0.000006"/>
+    </inertial>
+  </link>
 </robot>`
