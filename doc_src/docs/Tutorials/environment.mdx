@@ -7,6 +7,9 @@ import TabItem from "@theme/TabItem";
 Since Lively is still in beta, the design is subject to change and should not be considered final!
 :::
 
+The environmental shapes introduced at the beginning of the solver can be considered as static and cannot be modified. The Cylinder in this example
+is an example of static shape. For more information please see [`shape_update`](../API/Solver/Methods/solve#shape_update)
+
 <Tabs>
   <TabItem value="jsx" label="Live">
 
@@ -46,7 +49,20 @@ function InitializationExample(props) {
     },
   };
 
-  const initialEnvShapes = [];
+  const initialEnvShapes = [
+    {
+      type: "Cylinder", // The Cylinder here is an example of static environmental shape.
+      name: "pill",
+      frame: "world",
+      physical: true,
+      length: 0.3,
+      radius: 0.2,
+      localTransform: {
+        translation: [-0.8, 0.0, 0.1],
+        rotation: [1.0, 0.0, 0.0, 0.0],
+      }, // [x, y, z, w] ordering for quaternion
+    },
+  ];
 
   const [livelySolver, setLivelySolver] = useState(null);
   const [robot, setRobot] = useState("panda");
@@ -262,7 +278,8 @@ function InitializationExample(props) {
           { value: 0.0, delta: 0.0 },
           { value: 0.0, delta: 0.0 },
           { value: 0.0, delta: 0.0 }, // Rotational
-        ]
+        ],
+        initialEnvShapes // all the shapes passed in here will be considered as the static environmental shapes. This means that these shapes can not be modified through shapes_update in solve.
       );
       currentSolver = newSolver; //assign new solver to the current solver in use
       // Assign the solver to the value
@@ -284,7 +301,7 @@ function InitializationExample(props) {
           goal,
           {},
           time / 1000,
-          shapesUpdate
+          shapesUpdate // compare to static environmental shapes, these shapes can be modified.
         ); // Pass the new goal into solve function
         // Update the solver's current state
         setRobotState(newState);
