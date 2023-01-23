@@ -42,7 +42,7 @@ const addCube = [
     shape: {
       type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
       name: "box", // name can be arbitrary
-      frame: "world", // or 'world'
+      frame: "world", // frame name
       physical: true, // physical collision
       x: 0.25,
       y: 0.25,
@@ -60,18 +60,52 @@ currentSolver.solve({}, {}, time / 1000, addCube);
 ```
 
   </TabItem>
-
-  <TabItem value="py" label="Python">
-
-   </TabItem>
+<TabItem value="py" label="Python">
+  `
+</TabItem>
 
    <TabItem value= "rust" label="Rust">
 
+```rust
+  let iso = Isometry3::from_parts( //declaring transform consisted of translation and rotation
+      Translation3::new(
+          0.6, 0.05, 0.15
+      ),
+      UnitQuaternion::from_quaternion(Quaternion::new(
+          0.0, 0.0, 0.0, 1.0
+      )),
+  );
+  let add_box = Shape::Box(BoxShape::new(//can be 'Cylinder', 'Capsule', or 'Sphere'
+      "conveyorCollisionShapeBase".to_string(),// name can be arbitrary
+      "world".to_string(),// frame name
+      true, // physical collision
+      1.0,
+      1.1,
+      1.7,
+      iso, // transform
+  ));
+  let shape_update: Vec<ShapeUpdate> = vec![
+      // This is an Add ShapeUpdate functionality or type. This introduce a new Cube with "add_box_1" as the id to the environment.
+      ShapeUpdate::Add {
+          id: add_box_1.to_string(),// must be an unique id
+          shape: add_box.clone(),
+      }
+  ];
+  solver.solve(
+      goals.clone(),
+      weights.clone(),
+      0.0,
+      Some(shape_update.clone()), //shape update
+      None,
+    );
+
+```
 
    </TabItem>
 </Tabs>
 
 ### Example for moving an existing environmental shape
+
 :::note
 If a wrong `id` is used, the solver will not change the transformation of any shape.
 :::
@@ -105,6 +139,7 @@ currentSolver.solve({}, {}, time / 1000, moveCube);
 </Tabs>
 
 ### Example for deleting an existing environmental shape
+
 :::note
 If a wrong `id` is used, the solver will not delete any shape.
 :::
@@ -124,7 +159,6 @@ currentSolver.solve({}, {}, time / 1000, deleteCube);
 
    </TabItem>
    <TabItem value= "rust" label="Rust">
-
 
    </TabItem>
 </Tabs>
