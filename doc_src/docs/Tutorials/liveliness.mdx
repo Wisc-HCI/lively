@@ -43,7 +43,7 @@ function InitializationExample(props) {
             weight: 10,
             joints: false,
             origin: false,
-            links: true
+            links: true,
           },
           collision: {
             name: "MyCollisionDetection",
@@ -74,7 +74,7 @@ function InitializationExample(props) {
             name: "FingerJointControl",
             type: "JointMatch",
             weight: 25,
-            joint: "panda_finger_joint1"
+            joint: "panda_finger_joint1",
           },
         }
       );
@@ -165,6 +165,20 @@ async function start() {
         type: "SmoothnessMacro",
         weight: 5,
       },
+      positionLively: {
+        name: "MyLivelinessObjective",
+        type: "PositionLiveliness",
+        weight: 25,
+        link: "panda_hand",
+        frequency: 7,
+      },
+      orientationLively: {
+        name: "MyOrientationObjective",
+        type: "OrientationLiveliness",
+        weight: 15,
+        link: "panda_link2",
+        frequency: 7,
+      },
     }
   );
   // Run solve to get a solved state
@@ -189,7 +203,9 @@ solver = Solver(
   urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
   objectives={
       # An example objective (smoothness macro)
-      "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5)
+      "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5),
+      "positionLiveliness": PositionLiveliness(name="MyLivelinessObjective",link="panda_hand",frequency=7,weight=25),
+      "orientationLiveliness": OrientationLiveliness(name="myOrientationLiveliness",link="panda_link2",frequency=7,weight=15)
   }
 )
 
@@ -216,6 +232,8 @@ objectives.insert(
   "smoothness".into(),
   // An example objective (smoothness macro)
   Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective",5.0))
+  Objective::PositionLiveliness(PositionLiveliness::new("MyLivelinessObjective",25,"panda_hand",7))
+  Objective::OrientationLiveliness(OrientationLiveliness::new("MyOrientationlinessObjective",15,"panda_link2",7))
 );
 
 // Instantiate a new solver struct
