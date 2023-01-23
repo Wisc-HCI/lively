@@ -85,9 +85,9 @@ currentSolver.solve({}, {}, time / 1000, addCube);
       iso, // transform
   ));
   let shape_update: Vec<ShapeUpdate> = vec![
-      // This is an Add ShapeUpdate functionality or type. This introduce a new Cube with "add_box_1" as the id to the environment.
+      // This is an Add ShapeUpdate functionality or type. This introduce a new Cube with "box_1" as the id to the environment.
       ShapeUpdate::Add {
-          id: add_box_1.to_string(),// must be an unique id
+          id: box_1.to_string(),// must be an unique id
           shape: add_box.clone(),
       }
   ];
@@ -98,7 +98,6 @@ currentSolver.solve({}, {}, time / 1000, addCube);
       Some(shape_update.clone()), //shape update
       None,
     );
-
 ```
 
    </TabItem>
@@ -119,8 +118,8 @@ const moveCube = [
     // This is a Move ShapeUpdate functionality or type. This modifies the transform of the Cube introduced by Add in the environment
     id: "env-box", // must be identical to the id created in the shape is added
     transform: {// the shape will be moved to this transformation
-      translation: [0.6, 0.05, 0.15],
-      rotation: [0.0, 0.0, 0.0, 1.0],
+      translation: [1.6, 1.05, 1.15],
+      rotation: [0.0, 1.0, 0.0, 1.0],
     },
   },
 ];
@@ -135,6 +134,31 @@ currentSolver.solve({}, {}, time / 1000, moveCube);
    </TabItem>
    <TabItem value= "rust" label="Rust">
 
+```rust
+let move_iso = Isometry3::from_parts( //declaring transform consisted of translation and rotation
+    Translation3::new(
+        1.6, 1.05, 1.15
+    ),
+    UnitQuaternion::from_quaternion(Quaternion::new(
+        0.0, 1.0, 0.0, 1.0
+    )),
+);
+let shape_update: Vec<ShapeUpdate> = vec![
+    // This is an move ShapeUpdate functionality or type. This introduce a new Cube with "box_1" as the id to the environment.
+    ShapeUpdate::Move {
+        id: box_1.to_string(),// must be an unique id
+        pose: move_iso.to_string()
+    }
+];
+solver.solve(
+    goals.clone(),
+    weights.clone(),
+    0.0,
+    Some(shape_update.clone()), //shape update
+    None,
+  );
+```
+
    </TabItem>
 </Tabs>
 
@@ -148,7 +172,7 @@ If a wrong `id` is used, the solver will not delete any shape.
   <TabItem value="js" label="Javascript">
 
 ```js
-const deleteCube = [Delete: "env-box"];/ This is a delete ShapeUpdate functionality or type. This deletes the Cube introduced by Add in the environment.
+const deleteCube = [Delete: "env-box"];// This is a delete ShapeUpdate functionality or type. This deletes the Cube introduced by Add in the environment.
 const d = new Date();
 let time = d.getTime(); // Get the time in milliseconds
 currentSolver.solve({}, {}, time / 1000, deleteCube);
@@ -159,6 +183,21 @@ currentSolver.solve({}, {}, time / 1000, deleteCube);
 
    </TabItem>
    <TabItem value= "rust" label="Rust">
+
+```rust
+let shape_update: Vec<ShapeUpdate> = vec![
+ ShapeUpdate::Delete{// This is an delete ShapeUpdate functionality or type. This deletes the Cube with "box_1" as the id from the environment.
+   id : "box_1".to_string(),
+  }
+];
+solver.solve(
+    goals.clone(),
+    weights.clone(),
+    0.0,
+    Some(shape_update.clone()), //shape update
+    None,
+  );
+```
 
    </TabItem>
 </Tabs>
