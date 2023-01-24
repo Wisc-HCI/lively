@@ -15,14 +15,42 @@ use rand::rngs::ThreadRng;
 use std::collections::HashMap;
 #[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
-// #[cfg(feature = "jsbindings")]
+#[cfg(feature = "jsbindings")]
 use wasm_bindgen::prelude::*;
 #[cfg(feature = "jsbindings")]
 use serde_wasm_bindgen;
 
 #[repr(C)]
+#[cfg(not(feature = "jsbindings"))]
 #[cfg_attr(feature = "pybindings", pyclass)]
-#[cfg_attr(feature = "jsbindings", wasm_bindgen)]
+pub struct Solver {
+    pub robot_model: RobotModel,
+
+    // Optimization utility
+    pub vars: Vars,
+
+    pub panoc_cache: PANOCCache,
+
+    pub lower_bounds: Vec<f64>,
+
+    pub upper_bounds: Vec<f64>,
+
+    pub objective_set: ObjectiveSet,
+
+    // Optimization values
+    pub xopt: Vec<f64>,
+
+    // Optimization Settings
+    pub max_retries: usize,
+
+    pub max_iterations: usize
+
+}
+
+#[repr(C)]
+#[cfg(not(feature = "pybindings"))]
+#[cfg(feature = "jsbindings")]
+#[wasm_bindgen]
 pub struct Solver {
     #[wasm_bindgen(skip)]
     pub robot_model: RobotModel,
@@ -30,12 +58,16 @@ pub struct Solver {
     // Optimization utility
     #[wasm_bindgen(skip)]
     pub vars: Vars,
+
     #[wasm_bindgen(skip)]
     pub panoc_cache: PANOCCache,
+
     #[wasm_bindgen(skip)]
     pub lower_bounds: Vec<f64>,
+
     #[wasm_bindgen(skip)]
     pub upper_bounds: Vec<f64>,
+
     #[wasm_bindgen(skip)]
     pub objective_set: ObjectiveSet,
 
@@ -46,8 +78,10 @@ pub struct Solver {
     // Optimization Settings
     #[wasm_bindgen(skip)]
     pub max_retries: usize,
+
     #[wasm_bindgen(skip)]
     pub max_iterations: usize,
+
 }
 
 impl Solver {

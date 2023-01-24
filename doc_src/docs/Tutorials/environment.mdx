@@ -23,7 +23,7 @@ function InitializationExample(props) {
     physical: false,
     localTransform: {
       translation: [0.0, -0.7718020867888795, 0.8679405432017822],
-      rotation: [0.0, 0.0, 0.0, 1.0], // The initial rotation is pointing to where the gripper is pointing at.
+      rotation: [1.0, 0.0, 0.0, 0.0], // The initial rotation is pointing to where the gripper is pointing at.
     },
   };
 
@@ -35,7 +35,7 @@ function InitializationExample(props) {
     radius: 0.05,
     localTransform: {
       translation: [0.0, -0.7718020867888795, 0.8679405432017822], // The initial translation of the sphere is at where the gripper is supposed to be at.
-      rotation: [0.0, 0.0, 0.0, 1.0],
+      rotation: [1.0, 0.0, 0.0, 0.0],
     },
   };
 
@@ -45,7 +45,7 @@ function InitializationExample(props) {
       Translation: [0.0, -0.7718020867888795, 0.8679405432017822],
     },
     orientation: {
-      Rotation: [0.0, 0.0, 0.0, 1.0],
+      Rotation: [1.0, 0.0, 0.0, 0.0],
     },
   };
 
@@ -234,22 +234,22 @@ function InitializationExample(props) {
       await lively.init();
       // Instantiate a new solver
       const newSolver = new lively.Solver(
-        urdfs.panda, // The urdf of the robot
+        urdfs.ur3e, // The urdf of the robot
         {
           // some objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
           smoothness: {
             name: "MySmoothnessObjective",
             type: "SmoothnessMacro",
-            weight: 0,
-            joints: false,
+            weight: 0.4,
+            joints: true,
             origin: false,
-            links: true,
+            links: false,
           },
           collision: {
             // The main objective that allows the robot to avoid collision within the links, as well as with the environmental objects.
             name: "MyCollisionDetection",
             type: "CollisionAvoidance",
-            weight: 7,
+            weight: 2,
           },
           jointLimit: {
             name: "MyJointLimit",
@@ -260,15 +260,15 @@ function InitializationExample(props) {
             // The main objective that allows the pand hand to follow the position defined by the sphere transform control visual in the scene.
             name: "MyPositionMatchObjective",
             type: "PositionMatch",
-            link: "panda_hand",
+            link: "tool0",
             weight: 15,
           },
           orientation: {
             // The main objective that allows the pand hand to follow the orientation defined by the arrow transform control visual in the scene.
             name: "MyOrientationMatchObjective",
             type: "OrientationMatch",
-            link: "panda_hand",
-            weight: 15,
+            link: "tool0",
+            weight: 10,
           },
         },
         [
@@ -281,6 +281,7 @@ function InitializationExample(props) {
         ],
         initialEnvShapes // all the shapes passed in here will be considered as the static environmental shapes. This means that these shapes can not be modified through shapes_update in solve.
       );
+      newSolver.computeAverageDistanceTable();
       currentSolver = newSolver; //assign new solver to the current solver in use
       // Assign the solver to the value
       setLivelySolver(newSolver);
@@ -322,6 +323,7 @@ function InitializationExample(props) {
   return (
     <div>
       <RobotViewer
+      showCollision
         state={robotState}
         links={livelySolver ? livelySolver.links : []}
         shapes={envShapes}

@@ -19,7 +19,7 @@ export const RobotViewer = ({
       });
       if (showCollision) {
         link.collisions.forEach((collision, i) => {
-          items[`collision-${link.name}-${i}`] = shape2item(collision, false);
+          items[`collision-${link.name}-${i}`] = shape2item(collision, true);
         });
       }
     });
@@ -70,7 +70,7 @@ const SceneWrapper = memo(() => {
   );
 });
 
-function shape2item(shape, isCollision, ) {
+function shape2item(shape, isCollision ) {
   let item = {
     name: shape.name,
     frame: shape.frame,
@@ -89,7 +89,7 @@ function shape2item(shape, isCollision, ) {
       ? { r: 100, g: 0, b: 0, a: 1 }
       : { r: 100, g: 100, b: 100, a: 1 },
     scale: { x: 1, y: 1, z: 1 },
-    
+    wireframe: isCollision
   };
 
   switch (shape.type) {
