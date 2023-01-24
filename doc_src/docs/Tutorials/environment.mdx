@@ -15,16 +15,28 @@ is an example of static shape. For more information please see [`shape_update`](
 
 ```jsx live
 function InitializationExample(props) {
+  const initialGoalValues = {
+    // The initial translation of the sphere is at where the gripper is supposed to be at.
+    translation: [-0.35289461347986373,0.13931635901132902,0.38946876678037234],
+    // The initial rotation is pointing to where the gripper is pointing at.
+    rotation: [0.968947708849441,0.01867797756065113,-0.2465018112869008,0.005322377470646942],
+  };
+
+  const initialState = {
+    origin: {
+      translation: [0.0, 0.0, 0.0],
+      rotation: [0.0, 0.0, 0.0, 1.0],
+    },
+    joints: {"shoulder_pan_joint":3.054197606864953,"elbow_joint":-1.2683111703953787,"wrist_3_joint":-4.823194599105927,"robotiq_85_left_finger_tip_joint":-0.051922213806626316,"robotiq_85_right_inner_knuckle_joint":0.051922213806626316,"robotiq_85_right_finger_tip_joint":-0.051922213806626316,"shoulder_lift_joint":-1.748886737780085,"wrist_1_joint":5.08275093442812,"robotiq_85_left_inner_knuckle_joint":0.051922213806626316,"robotiq_85_right_knuckle_joint":0.051922213806626316,"robotiq_85_left_knuckle_joint":0.051922213806626316,"wrist_2_joint":-4.651476380979644},
+  };
+
   const arrowTransformControl = {
     // the visual reresentation for the rotation transform control.
     type: "Arrow",
     name: "arrow transform control",
     frame: "world",
     physical: false,
-    localTransform: {
-      translation: [0.0, -0.7718020867888795, 0.8679405432017822],
-      rotation: [1.0, 0.0, 0.0, 0.0], // The initial rotation is pointing to where the gripper is pointing at.
-    },
+    localTransform: initialGoalValues,
   };
 
   const sphereTransformControl = {
@@ -33,19 +45,16 @@ function InitializationExample(props) {
     name: "sphere transform control",
     frame: "world",
     radius: 0.05,
-    localTransform: {
-      translation: [0.0, -0.7718020867888795, 0.8679405432017822], // The initial translation of the sphere is at where the gripper is supposed to be at.
-      rotation: [1.0, 0.0, 0.0, 0.0],
-    },
+    localTransform: initialGoalValues,
   };
 
   const initialGoal = {
     // the inital goal to be fed into the the solver representing the the initial translation and rotation.
     position: {
-      Translation: [0.0, -0.7718020867888795, 0.8679405432017822],
+      Translation: initialGoalValues.translation,
     },
     orientation: {
-      Rotation: [1.0, 0.0, 0.0, 0.0],
+      Rotation: initialGoalValues.rotation,
     },
   };
 
@@ -240,10 +249,10 @@ function InitializationExample(props) {
           smoothness: {
             name: "MySmoothnessObjective",
             type: "SmoothnessMacro",
-            weight: 0.4,
+            weight: 15,
             joints: true,
             origin: false,
-            links: false,
+            links: true,
           },
           collision: {
             // The main objective that allows the robot to avoid collision within the links, as well as with the environmental objects.
@@ -279,7 +288,8 @@ function InitializationExample(props) {
           { value: 0.0, delta: 0.0 },
           { value: 0.0, delta: 0.0 }, // Rotational
         ],
-        initialEnvShapes // all the shapes passed in here will be considered as the static environmental shapes. This means that these shapes can not be modified through shapes_update in solve.
+        initialEnvShapes, // all the shapes passed in here will be considered as the static environmental shapes. This means that these shapes can not be modified through shapes_update in solve.
+        initialState
       );
       newSolver.computeAverageDistanceTable();
       currentSolver = newSolver; //assign new solver to the current solver in use
@@ -322,8 +332,9 @@ function InitializationExample(props) {
 
   return (
     <div>
+      {JSON.stringify(visualRobotState ? visualRobotState.joints : null)}
+      {JSON.stringify(goal)}
       <RobotViewer
-      showCollision
         state={robotState}
         links={livelySolver ? livelySolver.links : []}
         shapes={envShapes}
