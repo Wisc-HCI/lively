@@ -22,5 +22,4 @@ let mut solver = Solver::new(
     None, //max_retries
     None, //max_iterations
     None);//collision_settings
-
 }

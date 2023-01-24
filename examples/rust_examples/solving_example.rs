@@ -31,5 +31,4 @@ let mut solver = Solver::new(
   );
   // Log the initial state
   println!("{:?}",state);
-
 }
