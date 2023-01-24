@@ -1,144 +1,186 @@
-
-
 # Advanced Initialization
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-:::note 
+:::note
 Since Lively is still in beta, the design is subject to change and should not be considered final!
 :::
-
 
 <Tabs>
   <TabItem value="jsx" label="Live">
 
-  ```jsx live
+```jsx live
 function InitializationExample(props) {
-    const [livelySolver, setLivelySolver] = useState(null);
-    const [robotState, setRobotState] = useState(null)
-    
-    useEffect(()=>{
-        /* 
-        Given that we are showing this example in a declarative
-        react context, we need to use the useEffect hook to execute
-        imperative (sequential) code. That means that if you are
-        writing standard javascript, your code will look like the
-        contents of the "init" function.
-        * Note also that the "init" function is async. This is
-        because the lively library is built on web assembly (WASM),
-        which needs to be imported asynchronously.
-        */
-        const init = async ()=>{
-            // Initialize the lively package (WASM)
-            await lively.init();
-            // Instantiate a new solver
-            const newSolver = new lively.Solver(
-                urdfs.ur3e, // The urdf of the robot
-                {
-                    'smoothness': {  // An example objective (smoothness macro)
-                        name: 'MySmoothnessObjective',
-                        type: 'SmoothnessMacro',
-                        weight: 5
-                    }
-                },
-                [
-                    {value:0.0,delta:0.0},
-                    {value:0.25,delta:0.0},
-                    {value:0.5,delta:0.0},
-                    {value:0.0,delta:0.0},
-                    {value:0.0,delta:0.0},
-                    {value:0.0,delta:0.0},
-                ]
-            );
+  const [livelySolver, setLivelySolver] = useState(null);
+  const [robotState, setRobotState] = useState(null);
+  const initialObjectives = {
+    smoothness: {
+      // An example objective (smoothness macro)
+      name: "MySmoothnessObjective",
+      type: "SmoothnessMacro",
+      weight: 5,
+    },
+    collision: {
+      // An example objective (collision avoidance)
+      name: "MyCollisionDetection",
+      type: "CollisionAvoidance",
+      weight: 5,
+    },
+    jointLimit: {
+      // An example objective (joint limit)
+      name: "MyJointLimit",
+      type: "JointLimits",
+      weight: 5,
+    },
+  };
+  const initialEnvShapes = [
+    {
+      type: "Cylinder", // The Cylinder here is an example of static environmental shape. This shape will be not able to be moved or deleted.
+      name: "pill",
+      frame: "world",
+      physical: true,
+      length: 0.3,
+      radius: 0.2,
+      localTransform: {
+        translation: [-0.8, 0.0, 0.1],
+        rotation: [1.0, 0.0, 0.0, 0.0],
+      }, // [x, y, z, w] ordering for quaternion
+    },
+  ];
+  let collision_settings = {
+    dMax: 0.1,
+    r: 0.0,
+    aMax: 2.0,
+    timeBudget: 100,
+    timed: false,
+  }; // This is an example of customized collision_settings
 
-            // Run collision normalization
-            newSolver.computeAverageDistanceTable()
+  useEffect(() => {
+    /* 
+      Given that we are showing this example in a declarative
+      react context, we need to use the useEffect hook to execute
+      imperative (sequential) code. That means that if you are
+      writing standard javascript, your code will look like the
+      contents of the "init" function.
+      * Note also that the "init" function is async. This is
+      because the lively library is built on web assembly (WASM),
+      which needs to be imported asynchronously.
+      */
+    const init = async () => {
+      // Initialize the lively package (WASM)
+      await lively.init();
+      // Instantiate a new solver
+      const newSolver = new lively.Solver(
+        urdfs.ur3e, // The urdf of the robot
+        initialObjectives, // objectives
+        [
+          // root_bounds
+          { value: 0.0, delta: 0.0 },
+          { value: 0.25, delta: 0.0 },
+          { value: 0.5, delta: 0.0 },
+          { value: 0.0, delta: 0.0 },
+          { value: 0.0, delta: 0.0 },
+          { value: 0.0, delta: 0.0 },
+        ],
+        initialEnvShapes, // environmental shapes
+        null, // initial_state
+        null, // max_retries
+        null, // max_iterations
+        collision_settings // customized collision settings
+      );
 
-            // Assign the solver to the value
-            setLivelySolver(newSolver)
+      // Run collision normalization
+      newSolver.computeAverageDistanceTable();
 
-            // Run solve to get a solved state
-            const newState = newSolver.solve({},{},0.0);
-            // Update the solver's current state
-            setRobotState(newState)
-        }
-        init();
-        
-        return ()=>{
-            // Provide a function to clear previous values
-            setLivelySolver(null);
-            setRobotState(null);
-        }
-    },[])
+      // Assign the solver to the value
+      setLivelySolver(newSolver);
+
+      // Run solve to get a solved state
+      const newState = newSolver.solve({}, {}, 0.0);
+      // Update the solver's current state
+      setRobotState(newState);
+    };
+    init();
+
+    return () => {
+      // Provide a function to clear previous values
+      setLivelySolver(null);
+      setRobotState(null);
+    };
+  }, []);
 
   return (
     <div>
-       <RobotViewer state={robotState} links={livelySolver ? livelySolver.links : []}/>
-       <Tree label='state' data={robotState}/>
+      <RobotViewer
+        state={robotState}
+        links={livelySolver ? livelySolver.links : []}
+      />
+      <Tree label="state" data={robotState} />
     </div>
   );
 }
-  ```
+```
 
   </TabItem>
 
   <TabItem value="js" label="Javascript">
 
-  ```js
-import init, {Solver} from 'lively';
+```js
+import init, { Solver } from "lively";
 
 async function start() {
-    // Initialize the lively package (WASM)
-    await init();
-    // Instantiate a new solver
-    let solver = new Solver(
-        "<?xml version='1.0' ?><robot name='panda'>...</robot>", // Full urdf as a string
-        {
-            'smoothness': {  // An example objective (smoothness macro)
-                name: 'MySmoothnessObjective',
-                type: 'SmoothnessMacro',
-                weight: 5
-            }
-        }
-    );
-    // Run solve to get a solved state
-    let state = solver.solve({},{},0.0);
-    // Log the initial state
-    console.log(state)
+  // Initialize the lively package (WASM)
+  await init();
+  // Instantiate a new solver
+  let solver = new Solver(
+    "<?xml version='1.0' ?><robot name='panda'>...</robot>", // Full urdf as a string
+    {
+      smoothness: {
+        // An example objective (smoothness macro)
+        name: "MySmoothnessObjective",
+        type: "SmoothnessMacro",
+        weight: 5,
+      },
+    }
+  );
+  // Run solve to get a solved state
+  let state = solver.solve({}, {}, 0.0);
+  // Log the initial state
+  console.log(state);
 }
 
 // Could be executed from anywhere that supports async actions
 start();
-
-  ```
+```
 
   </TabItem>
 
   <TabItem value="py" label="Python">
 
-  ```py
+```py
 from lively import Solver, SmoothnessMacroObjective
 
 # Instantiate a new solver
 solver = Solver(
-    urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
-    objectives={
-        # An example objective (smoothness macro)
-        "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5)
-    }
+  urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
+  objectives={
+      # An example objective (smoothness macro)
+      "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5)
+  }
 )
 
 # Run solve to get a solved state
 state = solver.solve({},{},0.0)
 # Log the initial state
 print(state)
-  ```
+```
 
   </TabItem>
 
   <TabItem value="rs" label="Rust">
 
-  ```rust
+```rust
 use lively::lively::Solver;
 use lively::objectives::core::base::SmoothnessMacroObjective;
 use lively::objectives::objective::Objective;
@@ -148,33 +190,28 @@ use std::collections::HashMap;
 let mut objectives: HashMap<String,Objective> = HashMap::new();
 // Add a Smoothness Macro Objective
 objectives.insert(
-    "smoothness".into(),
-    // An example objective (smoothness macro)
-    Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective",5.0))
+  "smoothness".into(),
+  // An example objective (smoothness macro)
+  Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective",5.0))
 );
 
 // Instantiate a new solver struct
 let mut solver = Solver::new(
-    urdf:'<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
-    objectives
+  urdf:'<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
+  objectives
 );
 
 // Run solve to get a solved state
 let state = solver.solve(
-    HashMap::new(), 
-    HashMap::new(), 
-    0.0, 
-    None
+  HashMap::new(),
+  HashMap::new(),
+  0.0,
+  None
 );
 // Log the initial state
 println!("{:?}",state);
-  ```
+```
 
   </TabItem>
 
-</Tabs> 
-
-
-
-
-
+</Tabs>
