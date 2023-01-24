@@ -228,13 +228,13 @@ use std::collections::HashMap;
 // Create a map of objectives
 let mut objectives: HashMap<String,Objective> = HashMap::new();
 // Add a Smoothness Macro Objective
-objectives.insert(
-  "smoothness".into(),
-  // An example objective (smoothness macro)
-  Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective",5.0))
-  Objective::PositionLiveliness(PositionLiveliness::new("MyLivelinessObjective",25,"panda_hand",7))
-  Objective::OrientationLiveliness(OrientationLiveliness::new("MyOrientationlinessObjective",15,"panda_link2",7))
-);
+objectives.insert("smoothness".into(),Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective",5.0)));
+// Add a positionLiveliness Objective
+objectives.insert(("positionLiveliness".into(),Objective::PositionLiveliness(PositionLiveliness::new("MyLivelinessObjective",25,"panda_hand",7))));
+// Add a orientationLiveliness Objective
+objectives.insert(("orientationLiveliness.into()",Objective::OrientationLiveliness(OrientationLiveliness::new("MyOrientationlinessObjective",15,"panda_link2",7))));
+
+
 
 // Instantiate a new solver struct
 let mut solver = Solver::new(

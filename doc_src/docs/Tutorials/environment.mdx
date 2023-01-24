@@ -382,10 +382,40 @@ async function start() {
         type: "SmoothnessMacro",
         weight: 5,
       },
+      {},
+      {
+      type: "Cylinder", // The Cylinder here is an example of static environmental shape.
+      name: "pill",
+      frame: "world",
+      physical: true,
+      length: 0.3,
+      radius: 0.2,
+      localTransform: {
+        translation: [-0.8, 0.0, 0.1],
+        rotation: [1.0, 0.0, 0.0, 0.0],
+      }, // [x, y, z, w] ordering for quaternion
+    },
     }
   );
   // Run solve to get a solved state
-  let state = solver.solve({}, {}, 0.0);
+  const shape_update = {
+        Add: {
+          id: "env-box", // must be an unique id
+          shape: {
+            type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+            name: "box", // name can be arbitrary
+            frame: "world", // or 'world'
+            physical: true, // physical collision
+            x: 0.25,
+            y: 0.25,
+            z: 0.25, // dimension of the box
+            localTransform: {
+              translation: [0.6, 0.05, 0.15],
+              rotation: [0.0, 0.0, 0.0, 1.0],
+            },
+          },
+        };
+  let state = solver.solve({}, {}, time, shape_update);
   // Log the initial state
   console.log(state);
 }
@@ -407,11 +437,20 @@ solver = Solver(
   objectives={
       # An example objective (smoothness macro)
       "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5)
-  }
+  },
+  root_bounds=[
+      ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0), # Translational, (x, y, z)
+      ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0)  # Rotational, (r, p, y)
+  ],
+  shapes=[
+      BoxShape(name="Table",frame="world",physical=True,x=2,y=1,z=1.2,local_transform=Transform.isometry())
+  ],
 )
-
+add_box = BoxShape(name="box_1",frame="world",physical=True,x=1,y=1,z=1.2,local_transform=Transform.isometry())
+# This is an Add ShapeUpdate functionality or type. This introduce a new Cube with "box_1" as the id to the environment.
+shape_update = [pyShapeUpdate.Add(id = "box_1", shape = add_box)]
 # Run solve to get a solved state
-state = solver.solve({},{},0.0)
+state = solver.solve(goals = {}, weights = {}, time = 0.0, shape_update = shape_update);
 # Log the initial state
 print(state)
 ```
@@ -434,19 +473,71 @@ objectives.insert(
   // An example objective (smoothness macro)
   Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective",5.0))
 );
+let iso_1 = Isometry3::from_parts(
+        Translation3::new(
+            1.7497281999999998,
+            -0.24972819999999987,
+            0.050000000000000044,
+        ),
+        UnitQuaternion::from_quaternion(Quaternion::new(
+            0.0,
+            0.0,
+            -0.7069999677447771,
+            0.7072135784958345,
+        )),
+    );
+    let box_1 = Shape::Box(BoxShape::new(
+        "conveyorCollisionShapeBase".to_string(),
+        "world".to_string(),
+        true,
+        1.0,
+        1.1,
+        1.7,
+        iso_1,
+    ));
+let mut box_shapes_vec: Vec<Shape> = vec![box_1];
 
 // Instantiate a new solver struct
 let mut solver = Solver::new(
   urdf:'<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
-  objectives
+  objectives,
+  None,
+  box_shapes_vec.clone() // static environmental shapes, cannot be updated.
 );
+let iso_2 = Isometry3::from_parts(
+        Translation3::new(
+            -1.0,
+            0.5,
+            2.1,
+        ),
+        UnitQuaternion::from_quaternion(Quaternion::new(
+            0.0,
+            0.0,
+            -0.7069999677447771,
+            0.7072135784958345,
+        )),
+    );
+    let box_2 = Shape::Box(BoxShape::new(
+        "panda_shapebox".to_string(),
+        "world".to_string(),
+        true,
+        1.5,
+        1.7,
+        1.0,
+        iso_2,
+    ));
+let shape_update: Vec<ShapeUpdate> = vec![ShapeUpdate::Add {
+            id: 1.to_string(),
+            shape: box_2.clone(), //new "world"
+        }];
+
 
 // Run solve to get a solved state
 let state = solver.solve(
   HashMap::new(),
   HashMap::new(),
   0.0,
-  None
+  shape_update
 );
 // Log the initial state
 println!("{:?}",state);
