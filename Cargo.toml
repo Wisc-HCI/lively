@@ -13,7 +13,7 @@ readme = "README.md"
 
 [features]
 pybindings = ["pyo3","pyo3-log"]
-jsbindings = ["wasm-bindgen","console_error_panic_hook"]
+jsbindings = ["console_error_panic_hook"]
 profile-with-puffin = ["profiling/profile-with-puffin"]
 bevy = ["dep:bevy", "winit", "bevy_transform_gizmo", "bevy_mod_picking","smooth-bevy-cameras"]
 
@@ -45,12 +45,12 @@ pyo3-log = {version = "0.6.0", optional = true}
 
 # Javascript
 console_error_panic_hook = { version = "0.1.7", optional = true }
-wasm-bindgen = { version = "0.2.81", features = ["serde-serialize"], optional = true }
 getrandom = { version = "0.2", features = ["js"] }
 
 nalgebra = { version = "0.31", features = ["serde-serialize-no-std"]}
 array2d = "0.2.1"
 parry3d-f64 = "0.9.0"
+wasm-bindgen = { version = "0.2.81", features = ["serde-serialize"] }
 yaml-rust = "0.4"
 optimization_engine = { version = "0.7.7", features = ["wasm"] }
 ndarray = "0.13.0"

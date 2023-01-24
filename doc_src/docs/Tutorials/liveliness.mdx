@@ -202,9 +202,11 @@ from lively import Solver, SmoothnessMacroObjective
 solver = Solver(
   urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
   objectives={
-      # An example objective (smoothness macro)
+      # An example smoothness macro objective 
       "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5),
+      # An example position liveliness objective 
       "positionLiveliness": PositionLiveliness(name="MyLivelinessObjective",link="panda_hand",frequency=7,weight=25),
+      # An example orientation liveliness objective 
       "orientationLiveliness": OrientationLiveliness(name="myOrientationLiveliness",link="panda_link2",frequency=7,weight=15)
   }
 )
@@ -232,7 +234,7 @@ objectives.insert("smoothness".into(),Objective::SmoothnessMacro(SmoothnessMacro
 // Add a positionLiveliness Objective
 objectives.insert(("positionLiveliness".into(),Objective::PositionLiveliness(PositionLiveliness::new("MyLivelinessObjective",25,"panda_hand",7))));
 // Add a orientationLiveliness Objective
-objectives.insert(("orientationLiveliness.into()",Objective::OrientationLiveliness(OrientationLiveliness::new("MyOrientationlinessObjective",15,"panda_link2",7))));
+objectives.insert(("orientationLiveliness".into(),Objective::OrientationLiveliness(OrientationLiveliness::new("MyOrientationlinessObjective",15,"panda_link2",7))));
 
 
 
