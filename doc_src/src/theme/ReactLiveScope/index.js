@@ -5,6 +5,7 @@ import {panda, ur3e} from './urdfs';
 import { Tree } from './Tree';
 import { Button } from './Button';
 import { RobotViewer } from './RobotViewer';
+import { useLively } from './useLively';
 
 const ReactLiveScope = {
   React,
@@ -13,7 +14,8 @@ const ReactLiveScope = {
   urdfs: {panda,ur3e},
   Tree,
   Button,
-  RobotViewer
+  RobotViewer,
+  useLively
 };
 
 
