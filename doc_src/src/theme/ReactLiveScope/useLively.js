@@ -57,7 +57,11 @@ export const useLively = ({
       setLivelySolver(null);
     };
   }, [
-    urdf
+    urdf,
+    JSON.stringify(objectives),
+    JSON.stringify(rootBounds),
+    JSON.stringify(shapes),
+    JSON.stringify(initialState)
   ]); // Rerun this code if the props change
 
   return {

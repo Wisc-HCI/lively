@@ -19,14 +19,14 @@ function InitializationExample(props) {
 
   const { solver, solve } = useLively({
     urdf: urdfs[robot],
-    objectives: {
+    objectives:{
       smoothness: {
         // An example objective (smoothness macro)
         name: "MySmoothnessObjective",
         type: "SmoothnessMacro",
         weight: 5,
       },
-    },
+    }
   });
 
   useEffect(() => {
