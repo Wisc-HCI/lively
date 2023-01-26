@@ -87,3 +87,19 @@ crate-type = ["rlib", "cdylib"]
 [[example]]
 name = "basic_initialization_example"
 path = "examples/rust_examples/basic_initialization_example.rs"
+
+[[example]]
+name = "advanced_initialization_example"
+path = "examples/rust_examples/advanced_initialization_example.rs"
+
+[[example]]
+name = "solving_example"
+path = "examples/rust_examples/solving_example.rs"
+
+[[example]]
+name = "liveliness_example"
+path = "examples/rust_examples/liveliness_example.rs"
+
+[[example]]
+name = "environmental_modeling_example"
+path = "examples/rust_examples/environmental_modeling_example.rs"

@@ -1,7 +1,7 @@
 use lively::lively::Solver;
 use lively::objectives::core::base::SmoothnessMacroObjective;
-use lively::Objectives::core::base::CollisionAvoidanceObjective;
-use lively::Objectives::core::base::JointLimitsObjective;
+use lively::objectives::core::base::CollisionAvoidanceObjective;
+use lively::objectives::core::base::JointLimitsObjective;
 use lively::objectives::objective::Objective;
 use std::collections::HashMap;
 use std::fs;
