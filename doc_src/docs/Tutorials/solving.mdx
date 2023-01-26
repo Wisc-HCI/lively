@@ -23,72 +23,64 @@ function InitializationExample(props) {
       react context, we need to use the useEffect hook to execute
       imperative (sequential) code. That means that if you are
       writing standard javascript, your code will look like the
-      contents of the "init" function.
-      * Note also that the "init" function is async. This is
-      because the lively library is built on web assembly (WASM),
-      which needs to be imported asynchronously.
-      */
-    var currentSolver;
-    const init = async () => {
-      // Initialize the lively package (WASM)
-      await lively.init();
-      // Instantiate a new solver
-      const newSolver = new lively.Solver(
-        urdfs.panda, // The urdf of the robot
-        {
-          // some objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
-          smoothness: {
-            name: "MySmoothnessObjective",
-            type: "SmoothnessMacro",
-            weight: 5,
-            joints: true,
-            origin: false,
-            links: true,
-          },
-          position: {
-            name: "MyPositionMatchObjective",
-            type: "PositionMatch",
-            link: "panda_hand",
-            weight: 15,
-          },
-          orientation: {
-            name: "MyOrientationMatchObjective",
-            type: "OrientationMatch",
-            link: "panda_hand",
-            weight: 10,
-          },
-          collision: {
-            name: "MyCollisionDetection",
-            type: "CollisionAvoidance",
-            weight: 3,
-          },
-          jointLimit: {
-            name: "MyJointLimit",
-            type: "JointLimits",
-            weight: 5,
-          },
-          jointMatch: {
-            name: "MyJointMatchFinger1",
-            type: "JointMatch",
-            weight: 5,
-            joint: "panda_finger_joint1",
-          },
-        }
-      );
-      newSolver.computeAverageDistanceTable();
-      currentSolver = newSolver; //assign new solver to the current solver in use
-      // Assign the solver to the value
-      setLivelySolver(newSolver);
-      // Run solve to get a solved state
-      const newState = newSolver.solve({}, {}, 0.0);
-      // Update the solver's current state
-      setRobotState(newState);
-      setVisualRobotState(newState);
-    };
-    init();
+      contents of the function in this 'useEffect'.
+    */
+
+    // Instantiate a new solver
+    const newSolver = new lively.Solver(
+      urdfs.panda, // The urdf of the robot
+      {
+        // some objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
+        smoothness: {
+          name: "MySmoothnessObjective",
+          type: "SmoothnessMacro",
+          weight: 20,
+          joints: true,
+          origin: false,
+          links: true,
+        },
+        position: {
+          name: "MyPositionMatchObjective",
+          type: "PositionMatch",
+          link: "panda_hand",
+          weight: 15,
+        },
+        orientation: {
+          name: "MyOrientationMatchObjective",
+          type: "OrientationMatch",
+          link: "panda_hand",
+          weight: 10,
+        },
+        collision: {
+          name: "MyCollisionDetection",
+          type: "CollisionAvoidance",
+          weight: 3,
+        },
+        jointLimit: {
+          name: "MyJointLimit",
+          type: "JointLimits",
+          weight: 5,
+        },
+        jointMatch: {
+          name: "MyJointMatchFinger1",
+          type: "JointMatch",
+          weight: 5,
+          joint: "panda_finger_joint1",
+        },
+      }
+    );
+    newSolver.computeAverageDistanceTable();
+    
+    // Assign the solver to the value
+    setLivelySolver(newSolver);
+    // Run solve to get a solved state
+    const newState = newSolver.solve({}, {}, 0.0);
+    // Update the solver's current state
+    setRobotState(newState);
+    setVisualRobotState(newState);
 
     const updateSolver = () => {
-      if (currentSolver) {
+      if (newSolver) {
         const d = new Date();
         let time = d.getTime(); // Get the time used in Math.sin
         let goal = {
@@ -107,7 +99,7 @@ function InitializationExample(props) {
             Scalar: 0.02,
           },
         };
-        const newState = currentSolver.solve(goal, {}, time / 1000); // Pass the new goal into solve function
+        const newState = newSolver.solve(goal, {}, time / 1000); // Pass the new goal into solve function
         // Update the solver's current state
         setRobotState(newState);
       }

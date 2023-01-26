@@ -3,6 +3,7 @@ module.exports = function(context, options) {
       name: 'loaders',
       configureWebpack(config, isServer) {
         return {
+          experiments: {asyncWebAssembly: true},
           module: {
             rules: [
               {

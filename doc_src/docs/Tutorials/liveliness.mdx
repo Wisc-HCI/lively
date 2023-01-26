@@ -23,79 +23,79 @@ function InitializationExample(props) {
       react context, we need to use the useEffect hook to execute
       imperative (sequential) code. That means that if you are
       writing standard javascript, your code will look like the
-      contents of the "init" function.
-      * Note also that the "init" function is async. This is
-      because the lively library is built on web assembly (WASM),
-      which needs to be imported asynchronously.
-      */
-    var currentSolver;
-    const init = async () => {
-      // Initialize the lively package (WASM)
-      await lively.init();
-      // Instantiate a new solver
-      const newSolver = new lively.Solver(
-        urdfs.panda, // The urdf of the robot
-        {
-          // some lively objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
-          smoothness: {
-            name: "MySmoothnessObjective",
-            type: "SmoothnessMacro",
-            weight: 10,
-            joints: false,
-            origin: false,
-            links: true,
-          },
-          collision: {
-            name: "MyCollisionDetection",
-            type: "CollisionAvoidance",
-            weight: 5,
-          },
-          jointLimit: {
-            name: "MyJointLimit",
-            type: "JointLimits",
-            weight: 5,
-          },
-          //collision, jointlimit
-          positionLively: {
-            name: "MyLivelinessObjective",
-            type: "PositionLiveliness",
-            weight: 25,
-            link: "panda_hand",
-            frequency: 7,
-          },
-          orientationLively: {
-            name: "MyOrientationObjective",
-            type: "OrientationLiveliness",
-            weight: 15,
-            link: "panda_link2",
-            frequency: 7,
-          },
-          finger_joint_control: {
-            name: "FingerJointControl",
-            type: "JointMatch",
-            weight: 25,
-            joint: "panda_finger_joint1",
-          },
-        }
-      );
-      currentSolver = newSolver; //assign new solver to the current solver in use
-      // Assign the solver to the value
-      setLivelySolver(newSolver);
-      // Run solve to get a solved state
-      const newState = newSolver.solve({}, {}, 0.0);
-      // Update the solver's current state
-      setRobotState(newState);
-      setVisualRobotState(newState);
-    };
-    init();
+      contents of the function in this 'useEffect'.
+    */
+
+    const newSolver = new lively.Solver(
+      urdfs.panda, // The urdf of the robot
+      {
+        // some lively objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
+        smoothness: {
+          name: "MySmoothnessObjective",
+          type: "SmoothnessMacro",
+          weight: 20,
+          joints: true,
+          origin: false,
+          links: true,
+        },
+        collision: {
+          name: "MyCollisionDetection",
+          type: "CollisionAvoidance",
+          weight: 5,
+        },
+        jointLimit: {
+          name: "MyJointLimit",
+          type: "JointLimits",
+          weight: 5,
+        },
+        //collision, jointlimit
+        positionLively: {
+          name: "MyLivelinessObjective",
+          type: "PositionLiveliness",
+          weight: 15,
+          link: "panda_hand",
+          frequency: 7,
+        },
+        position: {
+          name: "MyPositionObjective",
+          type: "PositionMatch",
+          weight: 10,
+          link: 'panda_hand'
+        },
+        orientationLively: {
+          name: "MyOrientationObjective",
+          type: "OrientationLiveliness",
+          weight: 15,
+          link: "panda_link2",
+          frequency: 7,
+        },
+        finger_joint_control: {
+          name: "FingerJointControl",
+          type: "JointMatch",
+          weight: 25,
+          joint: "panda_finger_joint1",
+        },
+      }
+    );
+    // Normalize the collision bodies
+    newSolver.computeAverageDistanceTable();
+    // Assign the solver to the value
+    setLivelySolver(newSolver);
+    // Run solve to get a solved state
+    const newState = newSolver.solve({}, {}, 0.0);
+    // Update the solver's current state
+    setRobotState(newState);
+    setVisualRobotState(newState);
 
     const updateSolver = () => {
-      if (currentSolver) {
+      if (newSolver) {
         const d = new Date();
         let time = d.getTime(); // Get the time in milliseconds
         let goals = {
           // An goal example with defined Scalar and Size values for the lively objectives
-
+          position: {
+            Translation: [0.6,0,0.6]
+          },
           finger_joint_control: {
             Scalar: 0.02,
           },
@@ -109,7 +109,7 @@ function InitializationExample(props) {
             Scalar: 0.02,
           },
         };
-        const newState = currentSolver.solve(goals, {}, time / 1000); // Convert the time to second
+        const newState = newSolver.solve(goals, {}, time / 1000); // Convert the time to second
         // Update the solver's current state
 
         setRobotState(newState);
@@ -165,10 +165,16 @@ async function start() {
         type: "SmoothnessMacro",
         weight: 5,
       },
+      position: {
+        name: "MyPositionObjective",
+        type: "PositionMatch",
+        weight: 15,
+        link: 'panda_hand'
+      },
       positionLively: {
         name: "MyLivelinessObjective",
         type: "PositionLiveliness",
-        weight: 25,
+        weight: 15,
         link: "panda_hand",
         frequency: 7,
       },
@@ -202,11 +208,11 @@ from lively import Solver, SmoothnessMacroObjective
 solver = Solver(
   urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
   objectives={
-      # An example smoothness macro objective 
+      # An example smoothness macro objective
       "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5),
-      # An example position liveliness objective 
+      # An example position liveliness objective
       "positionLiveliness": PositionLiveliness(name="MyLivelinessObjective",link="panda_hand",frequency=7,weight=25),
-      # An example orientation liveliness objective 
+      # An example orientation liveliness objective
       "orientationLiveliness": OrientationLiveliness(name="myOrientationLiveliness",link="panda_link2",frequency=7,weight=15)
   }
 )

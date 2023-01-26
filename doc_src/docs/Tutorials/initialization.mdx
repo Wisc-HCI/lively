@@ -29,29 +29,24 @@ function InitializationExample(props) {
       because the lively library is built on web assembly (WASM),
       which needs to be imported asynchronously.
       */
-    const init = async () => {
-      // Initialize the lively package (WASM)
-      await lively.init();
-      // Instantiate a new solver
-      const newSolver = new lively.Solver(
-        urdfs[robot], // The urdf of the robot
-        {
-          smoothness: {
-            // An example objective (smoothness macro)
-            name: "MySmoothnessObjective",
-            type: "SmoothnessMacro",
-            weight: 5,
-          },
-        }
-      );
-      // Assign the solver to the value
-      setLivelySolver(newSolver);
-      // Run solve to get a solved state
-      const newState = newSolver.solve({}, {}, 0.0);
-      // Update the solver's current state
-      setRobotState(newState);
-    };
-    init();
+    // Instantiate a new solver
+    const newSolver = new lively.Solver(
+      urdfs[robot], // The urdf of the robot
+      {
+        smoothness: {
+          // An example objective (smoothness macro)
+          name: "MySmoothnessObjective",
+          type: "SmoothnessMacro",
+          weight: 5,
+        },
+      }
+    );
+    // Assign the solver to the value
+    setLivelySolver(newSolver);
+    // Run solve to get a solved state
+    const newState = newSolver.solve({}, {}, 0.0);
+    // Update the solver's current state
+    setRobotState(newState);
 
     return () => {
       // Provide a function to clear previous values
