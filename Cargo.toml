@@ -83,3 +83,7 @@ k = {git = "https://github.com/AndrewJSchoen/k"}
 name = "lively"
 path = "src/lib.rs"
 crate-type = ["rlib", "cdylib"]
+
+[[example]]
+name = "basic_initialization_example"
+path = "examples/rust_examples/basic_initialization_example.rs"
