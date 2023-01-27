@@ -245,7 +245,7 @@ function InitializationExample(props) {
       which needs to be imported asynchronously.
       */
     var currentSolver;
-    console.log(shapesUpdate);
+    
       // Instantiate a new solver
       const newSolver = new lively.Solver(
         urdfs.ur3e, // The urdf of the robot
@@ -301,16 +301,18 @@ function InitializationExample(props) {
       // Assign the solver to the value
       setLivelySolver(newSolver);
       // Run solve to get a solved state
-      const newState = newSolver.solve(goal, {}, 0.0);
+      const newState = newSolver.solve(goal, {}, 0.0,shapesUpdate);
       //console.log(newSolver.updates());
       // Update the solver's current state
       setRobotState(newState);
       setVisualRobotState(newState);
-  
+      setShapesUpdate(shapesUpdate);
+      
 
     const updateSolver = () => {
-      //console.log(shapesUpdate);
+      console.log("shapoesUpdate" , shapesUpdate);
       if (currentSolver) {
+        
         const d = new Date();
         let time = d.getTime(); // Get the time in milliseconds
         const newState = currentSolver.solve(
@@ -331,8 +333,8 @@ function InitializationExample(props) {
       setLivelySolver(null);
       setRobotState(null);
       setVisualRobotState(null);
-     // setShapesUpdate(null);
-      clearInterval(interval);
+      //setShapesUpdate(null);
+      //clearInterval(interval);
     };
   }, [robot,shapesUpdate]); // Rerun this code if the robot changes
 
