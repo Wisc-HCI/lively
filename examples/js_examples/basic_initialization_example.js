@@ -1,2 +1,2 @@
-import init, { Solver } from "lively";
+require("lively");
 
