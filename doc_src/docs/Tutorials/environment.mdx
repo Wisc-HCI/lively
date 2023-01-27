@@ -345,7 +345,7 @@ function InitializationExample(props) {
   useEffect(() => {
     const updateSolver = () => {
       if (livelySolver) {
-        console.log(shapesUpdate);
+        //console.log(shapesUpdate);
         const d = new Date();
         let time = d.getTime(); // Get the time in milliseconds
         const newState = livelySolver.solve(
@@ -362,7 +362,14 @@ function InitializationExample(props) {
       //console.log(goal);
     };
 
-    const interval = setInterval(updateSolver, 1000 / 30);
+    const interval = setInterval(updateSolver, 1000 / 60);
+
+    return (()=>{
+      //setShapesUpdate(null);
+      setRobotState(null);
+      setVisualRobotState(null);
+      clearInterval(interval);
+    })
   }, [livelySolver,shapesUpdate,goal]); // Update the solver 30fps},[robot])
 
   return (
