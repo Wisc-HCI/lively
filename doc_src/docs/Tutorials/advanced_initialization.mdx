@@ -1,7 +1,7 @@
 # Advanced Initialization
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
 :::note
 Since Lively is still in beta, the design is subject to change and should not be considered final!
@@ -9,11 +9,11 @@ Since Lively is still in beta, the design is subject to change and should not be
 
 We have also created examples in Javascript, Python, and Rust for Advanced Initialization. You can find the file by clicking the links in the table down below.
 
-|Language|Path|Command to run the example|
-|---|---|---|
-|Rust|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/rust_examples/advanced_initialization_example.rs)|cargo run --package lively --example advanced_initialization_example|
-|||
-|||
+| Language | Path                                                                                                             | Command to run the example                                           |
+| -------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Rust     | [link](https://github.com/Wisc-HCI/lively/blob/master/examples/rust_examples/advanced_initialization_example.rs) | cargo run --package lively --example advanced_initialization_example |
+|          |                                                                                                                  |
+|          |                                                                                                                  |
 
 <Tabs>
   <TabItem value="jsx" label="Live">
@@ -22,6 +22,17 @@ We have also created examples in Javascript, Python, and Rust for Advanced Initi
 function InitializationExample(props) {
   const [livelySolver, setLivelySolver] = useState(null);
   const [robotState, setRobotState] = useState(null);
+  const [robot, setRobot] = useState("panda");
+
+  const initialRootBounds = [ // An exmaple of root bounds
+    { value: 0.0, delta: 0.0 },
+    { value: 0.25, delta: 0.0 },
+    { value: 0.5, delta: 0.0 },
+    { value: 0.0, delta: 0.0 },
+    { value: 0.0, delta: 0.0 },
+    { value: 0.0, delta: 0.0 },
+  ];
+
   const initialObjectives = {
     smoothness: {
       // An example objective (smoothness macro)
@@ -56,13 +67,14 @@ function InitializationExample(props) {
       }, // [x, y, z, w] ordering for quaternion
     },
   ];
-  let collision_settings = {
+
+  let collision_settings = {// This is an example of customized collision_settings
     dMax: 0.1,
     r: 0.0,
     aMax: 2.0,
     timeBudget: 100,
     timed: false,
-  }; // This is an example of customized collision_settings
+  }; 
 
   useEffect(() => {
     /* 
@@ -75,51 +87,45 @@ function InitializationExample(props) {
       because the lively library is built on web assembly (WASM),
       which needs to be imported asynchronously.
       */
-    const init = async () => {
-      // Initialize the lively package (WASM)
-      await lively.init();
-      // Instantiate a new solver
-      const newSolver = new lively.Solver(
-        urdfs.ur3e, // The urdf of the robot
-        initialObjectives, // objectives
-        [
-          // root_bounds
-          { value: 0.0, delta: 0.0 },
-          { value: 0.25, delta: 0.0 },
-          { value: 0.5, delta: 0.0 },
-          { value: 0.0, delta: 0.0 },
-          { value: 0.0, delta: 0.0 },
-          { value: 0.0, delta: 0.0 },
-        ],
-        initialEnvShapes, // environmental shapes
-        null, // initial_state
-        null, // max_retries
-        null, // max_iterations
-        collision_settings // customized collision settings
-      );
 
-      // Run collision normalization
-      newSolver.computeAverageDistanceTable();
+    // Instantiate a new solver
+    const newSolver = new lively.Solver(
+      urdfs[robot], // The urdf of the robot
+      initialObjectives, // objectives
+      initialRootBounds,
+      initialEnvShapes, // environmental shapes
+      null, // initial_state
+      null, // max_retries
+      null, // max_iterations
+      collision_settings // customized collision settings
+    );
 
-      // Assign the solver to the value
-      setLivelySolver(newSolver);
+    // Run collision normalization
+    newSolver.computeAverageDistanceTable();
 
-      // Run solve to get a solved state
-      const newState = newSolver.solve({}, {}, 0.0);
-      // Update the solver's current state
-      setRobotState(newState);
-    };
-    init();
+    // Assign the solver to the value
+    setLivelySolver(newSolver);
+
+    // Run solve to get a solved state
+    const newState = newSolver.solve({}, {}, 0.0);
+    // Update the solver's current state
+    setRobotState(newState);
 
     return () => {
       // Provide a function to clear previous values
       setLivelySolver(null);
       setRobotState(null);
     };
-  }, []);
+  }, [robot]);
 
   return (
     <div>
+      <Button active={robot === "panda"} onClick={() => setRobot("panda")}>
+        Panda
+      </Button>
+      <Button active={robot === "ur3e"} onClick={() => setRobot("ur3e")}>
+        UR3e
+      </Button>
       <RobotViewer
         state={robotState}
         links={livelySolver ? livelySolver.links : []}

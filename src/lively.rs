@@ -19,6 +19,11 @@ use pyo3::prelude::*;
 use wasm_bindgen::prelude::*;
 #[cfg(feature = "jsbindings")]
 use serde_wasm_bindgen;
+//
+use nalgebra::geometry::Translation3;
+use nalgebra::Isometry3;
+use nalgebra::Quaternion;
+use nalgebra::UnitQuaternion;
 
 #[repr(C)]
 #[cfg(not(feature = "jsbindings"))]
@@ -427,6 +432,45 @@ impl Solver {
         let state:State = self.solve(inner_goals,inner_weights,time,inner_updates);
         return serialize(&state);
     }
+
+    #[wasm_bindgen(js_name = updates)]
+    pub fn updates(
+        &mut self,
+    ) -> Result<JsValue,serde_wasm_bindgen::Error> {
+        let iso_1 = Isometry3::from_parts(
+            // defining transform from translation and rotation
+            Translation3::new(
+                1.7497281999999998,
+                -0.24972819999999987,
+                0.050000000000000044,
+            ),
+            UnitQuaternion::from_quaternion(Quaternion::new(
+                0.0,
+                0.0,
+                -0.7069999677447771,
+                0.7072135784958345,
+            )),
+        );
+        //box_1 here is a static environmental shape. This means that box_1 can not be moved or deleted.
+        let box_1 = Shape::Box(BoxShape::new(
+            //can be 'CylinderShape', 'CapsuleShape', or 'SphereShape'
+            "conveyorCollisionShapeBase".to_string(), // name can be arbitrary
+            "world".to_string(),                      // frame name
+            true,                                     // physical collision
+            1.0,                                      // dimension of the box
+            1.1,
+            1.7,
+            iso_1, // local_transform of the box
+        ));
+        
+        let add_shape_update = AddShape { 
+            id: "addBox".to_string(), //The id must be unique
+            shape: box_1.clone(),
+        };
+        let shape_update: Vec<ShapeUpdate> = vec![ShapeUpdate::Add(add_shape_update)]; // shape_update
+        return serialize(&shape_update);
+    }
+
 
     #[wasm_bindgen(js_name = computeAverageDistanceTable)]
     pub fn compute_average_distance_table_javascript(&mut self) -> Result<JsValue,serde_wasm_bindgen::Error> {
