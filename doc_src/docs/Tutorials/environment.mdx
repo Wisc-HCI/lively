@@ -263,7 +263,7 @@ function InitializationExample(props) {
             // The main objective that allows the robot to avoid collision within the links, as well as with the environmental objects.
             name: "MyCollisionDetection",
             type: "CollisionAvoidance",
-            weight: 2,
+            weight: 3,
           },
           jointLimit: {
             name: "MyJointLimit",
@@ -310,7 +310,7 @@ function InitializationExample(props) {
       
 
     const updateSolver = () => {
-      console.log("shapoesUpdate" , shapesUpdate);
+      
       if (currentSolver) {
         
         const d = new Date();
@@ -437,7 +437,7 @@ async function start() {
         };
   let state = solver.solve({}, {}, time, shape_update);
   // Log the initial state
-  console.log(state);
+  //console.log(state);
 }
 
 // Could be executed from anywhere that supports async actions
