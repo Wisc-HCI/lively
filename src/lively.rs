@@ -19,10 +19,13 @@ use pyo3::prelude::*;
 use wasm_bindgen::prelude::*;
 #[cfg(feature = "jsbindings")]
 use serde_wasm_bindgen;
-//
+#[cfg(feature = "jsbindings")]
 use nalgebra::geometry::Translation3;
+#[cfg(feature = "jsbindings")]
 use nalgebra::Isometry3;
+#[cfg(feature = "jsbindings")]
 use nalgebra::Quaternion;
+#[cfg(feature = "jsbindings")]
 use nalgebra::UnitQuaternion;
 
 #[repr(C)]

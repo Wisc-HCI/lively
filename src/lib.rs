@@ -12,7 +12,6 @@ extern crate console_error_panic_hook;
 pub mod utils;
 pub mod objectives;
 pub mod lively;
-pub mod wrappers;
 // pub mod manager;
 
 #[cfg(feature = "pybindings")]
@@ -56,6 +55,9 @@ fn lively(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Ellipse>()?;
     m.add_class::<RotationRange>()?;
     m.add_class::<ScalarRange>()?;
+    // ShapeUpdates
+    m.add_class::<AddShape>()?;
+    m.add_class::<MoveShape>()?;
     // Objectives
     m.add_class::<objectives::core::base::JointLimitsObjective>()?;
     m.add_class::<objectives::core::base::CollisionAvoidanceObjective>()?;

@@ -1,4 +1,6 @@
 use crate::utils::shapes::{BoxShape, CapsuleShape, CylinderShape, MeshShape, Shape, SphereShape};
+#[cfg(feature = "bevy")]
+use bevy::sprite::collide_aabb::Collision;
 use k::urdf::isometry_from;
 use nalgebra::geometry::{Point3, Isometry3, UnitQuaternion};
 use nalgebra::Vector3;
@@ -351,6 +353,15 @@ impl CollisionSettingInfo {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl CollisionSettingInfo {
+    #[new]
+    pub fn from_python(d_max: f64, r: f64, a_max: f64, time_budget: u64, timed: bool) -> Self {
+        CollisionSettingInfo::new(d_max, r, a_max, time_budget, timed)
+    }
+}
+
 impl Default for CollisionSettingInfo {
     fn default() -> Self {
         Self {
@@ -371,12 +382,40 @@ pub struct AddShape {
     pub shape: Shape
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl AddShape {
+    #[new]
+    pub fn from_python(id: String, shape: Shape) -> Self {
+        AddShape{id,shape}
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[cfg_attr(feature = "pybindings", pyclass)]
 pub struct MoveShape {
     pub id: String,
     pub transform: Isometry3<f64>
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl MoveShape {
+    #[new]
+    pub fn from_python(id: String, translation: PyTranslation, rotation: PyRotation) -> Self {
+        MoveShape{id, transform:Isometry3::from_parts(translation.value, rotation.value)}
+    }
+
+    #[getter]
+    pub fn get_translation(&self) -> PyResult<PyTranslation> {
+        Ok(PyTranslation{value:self.transform.translation})
+    }
+
+    #[getter]
+    pub fn get_rotation(&self) -> PyResult<PyRotation> {
+        Ok(PyRotation{value:self.transform.rotation})
+    }
 }
 
 #[repr(C)]
