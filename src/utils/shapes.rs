@@ -10,7 +10,8 @@ use nalgebra::Vector3;
 use serde::{Deserialize, Serialize};
 #[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
-
+#[cfg(feature = "pybindings")]
+use crate::utils::pyutils::*;
 
 
 #[repr(C)]
@@ -50,6 +51,25 @@ impl BoxShape {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl BoxShape {
+    #[new]
+    pub fn from_python(name:String, frame:String, physical:bool,x:f64,y:f64,z:f64,translation:PyTranslation,rotation:PyRotation) -> Self {
+        Self::new(name,frame,physical,x,y,z,Isometry3::from_parts(translation.value, rotation.value))
+    }
+
+    #[getter]
+    pub fn get_translation(&self) -> PyResult<PyTranslation> {
+        Ok(PyTranslation{value:self.local_transform.translation})
+    }
+
+    #[getter]
+    pub fn get_rotation(&self) -> PyResult<PyRotation> {
+        Ok(PyRotation{value:self.local_transform.rotation})
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -82,6 +102,15 @@ impl CylinderShape {
             radius,
             local_transform,
         }
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl CylinderShape {
+    #[new]
+    pub fn from_python(name:String, frame:String, physical:bool,length:f64,radius:f64,translation:PyTranslation,rotation:PyRotation) -> Self {
+        Self::new(name,frame,physical,length,radius,Isometry3::from_parts(translation.value, rotation.value))
     }
 }
 
@@ -120,6 +149,25 @@ impl CapsuleShape {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl CapsuleShape {
+    #[new]
+    pub fn from_python(name:String, frame:String, physical:bool,length:f64,radius:f64,translation:PyTranslation,rotation:PyRotation) -> Self {
+        Self::new(name,frame,physical,length,radius,Isometry3::from_parts(translation.value, rotation.value))
+    }
+
+    #[getter]
+    pub fn get_translation(&self) -> PyResult<PyTranslation> {
+        Ok(PyTranslation{value:self.local_transform.translation})
+    }
+
+    #[getter]
+    pub fn get_rotation(&self) -> PyResult<PyRotation> {
+        Ok(PyRotation{value:self.local_transform.rotation})
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -148,6 +196,15 @@ impl SphereShape {
             radius,
             local_transform,
         }
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl SphereShape {
+    #[new]
+    pub fn from_python(name:String, frame:String, physical:bool,radius:f64,translation:PyTranslation,rotation:PyRotation) -> Self {
+        Self::new(name,frame,physical,radius,Isometry3::from_parts(translation.value, rotation.value))
     }
 }
 
@@ -191,6 +248,25 @@ impl MeshShape {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl MeshShape {
+    #[new]
+    pub fn from_python(name:String, frame:String, physical:bool,filename:String,x:f64,y:f64,z:f64,translation:PyTranslation,rotation:PyRotation) -> Self {
+        Self::new(name,frame,physical,filename,x,y,z,Isometry3::from_parts(translation.value, rotation.value))
+    }
+
+    #[getter]
+    pub fn get_translation(&self) -> PyResult<PyTranslation> {
+        Ok(PyTranslation{value:self.local_transform.translation})
+    }
+
+    #[getter]
+    pub fn get_rotation(&self) -> PyResult<PyRotation> {
+        Ok(PyRotation{value:self.local_transform.rotation})
+    }
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -219,6 +295,25 @@ impl HullShape {
             points,
             local_transform,
         }
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl HullShape {
+    #[new]
+    pub fn from_python(name:String, frame:String, physical:bool,points:Vec<PyTranslation>,translation:PyTranslation,rotation:PyRotation) -> Self {
+        Self::new(name,frame,physical,points.iter().map(|trans| trans.value.vector).collect(),Isometry3::from_parts(translation.value, rotation.value))
+    }
+
+    #[getter]
+    pub fn get_translation(&self) -> PyResult<PyTranslation> {
+        Ok(PyTranslation{value:self.local_transform.translation})
+    }
+
+    #[getter]
+    pub fn get_rotation(&self) -> PyResult<PyRotation> {
+        Ok(PyRotation{value:self.local_transform.rotation})
     }
 }
 
