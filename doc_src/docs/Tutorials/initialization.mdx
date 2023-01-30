@@ -12,8 +12,8 @@ We have also created examples in Javascript, Python, and Rust for Basic Initiali
 |Language|Path|Command to run the example|
 |---|---|---|
 |Rust|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/rust_examples/basic_initialization_example.rs)|`cargo run --package lively --example basic_initialization_example`|
-|||
-|||
+|Python|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/python_examples/basic_initialization_example.ipynb)|run in the Jupyter Notebook|
+|Javascript|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/js_examples/basic_initialization_example.js)||
 
 <Tabs>
   <TabItem value="jsx" label="Live">
@@ -117,18 +117,24 @@ start();
 
 ```py
 from lively import Solver, SmoothnessMacroObjective
+from lxml import etree
 
+# Read the xml file into a string
+xml_file = '../../tests/basic.xml'
+tree = etree.parse(xml_file)
+xml_string = etree.tostring(tree).decode()
+#print(xml_string)
 # Instantiate a new solver
 solver = Solver(
-  urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
+  urdf=xml_string, # Full urdf as a string
   objectives={
       # An example objective (smoothness macro)
-      "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5)
+      "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5,joints=True,origin=False,links=True)
   }
 )
 
 # Run solve to get a solved state
-state = solver.solve({},{},0.0)
+state = solver.solve(goals = {}, weights = {}, time=0.0)
 # Log the initial state
 print(state)
 ```
