@@ -389,6 +389,16 @@ impl AddShape {
     pub fn from_python(id: String, shape: Shape) -> Self {
         AddShape{id,shape}
     }
+
+    #[getter]
+    pub fn get_id(&self) -> PyResult<String> {
+        Ok(self.id.clone())
+    }
+
+    #[getter]
+    pub fn get_shape(&self) -> PyResult<Shape> {
+        Ok(self.shape.clone())
+    }
 }
 
 #[repr(C)]
@@ -405,6 +415,32 @@ impl MoveShape {
     #[new]
     pub fn from_python(id: String, translation: PyTranslation, rotation: PyRotation) -> Self {
         MoveShape{id, transform:Isometry3::from_parts(translation.value, rotation.value)}
+    }
+
+    fn as_str(&self) -> String {
+        format!("MoveShape {{id: {:?}, transform: {{translation: {{x:{:?}, y:{:?}, z:{:?}}}, rotation: {{w:{:?}, x:{:?}, y:{:?}, z:{:?}}}}}}}",
+            self.id,
+            self.transform.translation.x,
+            self.transform.translation.y,
+            self.transform.translation.z,
+            self.transform.rotation.coords[3],
+            self.transform.rotation.coords[0],
+            self.transform.rotation.coords[1],
+            self.transform.rotation.coords[2]
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    #[getter]
+    pub fn get_id(&self) -> PyResult<String> {
+        Ok(self.id.clone())
     }
 
     #[getter]
