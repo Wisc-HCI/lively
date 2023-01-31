@@ -1,15 +1,15 @@
+#[cfg(feature = "pybindings")]
+use crate::utils::pyutils::*;
 use crate::utils::shapes::{BoxShape, CapsuleShape, CylinderShape, MeshShape, Shape, SphereShape};
 #[cfg(feature = "bevy")]
 use bevy::sprite::collide_aabb::Collision;
 use k::urdf::isometry_from;
-use nalgebra::geometry::{Point3, Isometry3, UnitQuaternion};
+use nalgebra::geometry::{Isometry3, Point3, UnitQuaternion};
 use nalgebra::Vector3;
-use serde::{Deserialize, Serialize};
-use urdf_rs::{Geometry, Link, Mimic};
 #[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
-#[cfg(feature = "pybindings")]
-use crate::utils::pyutils::*;
+use serde::{Deserialize, Serialize};
+use urdf_rs::{Geometry, Link, Mimic};
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -24,6 +24,76 @@ pub struct TransformInfo {
 impl TransformInfo {
     pub fn new(world: Isometry3<f64>, local: Isometry3<f64>) -> Self {
         Self { world, local }
+    }
+}
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl TransformInfo {
+    fn as_str(&self) -> String {
+        format!("TransformInfo: world:{{translation: {{x:{:?}, y:{:?}, z:{:?}}}, rotation: {{w:{:?}, x:{:?}, y:{:?}, z:{:?}}}}}, local: {{translation: {{x:{:?}, y:{:?}, z:{:?}}}, rotation: {{w:{:?}, x:{:?}, y:{:?}, z:{:?}}}}}",
+        self.world.translation.x,
+        self.world.translation.y,
+        self.world.translation.z,
+        self.world.rotation.coords[3],
+        self.world.rotation.coords[0],
+        self.world.rotation.coords[1],
+        self.world.rotation.coords[2],
+        self.local.translation.x,
+        self.local.translation.y,
+        self.local.translation.z,
+        self.local.rotation.coords[3],
+        self.local.rotation.coords[0],
+        self.local.rotation.coords[1],
+        self.local.rotation.coords[2]
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    #[getter]
+    fn get_world_transform(&self, py: Python) -> PyResult<PyTransform> {
+        Ok(PyTransform {
+            translation: Py::new(
+                py,
+                PyTranslation {
+                    value: self.world.translation,
+                },
+            )
+            .unwrap(),
+            rotation: Py::new(
+                py,
+                PyRotation {
+                    value: self.world.rotation,
+                },
+            )
+            .unwrap(),
+        })
+    }
+
+    #[getter]
+    pub fn get_local_transform(&self, py: Python) -> PyResult<PyTransform> {
+        Ok(PyTransform {
+            translation: Py::new(
+                py,
+                PyTranslation {
+                    value: self.local.translation,
+                },
+            )
+            .unwrap(),
+            rotation: Py::new(
+                py,
+                PyRotation {
+                    value: self.local.rotation,
+                },
+            )
+            .unwrap(),
+        })
     }
 }
 
@@ -95,7 +165,7 @@ impl JointInfo {
         axis: [f64; 3],
         mimic: Option<MimicInfo>,
         parent_link: String,
-        child_link: String
+        child_link: String,
     ) -> Self {
         Self {
             name,
@@ -107,7 +177,7 @@ impl JointInfo {
             mimic,
             idx: 0,
             parent_link,
-            child_link
+            child_link,
         }
     }
 }
@@ -304,7 +374,7 @@ pub struct ProximityInfo {
     pub points: Option<(Point3<f64>, Point3<f64>)>,
     pub physical: bool,
     pub loss: f64,
-    pub average_distance: Option<f64>
+    pub average_distance: Option<f64>,
 }
 
 impl ProximityInfo {
@@ -315,7 +385,7 @@ impl ProximityInfo {
         points: Option<(Point3<f64>, Point3<f64>)>,
         physical: bool,
         loss: f64,
-        average_distance: Option<f64>
+        average_distance: Option<f64>,
     ) -> Self {
         Self {
             shape1,
@@ -324,7 +394,7 @@ impl ProximityInfo {
             points,
             physical,
             loss,
-            average_distance
+            average_distance,
         }
     }
 }
@@ -379,7 +449,7 @@ impl Default for CollisionSettingInfo {
 #[cfg_attr(feature = "pybindings", pyclass)]
 pub struct AddShape {
     pub id: String,
-    pub shape: Shape
+    pub shape: Shape,
 }
 
 #[cfg(feature = "pybindings")]
@@ -387,7 +457,7 @@ pub struct AddShape {
 impl AddShape {
     #[new]
     pub fn from_python(id: String, shape: Shape) -> Self {
-        AddShape{id,shape}
+        AddShape { id, shape }
     }
 
     #[getter]
@@ -406,7 +476,7 @@ impl AddShape {
 #[cfg_attr(feature = "pybindings", pyclass)]
 pub struct MoveShape {
     pub id: String,
-    pub transform: Isometry3<f64>
+    pub transform: Isometry3<f64>,
 }
 
 #[cfg(feature = "pybindings")]
@@ -414,7 +484,10 @@ pub struct MoveShape {
 impl MoveShape {
     #[new]
     pub fn from_python(id: String, translation: PyTranslation, rotation: PyRotation) -> Self {
-        MoveShape{id, transform:Isometry3::from_parts(translation.value, rotation.value)}
+        MoveShape {
+            id,
+            transform: Isometry3::from_parts(translation.value, rotation.value),
+        }
     }
 
     fn as_str(&self) -> String {
@@ -445,12 +518,16 @@ impl MoveShape {
 
     #[getter]
     pub fn get_translation(&self) -> PyResult<PyTranslation> {
-        Ok(PyTranslation{value:self.transform.translation})
+        Ok(PyTranslation {
+            value: self.transform.translation,
+        })
     }
 
     #[getter]
     pub fn get_rotation(&self) -> PyResult<PyRotation> {
-        Ok(PyRotation{value:self.transform.rotation})
+        Ok(PyRotation {
+            value: self.transform.rotation,
+        })
     }
 }
 
@@ -469,22 +546,22 @@ impl IntoPy<PyObject> for ShapeUpdate {
         match self {
             Self::Add(obj) => obj.into_py(py),
             Self::Move(obj) => obj.into_py(py),
-            Self::Delete(obj) => obj.into_py(py)
+            Self::Delete(obj) => obj.into_py(py),
         }
     }
 }
 
 #[repr(C)]
-#[derive(Serialize,Deserialize,Clone,Debug,Default,Copy)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Copy)]
 #[cfg_attr(feature = "pybindings", pyclass)]
 pub struct ScalarRange {
     pub value: f64,
-    pub delta: f64
+    pub delta: f64,
 }
 
 impl ScalarRange {
-    pub fn new(value:f64, delta:f64) -> Self {
-        Self {value,delta}
+    pub fn new(value: f64, delta: f64) -> Self {
+        Self { value, delta }
     }
 }
 
@@ -493,22 +570,21 @@ impl ScalarRange {
 impl ScalarRange {
     #[new]
     pub fn from_python(value: f64, delta: f64) -> Self {
-        Self::new(value,delta)
+        Self::new(value, delta)
     }
 }
 
-
 #[repr(C)]
-#[derive(Serialize,Deserialize,Clone,Debug,Default,Copy)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Copy)]
 #[cfg_attr(feature = "pybindings", pyclass)]
 pub struct RotationRange {
     pub rotation: UnitQuaternion<f64>,
-    pub delta: f64
+    pub delta: f64,
 }
 
 impl RotationRange {
-    pub fn new(rotation:UnitQuaternion<f64>, delta:f64) -> Self {
-        Self {rotation,delta}
+    pub fn new(rotation: UnitQuaternion<f64>, delta: f64) -> Self {
+        Self { rotation, delta }
     }
 }
 
@@ -517,21 +593,21 @@ impl RotationRange {
 impl RotationRange {
     #[new]
     pub fn from_python(rotation: PyRotation, delta: f64) -> Self {
-        Self::new(rotation.value,delta)
+        Self::new(rotation.value, delta)
     }
 }
 
 #[repr(C)]
-#[derive(Serialize,Deserialize,Clone,Debug,Default,Copy)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Copy)]
 #[cfg_attr(feature = "pybindings", pyclass)]
 pub struct Ellipse {
     pub transform: Isometry3<f64>,
-    pub size: Vector3<f64>
+    pub size: Vector3<f64>,
 }
 
 impl Ellipse {
-    pub fn new(transform:Isometry3<f64>, size:Vector3<f64>) -> Self {
-        Self {transform,size}
+    pub fn new(transform: Isometry3<f64>, size: Vector3<f64>) -> Self {
+        Self { transform, size }
     }
 }
 
@@ -540,6 +616,9 @@ impl Ellipse {
 impl Ellipse {
     #[new]
     pub fn from_python(translation: PyTranslation, rotation: PyRotation, size: PySize) -> Self {
-        Self::new(Isometry3::from_parts(translation.value,rotation.value),size.value)
+        Self::new(
+            Isometry3::from_parts(translation.value, rotation.value),
+            size.value,
+        )
     }
 }
