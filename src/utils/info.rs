@@ -115,6 +115,41 @@ impl MimicInfo {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl MimicInfo{
+    fn as_str(&self) -> String {
+        format!("MimicInfo: {{joint: {:?}, multiplier: {:?}, offset: {:?}}}",
+        self.joint,
+        self.multiplier,
+        self.offset
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    #[getter]
+    pub fn get_joint(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self.joint))
+    }
+
+    #[getter]
+    pub fn get_multiplier(&self) -> PyResult<f64> {
+        Ok(self.multiplier)
+    }
+
+    #[getter]
+    pub fn get_offset(&self) -> PyResult<f64> {
+        Ok(self.offset)
+    }
+}
+
 impl From<&Mimic> for MimicInfo {
     fn from(mimic: &Mimic) -> Self {
         let joint: String = mimic.joint.clone();
@@ -182,6 +217,74 @@ impl JointInfo {
     }
 }
 
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl JointInfo{
+    fn as_str(&self) -> String {
+        format!("JointInfo: {{name: {:?}, joint_type: {:?}, lower_bound: {:?}, upper_bound: {:?}, max_velocity: {:?}, axis: {:?}, mimic: {:?}, parent_link: {:?}, child_link: {:?}}}",
+        self.name,
+        self.joint_type,
+        self.lower_bound,
+        self.upper_bound,
+        self.max_velocity,
+        self.axis,
+        self.mimic,
+        self.parent_link,
+        self.child_link
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self.name))
+    }
+
+    #[getter]
+    pub fn get_joint_type(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self.joint_type))
+    }
+
+    #[getter]
+    pub fn get_lower_bound(&self) -> PyResult<f64> {
+        Ok(self.lower_bound)
+    }
+
+    #[getter]
+    pub fn get_upper_bound(&self) -> PyResult<f64> {
+        Ok(self.upper_bound)
+    }
+
+    #[getter]
+    pub fn get_max_velocity(&self) -> PyResult<f64> {
+        Ok(self.max_velocity)
+    }
+
+    #[getter]
+    pub fn get_axis(&self) -> PyResult<[f64; 3]> {
+        Ok(self.axis)
+    }
+
+    #[getter]
+    pub fn get_parent_link(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self.parent_link))
+    }
+
+    #[getter]
+    pub fn get_child_link(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self.child_link))
+    }
+
+
+}
+
 #[repr(C)]
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -191,6 +294,44 @@ pub struct LinkInfo {
     pub parent_joint: String,
     pub visuals: Vec<Shape>,
     pub collisions: Vec<Shape>,
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl LinkInfo{
+    fn as_str(&self) -> String {
+        format!("LinkInfo: {{name: {:?},parent_link: {:?}, visuals: {:?}, collisions: {:?}}}",
+        self.name,
+        self.parent_joint,
+        self.visuals,
+        self.collisions
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self.name))
+    }
+    #[getter]
+    pub fn get_parent_joint(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self.parent_joint))
+    }
+    #[getter]
+    pub fn get_visuals(&self) -> PyResult<Vec<Shape>> {
+        Ok(self.visuals.clone())
+    }
+    #[getter]
+    pub fn get_collisions(&self) -> PyResult<Vec<Shape>> {
+        Ok(self.collisions.clone())
+    }
 }
 
 impl LinkInfo {
@@ -375,6 +516,51 @@ pub struct ProximityInfo {
     pub physical: bool,
     pub loss: f64,
     pub average_distance: Option<f64>,
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl ProximityInfo{
+    fn as_str(&self) -> String {
+        format!("ProximityInfo: {{shape1: {:?}, shape2: {:?}, distance: {:?}, points: {:?}, physical: {:?}, loss: {:?}, average_distance: {:?}}}",
+        self.shape1,
+        self.shape2,
+        self.distance,
+        self.points,
+        self.physical,
+        self.loss,
+        self.average_distance
+        )
+    }
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    // pub points: Option<(Point3<f64>, Point3<f64>)>,
+    // pub physical: bool,
+    // pub loss: f64,
+    // pub average_distance: Option<f64>,
+
+    
+    // #[getter]
+    // pub fn get_shape1(&self) -> PyResult<String> {
+    //     Ok(format!("{:?}", self.shape1))
+    // }
+    // #[getter]
+    // pub fn get_shape2(&self) -> PyResult<String> {
+    //     Ok(format!("{:?}", self.shape2))
+    // }
+    // #[getter]
+    // pub fn get_distance(&self) -> PyResult<f64> {
+    //     Ok(self.distance)
+    // }
+    // #[getter]
+    // pub fn get_points(&self) -> PyResult<Vec<Shape>> {
+    //     Ok(self.collisions.clone())
+    // }
 }
 
 impl ProximityInfo {
