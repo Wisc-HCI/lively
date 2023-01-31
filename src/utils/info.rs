@@ -545,22 +545,36 @@ impl ProximityInfo{
     // pub average_distance: Option<f64>,
 
     
-    // #[getter]
-    // pub fn get_shape1(&self) -> PyResult<String> {
-    //     Ok(format!("{:?}", self.shape1))
-    // }
-    // #[getter]
-    // pub fn get_shape2(&self) -> PyResult<String> {
-    //     Ok(format!("{:?}", self.shape2))
-    // }
-    // #[getter]
-    // pub fn get_distance(&self) -> PyResult<f64> {
-    //     Ok(self.distance)
-    // }
-    // #[getter]
-    // pub fn get_points(&self) -> PyResult<Vec<Shape>> {
-    //     Ok(self.collisions.clone())
-    // }
+    #[getter]
+    pub fn get_shape1(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self.shape1))
+    }
+    #[getter]
+    pub fn get_shape2(&self) -> PyResult<String> {
+        Ok(format!("{:?}", self.shape2))
+    }
+    #[getter]
+    pub fn get_distance(&self) -> PyResult<f64> {
+        Ok(self.distance)
+    }
+    #[getter]
+    pub fn get_points(&self) -> PyResult<(PyPoint3,PyPoint3)> {
+        let first_points = Vector3::new(self.points.unwrap().1.x, self.points.unwrap().1.y, self.points.unwrap().1.z);
+        let second_points = Vector3::new(self.points.unwrap().1.x, self.points.unwrap().1.y, self.points.unwrap().1.z);
+        Ok((PyPoint3{value:first_points},PyPoint3{value: second_points}))
+    }
+    #[getter]
+    pub fn get_physical(&self) -> PyResult<bool> {
+        Ok(self.physical)
+    }
+    #[getter]
+    pub fn get_loss(&self) -> PyResult<f64> {
+        Ok(self.loss)
+    }
+    #[getter]
+    pub fn get_average_distance(&self) -> PyResult<f64> {
+        Ok(self.average_distance.unwrap())
+    }
 }
 
 impl ProximityInfo {
