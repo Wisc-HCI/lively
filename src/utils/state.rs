@@ -80,6 +80,18 @@ impl State {
             center_of_mass, 0.0
         )
     }
+    fn as_str(&self) -> String {
+        format!("State: {{origin: {:?}, joints:{:?}, frames:{:?}, proximity:{:?}, center_of_mass:{:?}, timestamp:{:?}}}", 
+                self.origin, self.joints, self.frames, self.proximity, self.center_of_mass, self.timestamp)
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
 
     #[getter(origin)]
     pub fn get_origin_python(&self, py: Python) -> PyResult<PyTransform> {
