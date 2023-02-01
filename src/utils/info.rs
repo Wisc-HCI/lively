@@ -538,12 +538,6 @@ impl ProximityInfo{
     pub fn __repr__(&self) -> PyResult<String> {
         Ok(self.as_str())
     }
-
-    // pub points: Option<(Point3<f64>, Point3<f64>)>,
-    // pub physical: bool,
-    // pub loss: f64,
-    // pub average_distance: Option<f64>,
-
     
     #[getter]
     pub fn get_shape1(&self) -> PyResult<String> {
@@ -630,6 +624,7 @@ impl CollisionSettingInfo {
     pub fn from_python(d_max: f64, r: f64, a_max: f64, time_budget: u64, timed: bool) -> Self {
         CollisionSettingInfo::new(d_max, r, a_max, time_budget, timed)
     }
+
 }
 
 impl Default for CollisionSettingInfo {
@@ -669,6 +664,22 @@ impl AddShape {
     pub fn get_shape(&self) -> PyResult<Shape> {
         Ok(self.shape.clone())
     }
+
+    fn as_str(&self) -> String {
+        format!("MoveShape: {{id: {:?}, shape: {:?}}}",
+            self.id,
+            self.shape.clone()
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
 }
 
 #[repr(C)]
@@ -691,7 +702,7 @@ impl MoveShape {
     }
 
     fn as_str(&self) -> String {
-        format!("MoveShape {{id: {:?}, transform: {{translation: {{x:{:?}, y:{:?}, z:{:?}}}, rotation: {{w:{:?}, x:{:?}, y:{:?}, z:{:?}}}}}}}",
+        format!("MoveShape: {{id: {:?}, transform: {{translation: {{x:{:?}, y:{:?}, z:{:?}}}, rotation: {{w:{:?}, x:{:?}, y:{:?}, z:{:?}}}}}}}",
             self.id,
             self.transform.translation.x,
             self.transform.translation.y,
@@ -772,6 +783,32 @@ impl ScalarRange {
     pub fn from_python(value: f64, delta: f64) -> Self {
         Self::new(value, delta)
     }
+
+    #[getter]
+    pub fn get_value(&self) -> PyResult<f64> {
+        Ok(self.value.clone())
+    }
+
+    #[getter]
+    pub fn get_delta(&self) -> PyResult<f64> {
+        Ok(self.delta.clone())
+    }
+
+    fn as_str(&self) -> String {
+        format!("ScalarRange: {{value: {:?}, delta: {:?}}}",
+            self.value,
+            self.delta.clone()
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
 }
 
 #[repr(C)]
@@ -795,6 +832,27 @@ impl RotationRange {
     pub fn from_python(rotation: PyRotation, delta: f64) -> Self {
         Self::new(rotation.value, delta)
     }
+
+    fn as_str(&self) -> String {
+        format!("RotationRange: {{rotation: {:?}, delta: {:?}}}",
+            self.rotation,
+            self.delta
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    #[getter]
+    pub fn get_rotation(&self) -> PyResult<PyRotation>{
+        Ok(PyRotation{value: self.rotation})
+    }
+
 }
 
 #[repr(C)]
@@ -821,4 +879,31 @@ impl Ellipse {
             size.value,
         )
     }
+
+    fn as_str(&self) -> String {
+        format!("Ellipse: transform:{{translation: {{x:{:?}, y:{:?}, z:{:?}}}, rotation: {{w:{:?}, x:{:?}, y:{:?}, z:{:?}}}}}, size: {{{:?}}}",
+        self.transform.translation.x,
+        self.transform.translation.y,
+        self.transform.translation.z,
+        self.transform.rotation.coords[3],
+        self.transform.rotation.coords[0],
+        self.transform.rotation.coords[1],
+        self.transform.rotation.coords[2],
+        self.size
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    #[getter]
+    fn get_transform(&self) -> PyResult<PySize> {
+        Ok(PySize{value: self.size})
+    }
+
 }
