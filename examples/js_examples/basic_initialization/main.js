@@ -12,4 +12,9 @@ const newSolver = new Solver(panda, {
 
 const newState = newSolver.solve({}, {}, 0.0);
 
+document.querySelector('#app').innerHTML = `
+  <div>
+   ${JSON.stringify(newState)}
+  </div>`
+
 console.log(newState);
