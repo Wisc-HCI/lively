@@ -13,7 +13,7 @@ We have also created examples in Javascript, Python, and Rust for Basic Initiali
 |---|---|---|
 |Rust|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/rust_examples/basic_initialization_example.rs)|`cargo run --package lively --example basic_initialization_example`|
 |Python|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/python_examples/basic_initialization_example.ipynb)|run in the Jupyter Notebook|
-|Javascript|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/js_examples/basic_initialization_example.js)||
+|Javascript|[link](https://github.com/Wisc-HCI/lively/tree/master/examples/js_examples/basic_initialization)|`yarn build`, `yarn dev`|
 
 <Tabs>
   <TabItem value="jsx" label="Live">
@@ -84,31 +84,27 @@ function InitializationExample(props) {
   <TabItem value="js" label="Javascript">
 
 ```js
-import init, { Solver } from "lively";
+import { panda } from './urdfs.js';
+import { Solver } from '@people_and_robots/lively';
 
-async function start() {
-  // Initialize the lively package (WASM)
-  await init();
-  // Instantiate a new solver
-  let solver = new Solver(
-    "<?xml version='1.0' ?><robot name='panda'>...</robot>", // Full urdf as a string
-    {
-      smoothness: {
-        // An example objective (smoothness macro)
-        name: "MySmoothnessObjective",
-        type: "SmoothnessMacro",
-        weight: 5,
-      },
-    }
-  );
-  // Run solve to get a solved state
-  let state = solver.solve({}, {}, 0.0);
-  // Log the initial state
-  console.log(state);
-}
+const newSolver = new Solver(panda, {
+  smoothness: {
+    // An example objective (smoothness macro)
+    name: 'MySmoothnessObjective',
+    type: 'SmoothnessMacro',
+    weight: 5,
+  },
+});
 
-// Could be executed from anywhere that supports async actions
-start();
+const newState = newSolver.solve({}, {}, 0.0);
+
+document.querySelector('#app').innerHTML = `
+  <div>
+   ${JSON.stringify(newState)}
+  </div>`;
+
+console.log(newState);
+
 ```
 
   </TabItem>

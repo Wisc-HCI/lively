@@ -117,7 +117,7 @@ const sidebars = {
       items: [
         "Tutorials/initialization",
         "Tutorials/advanced_initialization",
-        "Tutorials/initialization_hook",
+        //"Tutorials/initialization_hook",
         "Tutorials/solving",
         "Tutorials/liveliness",
         "Tutorials/environment",
