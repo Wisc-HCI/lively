@@ -147,31 +147,7 @@ function InitializationExample(props) {
   <TabItem value="js" label="Javascript">
 
 ```js
-import init, { Solver } from "lively";
 
-async function start() {
-  // Initialize the lively package (WASM)
-  await init();
-  // Instantiate a new solver
-  let solver = new Solver(
-    "<?xml version='1.0' ?><robot name='panda'>...</robot>", // Full urdf as a string
-    {
-      smoothness: {
-        // An example objective (smoothness macro)
-        name: "MySmoothnessObjective",
-        type: "SmoothnessMacro",
-        weight: 5,
-      },
-    }
-  );
-  // Run solve to get a solved state
-  let state = solver.solve({}, {}, 0.0);
-  // Log the initial state
-  console.log(state);
-}
-
-// Could be executed from anywhere that supports async actions
-start();
 ```
 
   </TabItem>
