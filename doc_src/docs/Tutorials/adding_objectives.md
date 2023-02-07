@@ -14,10 +14,10 @@ which could be useful in cases where the robot’s balance must
 be maintained, or as a way to center the robot near its base. 
 
 In order to add your own new [`objectives`](../API/Objectives), there are three files you will have to modify. 
-In the example below, an additional `CenterOfMassMatchObjective` is created. The changes are made in `src/lib.rs`, 
-`src/objectives/objective.rs`, and `src/objectives/core/matching.rs`. 
+In the example below, an additional `CenterOfMassMatchObjective` is created. The changes are made in [`src/lib.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/lib.rs), 
+[`src/objectives/objective.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/objective.rs), and [`src/objectives/core/matching.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/core/matching.rs). 
 :::note
-`CenterOfMassMatchObjective` is a type of [`matching objective`](../API/Objectives/matching.mdx) and we make the change to `src/objectives/core/matching.rs`. Depending on the type of [`objective`](../API/Objectives) you want to make, you will have to make corresponding changes to `src/objectives/core/base.rs`, `src/objectives/core/bounding.rs`, `src/objectives/matching.rs`, `src/objectives/core/mirroring.rs`.
+`CenterOfMassMatchObjective` is a type of [`matching objective`](../API/Objectives/matching.mdx) and we make the change to [`src/objectives/core/matching.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/core/matching.rs). Depending on the type of [`objective`](../API/Objectives) you want to make, you will have to make corresponding changes to [`src/objectives/core/base.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/core/base.rs), [`src/objectives/core/bounding.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/core/bounding.rs), [`src/objectives/matching.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/core/matching.rs), [`src/objectives/core/mirroring.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/core/mirroring.rs), [`src/objectives/liveliness/forces.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/liveliness/forces.rs), or [`src/objectives/liveliness/perlin.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/liveliness/perlin.rs).
 :::
 
 
