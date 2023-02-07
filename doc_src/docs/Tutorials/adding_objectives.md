@@ -1,170 +1,212 @@
-
-
 # Adding Objectives
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-:::note 
+:::note
 Since Lively is still in beta, the design is subject to change and should not be considered final!
+:::
+
+`Lively` can be greatly extended through the development of additional [`objectives`](../API/Objectives). 
+Because the robot state already includes a vector representing the [`center-of-mass`](../API/state)
+of the robot, it is straightforward to create a new [`objectives`](../API/Objectives),
+which could be useful in cases where the robot’s balance must
+be maintained, or as a way to center the robot near its base. 
+
+In order to add your own new [`objectives`](../API/Objectives), there are three files you will have to modify. 
+In the example below, an additional `CenterOfMassMatchObjective` is created. The changes are made in `src/lib.rs`, 
+`src/objectives/objective.rs`, and `src/objectives/core/matching.rs`. 
+:::note
+`CenterOfMassMatchObjective` is a type of [`matching objective`](../API/Objectives/matching.mdx) and we make the change to `src/objectives/core/matching.rs`. Depending on the type of [`objective`](../API/Objectives) you want to make, you will have to make corresponding changes to `src/objectives/core/base.rs`, `src/objectives/core/bounding.rs`, `src/objectives/matching.rs`, `src/objectives/core/mirroring.rs`.
 :::
 
 
 <Tabs>
-  <TabItem value="jsx" label="Live">
+  <TabItem value="lib.rs" label="src/lib.rs">
 
-  ```jsx live
-function InitializationExample(props) {
-    const [livelySolver, setLivelySolver] = useState(null);
-    const [robot, setRobot] = useState('panda');
-    const [robotState, setRobotState] = useState(null)
-    
-    useEffect(()=>{
-        /* 
-        Given that we are showing this example in a declarative
-        react context, we need to use the useEffect hook to execute
-        imperative (sequential) code. That means that if you are
-        writing standard javascript, your code will look like the
-        contents of the "init" function.
-        * Note also that the "init" function is async. This is
-        because the lively library is built on web assembly (WASM),
-        which needs to be imported asynchronously.
-        */
-        const init = async ()=>{
-            // Initialize the lively package (WASM)
-            await lively.init();
-            // Instantiate a new solver
-            const newSolver = new lively.Solver(
-                urdfs[robot], // The urdf of the robot
-                {
-                    'smoothness': {  // An example objective (smoothness macro)
-                        name: 'MySmoothnessObjective',
-                        type: 'SmoothnessMacro',
-                        weight: 5
-                    }
-                }
-            );
-            // Assign the solver to the value
-            setLivelySolver(newSolver)
-            // Run solve to get a solved state
-            const newState = newSolver.solve({},{},0.0);
-            // Update the solver's current state
-            setRobotState(newState)
-        }
-        init();
-        
-        return ()=>{
-            // Provide a function to clear previous values
-            setLivelySolver(null);
-            setRobotState(null);
-        }
-    },[robot]) // Rerun this code if the robot changes
-
-  return (
-    <div>
-       <Button active={robot==='panda'} onClick={()=>setRobot('panda')}>Panda</Button>
-       <Button active={robot==='ur3e'} onClick={()=>setRobot('ur3e')}>UR3e</Button>
-       <RobotViewer state={robotState} links={livelySolver ? livelySolver.links : []}/>
-       <Tree label='state' data={robotState}/>
-    </div>
-  );
-}
-  ```
+```rust
+    ...
+    m.add_class::<objectives::core::bounding::PositionBoundingObjective>()?;
+    m.add_class::<objectives::core::bounding::OrientationBoundingObjective>()?;
+    m.add_class::<objectives::core::bounding::JointBoundingObjective>()?;
+    // An example of additional objectives (CenterOfMassMatchingObjective)
+    m.add_class::<objectives::core::matching::CenterOfMassMatchObjective>()?;
+    // ------------------------------------------------------------------
+    m.add_class::<objectives::core::matching::PositionMatchObjective>()?;
+    m.add_class::<objectives::core::matching::OrientationMatchObjective>()?;
+    m.add_class::<objectives::core::matching::JointMatchObjective>()?;
+    m.add_class::<objectives::core::matching::DistanceMatchObjective>()?;
+    ...
+```
 
   </TabItem>
 
-  <TabItem value="js" label="Javascript">
+  <TabItem value="objective.rs" label="src/objectives/objective.rs">
 
-  ```js
-import init, {Solver} from 'lively';
+```rust
+    pub enum Objective {
+    // An example of additional objectives (CenterOfMassMatchingObjective)
+    CenterOfMassMatch(CenterOfMassMatchObjective),
+    //------------------------------------------
+    PositionMatch(PositionMatchObjective),
+    OrientationMatch(OrientationMatchObjective),
+    PositionLiveliness(PositionLivelinessObjective),
+    ...
+    }
 
-async function start() {
-    // Initialize the lively package (WASM)
-    await init();
-    // Instantiate a new solver
-    let solver = new Solver(
-        "<?xml version='1.0' ?><robot name='panda'>...</robot>", // Full urdf as a string
-        {
-            'smoothness': {  // An example objective (smoothness macro)
-                name: 'MySmoothnessObjective',
-                type: 'SmoothnessMacro',
-                weight: 5
+    impl Objective {
+        pub fn get_type(&self) -> String {
+        // Returns a string value for each variant. Useful in debugging.
+            match self {
+                // An example of additional objectives (CenterOfMassMatchingObjective)
+                Self::CenterOfMassMatch(_obj)=> return String::from("CenterOfMassObjective"),
+                //-------------------------------------------------------------------------
+                Self::PositionMatch(_obj) => return String::from("PositionMatchObjective"),
+                Self::OrientationMatch(_obj) => return String::from("OrientationnMatchObjective"),
+                ...
+                }
+        }
+        pub fn call(&self,v: &Vars,state: &State) -> f64 {
+            // A switch that passes along the `call` method to the inner objective.
+            match self {
+                // An example of additional objectives (CenterOfMassMatchingObjective)
+                Self::CenterOfMassMatch(obj) => obj.call(v,state),
+                //-----------------------------------------------
+                Self::PositionMatch(obj) => obj.call(v,state),
+                Self::OrientationMatch(obj) => obj.call(v,state),
+                ...
+                }
+        }
+        pub fn update(&mut self, time: f64) {
+        // For time-sensitive objectives, include them here.
+            match self {
+                 // An example of additional objectives (CenterOfMassMatchingObjective)
+                Self::CenterOfMassMatch(obj) => obj.update(time),
+                //----------------------------------------------
+                Self::PositionLiveliness(obj) => obj.update(time),
+                ...
+                }
+            }
+        pub fn set_weight(&mut self, weight: f64) {
+        // Set the weight for the inner objective
+            match self {
+                 // An example of additional objectives (CenterOfMassMatchingObjective)
+                Self::CenterOfMassMatch(obj) => obj.set_weight(weight),
+                //----------------------------------------------------
+                Self::PositionMatch(obj) => obj.set_weight(weight),
+                Self::OrientationMatch(obj) => obj.set_weight(weight),
+                Self::PositionLiveliness(obj) => obj.set_weight(weight),
+                ...
+                }
+            }
+        pub fn get_goal(&self) -> Option<Goal> {
+        // get the goal for the inner objective. Useful for debugging.
+            match self {
+                // An example of additional objectives (CenterOfMassMatchingObjective)
+                Self::CenterOfMassMatch(obj) => return Some(Goal::Translation(Translation3::from(obj.goal))),
+                //------------------------------------------------------------------------------------------
+                Self::PositionMatch(obj) => return Some(Goal::Translation(Translation3::from(obj.goal))),
+                Self::OrientationMatch(obj) => return Some(Goal::Rotation(obj.goal)),
+                ...
+                }
+            }
+        pub fn set_goal(&mut self, goal: &Goal) {
+            // Set the goal for the inner objective. This matches based on Objective and Goal variant.
+            match (goal,self) {
+             // An example of additional objectives (CenterOfMassMatchingObjective)
+            (Goal::Translation(translation_goal),Self::CenterOfMassMatch(obj)) => obj.set_goal(translation_goal.vector),
+            //---------------------------------------------------------------------------------------------------------
+            (Goal::Translation(translation_goal),Self::PositionMatch(obj)) => obj.set_goal(translation_goal.vector),
+            (Goal::Translation(translation_goal),Self::PositionMirroring(obj)) => obj.set_goal(translation_goal.vector),
+            ...
             }
         }
-    );
-    // Run solve to get a solved state
-    let state = solver.solve({},{},0.0);
-    // Log the initial state
-    console.log(state)
+
+        #[cfg(feature = "pybindings")]
+        impl IntoPy<PyObject> for Objective {
+        fn into_py(self, py: Python) -> PyObject {
+            match self {
+                // An example of additional objectives (CenterOfMassMatchingObjective)
+                Self::CenterOfMassMatch(obj) => obj.into_py(py),
+                //--------------------------------------------
+			    Self::PositionMatch(obj) => obj.into_py(py),
+			    Self::OrientationMatch(obj) => obj.into_py(py),
+                ...
+                }
+            }
+         }
+    }
+
+
+```
+
+  </TabItem>
+
+  <TabItem value="matching.rs" label="src/objectives/core/matching.rs">
+
+```rust
+// An example of additional objectives (CenterOfMassMatchingObjective)
+#[repr(C)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct CenterOfMassMatchObjective {
+    pub name: String,
+    pub weight: f64,
+    // Goal Value
+    #[serde(skip)]
+    pub goal: Vector3<f64>,
 }
 
-// Could be executed from anywhere that supports async actions
-start();
-
-  ```
-
-  </TabItem>
-
-  <TabItem value="py" label="Python">
-
-  ```py
-from lively import Solver, SmoothnessMacroObjective
-
-# Instantiate a new solver
-solver = Solver(
-    urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
-    objectives={
-        # An example objective (smoothness macro)
-        "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5)
+impl CenterOfMassMatchObjective {
+    pub fn new(name: String, weight: f64) -> Self {
+        Self {
+            name,
+            weight,
+            goal: vector![0.0, 0.0, 0.0],
+        }
     }
-)
+}
 
-# Run solve to get a solved state
-state = solver.solve({},{},0.0)
-# Log the initial state
-print(state)
-  ```
+impl Callable<Vector3<f64>> for CenterOfMassMatchObjective {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
 
-  </TabItem>
+        let x_val = ((state.center_of_mass- self.goal).norm()).abs();
+        // println!("matching value is {:?}", groove_loss(x_val, 0., 2, 0.1, 10.0, 2));
+        return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2);
+    }
 
-  <TabItem value="rs" label="Rust">
+    fn set_goal(&mut self, goal: Vector3<f64>) {
+        self.goal = goal;
+    }
 
-  ```rust
-use lively::lively::Solver;
-use lively::objectives::core::base::SmoothnessMacroObjective;
-use lively::objectives::objective::Objective;
-use std::collections::HashMap;
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
+    }
+}
 
-// Create a map of objectives
-let mut objectives: HashMap<String,Objective> = HashMap::new();
-// Add a Smoothness Macro Objective
-objectives.insert(
-    "smoothness".into(),
-    // An example objective (smoothness macro)
-    Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective",5.0))
-);
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl CenterOfMassMatchObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64) -> Self {
+        CenterOfMassObjective::new(name,weight)
+    }
 
-// Instantiate a new solver struct
-let mut solver = Solver::new(
-    urdf:'<?xml version="1.0" ?><robot name="panda">...</robot>', // Full urdf as a string
-    objectives
-);
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
 
-// Run solve to get a solved state
-let state = solver.solve(
-    HashMap::new(), 
-    HashMap::new(), 
-    0.0, 
-    None
-);
-// Log the initial state
-println!("{:?}",state);
-  ```
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+}
+
+//---------------------------------------------------------
+```
 
   </TabItem>
 
-</Tabs> 
-
-
-
-
-
+</Tabs>
