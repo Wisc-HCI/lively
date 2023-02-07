@@ -1,0 +1,371 @@
+# Environment Modeling-sine
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+:::note
+Since Lively is still in beta, the design is subject to change and should not be considered final!
+:::
+
+We have also created examples in Javascript, Python, and Rust for environmental modeling example. You can find the file by clicking the links in the table down below.
+
+| Language   | Path                                                                                                            | Command to run the example                                          |
+| ---------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Rust       | [link](https://github.com/Wisc-HCI/lively/blob/master/examples/rust_examples/environmental_modeling_example.rs) | cargo run --package lively --example environmental_modeling_example |
+| Python     | [link](https://github.com/Wisc-HCI/lively/blob/master/examples/python_examples/environmental_example.ipynb)     | run in the Jupyter Notebook                                         |
+| Javascript | [link](https://github.com/Wisc-HCI/lively/tree/master/examples/js_examples/environmental)                       | `yarn build`, `yarn dev`                                            |
+
+The environmental shapes introduced at the beginning of the solver can be considered as static and cannot be modified. The Cylinder in this example
+is an example of static shape. For more information please see [`shape_update`](../API/Solver/Methods/solve#shape_update)
+
+<Tabs>
+  <TabItem value="jsx" label="Live">
+
+```jsx live
+function InitializationExample(props) {
+  const initialGoalValues = {
+    // The initial translation of the sphere is at where the gripper is supposed to be at.
+    translation: [
+      -0.35289461347986373, 0.13931635901132902, 0.38946876678037234,
+    ],
+    // The initial rotation is pointing to where the gripper is pointing at.
+    rotation: [
+      0.968947708849441, 0.01867797756065113, -0.2465018112869008,
+      0.005322377470646942,
+    ],
+  };
+
+  const initialState = {
+    origin: {
+      translation: [0.0, 0.0, 0.0],
+      rotation: [0.0, 0.0, 0.0, 1.0],
+    },
+    joints: {
+      shoulder_pan_joint: 3.054197606864953,
+      elbow_joint: -1.2683111703953787,
+      wrist_3_joint: -4.823194599105927,
+      robotiq_85_left_finger_tip_joint: -0.051922213806626316,
+      robotiq_85_right_inner_knuckle_joint: 0.051922213806626316,
+      robotiq_85_right_finger_tip_joint: -0.051922213806626316,
+      shoulder_lift_joint: -1.748886737780085,
+      wrist_1_joint: 5.08275093442812,
+      robotiq_85_left_inner_knuckle_joint: 0.051922213806626316,
+      robotiq_85_right_knuckle_joint: 0.051922213806626316,
+      robotiq_85_left_knuckle_joint: 0.051922213806626316,
+      wrist_2_joint: -4.651476380979644,
+    },
+  };
+
+  const arrowTransformControl = {
+    // the visual reresentation for the rotation transform control.
+    type: "Arrow",
+    name: "arrow transform control",
+    frame: "world",
+    physical: false,
+    localTransform: initialGoalValues,
+  };
+
+  const sphereTransformControl = {
+    // the visual reresentation for the translation transform control.
+    type: "Sphere",
+    name: "sphere transform control",
+    frame: "world",
+    radius: 0.05,
+    localTransform: initialGoalValues,
+  };
+
+  const initialGoal = {
+    // the inital goal to be fed into the the solver representing the the initial translation and rotation.
+    position: {
+      Translation: initialGoalValues.translation,
+    },
+    orientation: {
+      Rotation: initialGoalValues.rotation,
+    },
+  };
+
+  const initialEnvShapes = [
+  ];
+
+  const [livelySolver, setLivelySolver] = useState(null);
+  const [robot, setRobot] = useState("panda");
+  const [robotState, setRobotState] = useState(null);
+  const [visualRobotState, setVisualRobotState] = useState(null);
+  const [transformMode, setTransformMode] = useState("translate");
+  const [activeShapesTransform, setShapesTransform] = useState(false);
+  const [arrowTransformControlVisual, setArrowTransformControlVisual] =
+    useState(arrowTransformControl);
+  const [sphereTransformControlVisual, setSphereTransformControlVisual] =
+    useState(sphereTransformControl);
+  const [transformControl, setTransformControl] = useState(
+    sphereTransformControl
+  ); // the visual representation of the transformMode.
+  const [goal, setGoal] = useState(initialGoal);
+  const [envShapes, setEnvShapes] = useState(initialEnvShapes);
+  const [shapesUpdate, setShapesUpdate] = useState(null);
+
+  
+
+  function updateTransformMode() {
+    // switch between Position Match or Orientation Match
+    transformMode === "translate"
+      ? setTransformMode("rotate")
+      : setTransformMode("translate");
+    transformControl.type === "Arrow"
+      ? setTransformControl(sphereTransformControlVisual)
+      : setTransformControl(arrowTransformControlVisual);
+  }
+
+  function updateTransformControlTransform(transform) {
+    let newGoal = goal;
+    newGoal.position.Translation = [
+      transform.position.x,
+      transform.position.y,
+      transform.position.z,
+    ];
+    newGoal.orientation.Rotation = [
+      transform.quaternion.x,
+      transform.quaternion.y,
+      transform.quaternion.z,
+      transform.quaternion.w,
+    ];
+    let newArrowTransformControl = arrowTransformControlVisual;
+    let newSphereTransformControl = sphereTransformControlVisual;
+    newSphereTransformControl.localTransform.translation = [
+      transform.position.x,
+      transform.position.y,
+      transform.position.z,
+    ];
+    newSphereTransformControl.localTransform.rotation = [
+      transform.quaternion.x,
+      transform.quaternion.y,
+      transform.quaternion.z,
+      transform.quaternion.w,
+    ];
+    newArrowTransformControl.localTransform.translation = [
+      transform.position.x,
+      transform.position.y,
+      transform.position.z,
+    ];
+    newArrowTransformControl.localTransform.rotation = [
+      transform.quaternion.x,
+      transform.quaternion.y,
+      transform.quaternion.z,
+      transform.quaternion.w,
+    ];
+    setArrowTransformControlVisual(newArrowTransformControl); // update the the transformation of the arrow transform control visual in the scene.
+    setSphereTransformControlVisual(newSphereTransformControl); // update the the transformation of the sphere transform control visual in the scene.
+    setGoal(newGoal); // update the goal being sent to the solver.
+    transformMode === "translate"
+      ? setTransformControl(newSphereTransformControl)
+      : setTransformControl(newArrowTransformControl);
+  }
+
+
+  function updateTransform(id, transform) {
+    if (id.includes(`env-shape`)) {
+      updateEnvironmentalShapesTransform(id, transform);
+    } else {
+      updateTransformControlTransform(transform);
+    }
+  }
+
+  useEffect(() => {
+    /*
+      Given that we are showing this example in a declarative
+      react context, we need to use the useEffect hook to execute
+      imperative (sequential) code. That means that if you are
+      writing standard javascript, your code will look like the
+      contents of the "init" function.
+      * Note also that the "init" function is async. This is
+      because the lively library is built on web assembly (WASM),
+      which needs to be imported asynchronously.
+      */
+    var currentSolver;
+
+    // Instantiate a new solver
+    const newSolver = new lively.Solver(
+      urdfs.ur3e, // The urdf of the robot
+      {
+        // some objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
+        smoothness: {
+          name: "MySmoothnessObjective",
+          type: "SmoothnessMacro",
+          weight: 15,
+          joints: true,
+          origin: false,
+          links: true,
+        },
+        collision: {
+          // The main objective that allows the robot to avoid collision within the links, as well as with the environmental objects.
+          name: "MyCollisionDetection",
+          type: "CollisionAvoidance",
+          weight: 3,
+        },
+        jointLimit: {
+          name: "MyJointLimit",
+          type: "JointLimits",
+          weight: 5,
+        },
+        position: {
+          // The main objective that allows the pand hand to follow the position defined by the sphere transform control visual in the scene.
+          name: "MyPositionMatchObjective",
+          type: "PositionMatch",
+          link: "tool0",
+          weight: 15,
+        },
+        orientation: {
+          // The main objective that allows the pand hand to follow the orientation defined by the arrow transform control visual in the scene.
+          name: "MyOrientationMatchObjective",
+          type: "OrientationMatch",
+          link: "tool0",
+          weight: 10,
+        },
+      },
+      [
+        { value: 0.0, delta: 0.0 },
+        { value: 0.0, delta: 0.0 },
+        { value: 0.0, delta: 0.0 }, // Translational
+        { value: 0.0, delta: 0.0 },
+        { value: 0.0, delta: 0.0 },
+        { value: 0.0, delta: 0.0 }, // Rotational
+      ],
+      initialEnvShapes, // all the shapes passed in here will be considered as the static environmental shapes. This means that these shapes can not be modified through shapes_update in solve.
+      initialState
+    );
+    newSolver.computeAverageDistanceTable();
+    currentSolver = newSolver; //assign new solver to the current solver in use
+    // Assign the solver to the value
+    setLivelySolver(newSolver);
+    // Run solve to get a solved state
+    const newState = newSolver.solve(goal, {}, 0.0);
+    //console.log(newSolver.updates());
+    // Update the solver's current state
+    setRobotState(newState);
+    setVisualRobotState(newState);
+
+    return () => {
+      // Provide a function to clear previous values
+      setLivelySolver(null);
+      setRobotState(null);
+      setVisualRobotState(null);
+    };
+  }, [robot]); // Rerun this code if the robot changes
+
+  useEffect(() => {
+    let sinBox = [
+          {
+            Add: {
+              id: "env-box", // must be an unique id
+              shape: {
+                type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+                name: "box", // name can be arbitrary
+                frame: "world", // or 'world'
+                physical: true, // physical collision
+                x: 0.25,
+                y: 0.25,
+                z: 0.25, // dimension of the box
+                localTransform: {
+                  translation: [0.6, 0.05, 0.15],
+                  rotation: [0.0, 0.0, 0.0, 1.0],
+                },
+              },
+            },
+          },
+          {
+            Move: {
+              id: "env-box",
+              transform: {
+                translation: [ -0.5, 0.05, 0.15],
+                rotation: [0.0, 0.0, 0.0, 1.0],
+              },
+            },
+          },
+        ];
+    const updateSolver = () => {
+      if (livelySolver) {
+        const d = new Date();
+        //Math.sin(time / 1000) / 5 + 0.5
+        let time = d.getTime(); // Get the time in milliseconds
+        let newTranslation = [Math.sin(time / 1000) / 5 + -0.8, 0.05, 0.15];
+        sinBox[1].Move.transform.translation = newTranslation;
+       
+        const newState = livelySolver.solve(
+          goal,
+          {},
+          time / 1000,
+          sinBox // compare to static environmental shapes, these shapes can be modified.
+        ); // Pass the new goal into solve function
+        // Update the solver's current state
+        setRobotState(newState);
+        setVisualRobotState(newState);
+        setEnvShapes([{
+        type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+        name: "box", // name can be arbitrary
+        frame: "world", // or 'world'
+        physical: true, // physical collision
+        x: 0.25,
+        y: 0.25,
+        z: 0.25, // dimension of the box
+        localTransform: {
+          translation: newTranslation,
+          rotation: [0.0, 0.0, 0.0, 1.0],
+        },
+      }])
+      }
+
+      //console.log(goal);
+    };
+
+    const interval = setInterval(updateSolver, 1000 / 60);
+
+    return () => {
+      //setShapesUpdate(null);
+      setRobotState(null);
+      setVisualRobotState(null);
+      clearInterval(interval);
+    };
+  }, [livelySolver, shapesUpdate, goal]); // Update the solver 30fps},[robot])
+
+  return (
+    <div>
+      <RobotViewer
+        state={robotState}
+        links={livelySolver ? livelySolver.links : []}
+        shapes={envShapes}
+        transformMode={transformMode}
+        transformControl={transformControl}
+        onMove={(id, source, worldTransform, localTransform) =>
+          updateTransform(id, localTransform)
+        }
+        activeEnvShapesTransform={activeShapesTransform}
+      />
+      <Button
+        active={robot === "panda"}
+        onClick={() => setVisualRobotState(robotState)}
+      >
+        Update State
+      </Button>
+      <Button
+        active={transformMode === "translate"}
+        onClick={() => updateTransformMode()}
+      >
+        Position Match
+      </Button>
+      <Button
+        active={transformMode === "rotate"}
+        onClick={() => updateTransformMode()}
+      >
+        Orientation Match
+      </Button>
+
+      <Tree label="state" data={visualRobotState} />
+    </div>
+  );
+}
+```
+
+  </TabItem>
+</Tabs>
+
+  

@@ -121,6 +121,7 @@ const sidebars = {
         "Tutorials/solving",
         "Tutorials/liveliness",
         "Tutorials/environment",
+        "Tutorials/environment-sine",
       ],
     },
     {

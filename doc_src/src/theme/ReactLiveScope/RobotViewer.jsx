@@ -101,7 +101,7 @@ function shape2item(shape, isCollision ) {
     case "Box":
       item.shape = "cube";
       item.scale = { x: shape.x, y: shape.y, z: shape.z };
-      item.transformMode = "translate";
+      item.transformMode = shape.transformMode;
       break;
     case "Sphere":
       item.shape = "sphere";
