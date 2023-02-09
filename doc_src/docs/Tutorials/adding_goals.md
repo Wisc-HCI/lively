@@ -29,6 +29,7 @@ that adhered to this dynamic pattern as a function of time.
   <TabItem value="perlin" label="src/objectives/liveliness/perlin.rs">
 
 ```rust
+    ...
     [repr(C)]
     #[derive(Serialize, Deserialize, Clone, Debug, Default)] #[cfg_attr(feature = "pybindings", pyclass)]
     pub struct PerspectiveLivelinessObjective {
@@ -97,9 +98,9 @@ that adhered to this dynamic pattern as a function of time.
         }
     }
 
-#[cfg(feature = "pybindings")]
-#[pymethods]
-impl PerspectiveLivelinessObjective {
+    #[cfg(feature = "pybindings")]
+    #[pymethods]
+    impl PerspectiveLivelinessObjective {
         #[new]
         pub fn from_python(name:String,weight:f64,link:String,frequency:f64) -> Self {
             PerspectiveLivelinessObjective::new(name,weight,link,frequency)
@@ -124,9 +125,8 @@ impl PerspectiveLivelinessObjective {
         pub fn get_frequency(&self) -> PyResult<f64> {
             Ok(self.frequency.clone())
         }
-
-}
-
+    }
+    ...
 ```
 
   </TabItem>
@@ -253,12 +253,116 @@ impl PerspectiveLivelinessObjective {
   <TabItem value="goals" label="src/utils/goals.rs">
 
 ```rust
+    ...
+    #[repr(C)]
+    #[derive(Serialize,Deserialize,Clone,Debug)]
+    pub enum Goal {
+        ...
+        RotationRange(RotationRange),
+        ScalarRange(ScalarRange),
+        //--------Adding Goal
+        Cone(Cone)
+        //--------
+    }
 
+    #[cfg(feature = "pybindings")]
+    impl IntoPy<PyObject> for Goal {
+        fn into_py(self, py: Python) -> PyObject {
+            match self {
+                ...
+                Self::RotationRange(obj) => obj.into_py(py),
+                Self::ScalarRange(obj) => obj.into_py(py),
+                //------------------------------
+                Self::Cone(obj) => obj.into_py(py)
+                //-----------------------------
+            }
+        }
+    }
+
+    #[cfg(feature = "pybindings")]
+    impl FromPyObject<'_> for Goal {
+        fn extract(ob: &'_ PyAny) -> PyResult<Self> {
+            ...
+            if let Ok(ob) = ScalarRange::extract(ob) {
+                return Ok(Self::ScalarRange(ob))
+            }
+            //-------------------------------
+            if let Ok(ob) = Cone::extract(ob){
+                return Ok(Self::Cone(ob))
+            }
+            //-------------------------------
+
+
+            return Ok(Self::Scalar(0.0));
+        }
+    }
+    ...
 ```
 
   </TabItem>
 
   <TabItem value="info" label="src/utils/info.rs">
+
+```rust
+    ...
+    //-------------------------------------Adding Goal
+    #[repr(C)]
+    #[derive(Serialize, Deserialize, Clone, Debug, Default, Copy)]
+    #[cfg_attr(feature = "pybindings", pyclass)]
+    pub struct Cone {
+        pub focal_point : Vector3<f64>,
+        pub focal_length : f64,
+        pub delta: f64,
+    }
+
+    impl Cone {
+        pub fn new(focal_point: Vector3<f64>, focal_length: f64,delta: f64) -> Self {
+            Self { focal_point,focal_length, delta }
+        }
+    }
+
+    #[cfg(feature = "pybindings")]
+    #[pymethods]
+    impl Cone {
+        #[new]
+        pub fn from_python(focal_point: PyPoint3, focal_length: f64, delta: f64) -> Self {
+            Self::new(focal_point.value, focal_length, delta)
+        }
+
+        fn as_str(&self) -> String {
+            format!("Cone: {{focal_point: {:?}, focal_length: {:?}, delta: {:?} }}",
+                self.focal_point,
+                self.focal_length,
+                self.delta
+            )
+        }
+
+        pub fn __str__(&self) -> PyResult<String> {
+            Ok(self.as_str())
+        }
+
+        pub fn __repr__(&self) -> PyResult<String> {
+            Ok(self.as_str())
+        }
+
+        #[getter]
+        pub fn get_focal_point(&self) -> PyResult<PyPoint3>{
+            Ok(PyPoint3{value: self.focal_point})
+        }
+
+        #[getter]
+        pub fn get_focal_length(&self) -> PyResult<f64>{
+            Ok(self.focal_length)
+        }
+
+        #[getter]
+        pub fn get_delta(&self) -> PyResult<f64>{
+            Ok(self.delta)
+        }
+    }
+    //--------------------------------------
+    ...
+```
 
   </TabItem>
 
