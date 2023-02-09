@@ -7,23 +7,25 @@ import TabItem from '@theme/TabItem';
 Since Lively is still in beta, the design is subject to change and should not be considered final!
 :::
 
-Perspective Noise. While the Position Match and Orientation
-Match objectives together are capable of creating a lifelike appearance, a developer may desire to create a lifelike behavior that exhibits positional and rotational motion around an offset focal point,
+A developer may desire to create a lifelike behavior that exhibits positional and rotational motion around an offset `focal point`,
 as if inspecting the properties of an object located there. Doing so
-requires the addition of an new goal type, which would encode the
-focal length to maintain the position of the focus, and the amount
-of rotational/translational movement allowed. The objective’s 𝑐𝑎𝑙𝑙
+requires the addition of an new [`goal`](../API/Goals/goal.mdx) type, which would encode the
+`focal length` to maintain the position of the focus, and the amount
+of `rotational/translational` movement allowed. The [`objective’s`](../API/Objectives/) `𝑐𝑎𝑙𝑙`
 method would use these goals and a Perlin noise generator function
 to project the needed position and orientation in space to achieve
 the specified rotation around the focus at a given time and compute
 the radial and translational distance from those values, returning a
-cost value. The resulting objective would attempt to produce poses
+cost value. The resulting [`objective`](../API/Objectives/) would attempt to produce poses
 that adhered to this dynamic pattern as a function of time.
 
+To demonstrate how to create additional lifelike behavior mentioned above, the developer will have to makes changes to the following files:
 - [`src/objectives/liveliness/perlin.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/liveliness/perlin.rs)
 - [`src/objectives/objective.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/objectives/objective.rs)
 - [`src/utils/goals.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/utils/goals.rs)
 - [`src/utils/info.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/utils/info.rs)
+
+We will name the new Objective: `PerspectiveLivelinessObjective` and the new goal: `Cone`.
 
 <Tabs>
   <TabItem value="perlin" label="src/objectives/liveliness/perlin.rs">
@@ -65,15 +67,15 @@ that adhered to this dynamic pattern as a function of time.
             f64::from(rng.gen_range(0..1000)),
             ];
         Self {
-                name,
-                weight,
-                link,
-                frequency,
-                goal: Cone::default(),
-                time: None,
-                noise: vector![0.0, 0.0, 0.0],
-                perlin,
-                offsets,
+            name,
+            weight,
+            link,
+            frequency,
+            goal: Cone::default(),
+            time: None,
+            noise: vector![0.0, 0.0, 0.0],
+            perlin,
+            offsets,
             }
         }
     }
@@ -140,9 +142,9 @@ that adhered to this dynamic pattern as a function of time.
         LinkAccelerationMinimization(LinkAccelerationMinimizationObjective),
         LinkJerkMinimization(LinkJerkMinimizationObjective),
         RelativeMotionLiveliness(RelativeMotionLivelinessObjective),
-        //-------------------------------------
+        //The additional objectives (PerspectiveLivelinessObjective)
         PerspectiveLiveliness(PerspectiveLivelinessObjective),
-        //-------------------------------------
+        //--------------------------------------------------
         Gravity(GravityObjective),
         ...
     }
@@ -155,9 +157,9 @@ that adhered to this dynamic pattern as a function of time.
                 Self::Gravity(_obj) => return String::from("GravityObjective"),
                 Self::SmoothnessMacro(_obj) => return String::from("SmoothnessMacroObjective"),
                 Self::DistanceMatch(_obj) => return String::from("DistanceMatchObjective"),
-                //--------------
+                //The additional objectives (PerspectiveLivelinessObjective)
                 Self::PerspectiveLiveliness(_obj) => return String::from("PerspectiveLivelinessObjective")
-                //--------------
+                //---------------------------------------------------------
             }
         }
 
@@ -168,9 +170,9 @@ that adhered to this dynamic pattern as a function of time.
                 Self::Gravity(obj) => obj.call(v,state),
                 Self::SmoothnessMacro(obj) => obj.call(v,state),
                 Self::DistanceMatch(obj) => obj.call(v,state),
-                //------------
+                //The additional objectives (PerspectiveLivelinessObjective)
                 Self::PerspectiveLiveliness(obj) => obj.call(v,state)
-                //------------
+                //---------------------------------------------------
             }
         }
 
@@ -181,9 +183,9 @@ that adhered to this dynamic pattern as a function of time.
                 Self::OrientationLiveliness(obj) => obj.update(time),
                 Self::JointLiveliness(obj) => obj.update(time),
                 Self::RelativeMotionLiveliness(obj) => obj.update(time),
-                //-------
+                //The additional objectives (PerspectiveLivelinessObjective)
                 Self::PerspectiveLiveliness(obj) => obj.update(time),
-                //-------
+                //--------------------------------------------------
                 _ => {}
             }
         }
@@ -195,9 +197,9 @@ that adhered to this dynamic pattern as a function of time.
                 Self::Gravity(obj) => obj.set_weight(weight),
                 Self::SmoothnessMacro(obj) => obj.set_weight(weight),
                 Self::DistanceMatch(obj) =>  obj.set_weight(weight),
-                //---------------
+                //The additional objectives (PerspectiveLivelinessObjective)
                 Self::PerspectiveLiveliness(obj) => obj.set_weight(weight)
-                //---------------
+                //--------------------------------------------------------
             }
         }
 
@@ -208,9 +210,9 @@ that adhered to this dynamic pattern as a function of time.
                 Self::Gravity(_obj) => return None,
                 Self::SmoothnessMacro(_obj) => return None,
                 Self::DistanceMatch(obj) => return Some(Goal::Scalar(obj.goal)),
-                //----
+                //The additional objectives (PerspectiveLivelinessObjective)
                 Self::PerspectiveLiveliness(obj) => return Some(Goal::Cone(obj.goal))
-                //---
+                //-------------------------------------------------------------------
             }
         }
 
@@ -221,9 +223,9 @@ that adhered to this dynamic pattern as a function of time.
                 (Goal::Ellipse(ellipse_goal),Self::PositionBounding(obj)) => obj.set_goal(*ellipse_goal),
                 (Goal::RotationRange(rotation_range_goal),Self::OrientationBounding(obj)) => obj.set_goal(*rotation_range_goal),
                 (Goal::ScalarRange(scalar_range_goal),Self::JointBounding(obj)) => obj.set_goal(*scalar_range_goal),
-                //-------
+                //The additional goal (Cone) and objectives (PerspectiveLivelinessObjective)
                 (Goal::Cone(cone_goal), Self::PerspectiveLiveliness(obj)) => obj.set_goal(*cone_goal),
-                //-------
+                //-----------------------------------------------------------------------------------
                 (g,o) => {
                     println!("Unexpected goal {:?} provided for Objective {:?}",g,o.clone())
                 }
@@ -240,9 +242,9 @@ that adhered to this dynamic pattern as a function of time.
                 Self::Gravity(obj) => obj.into_py(py),
                 Self::SmoothnessMacro(obj) => obj.into_py(py),
                 Self::DistanceMatch(obj) => obj.into_py(py),
-                //---------------------
+                //The additional objectives (PerspectiveLivelinessObjective) for python binding
                 Self::PerspectiveLiveliness(obj) => obj.into_py(py),
-                //---------------------
+                //-------------------------------------------------
             }
         }
     }
@@ -260,7 +262,7 @@ that adhered to this dynamic pattern as a function of time.
         ...
         RotationRange(RotationRange),
         ScalarRange(ScalarRange),
-        //--------Adding Goal
+        //The additional goal (Cone)
         Cone(Cone)
         //--------
     }
@@ -272,7 +274,7 @@ that adhered to this dynamic pattern as a function of time.
                 ...
                 Self::RotationRange(obj) => obj.into_py(py),
                 Self::ScalarRange(obj) => obj.into_py(py),
-                //------------------------------
+                //The additional goal (Cone)
                 Self::Cone(obj) => obj.into_py(py)
                 //-----------------------------
             }
@@ -286,7 +288,7 @@ that adhered to this dynamic pattern as a function of time.
             if let Ok(ob) = ScalarRange::extract(ob) {
                 return Ok(Self::ScalarRange(ob))
             }
-            //-------------------------------
+            //The additional goal (Cone)
             if let Ok(ob) = Cone::extract(ob){
                 return Ok(Self::Cone(ob))
             }
@@ -305,7 +307,7 @@ that adhered to this dynamic pattern as a function of time.
 
 ```rust
     ...
-    //-------------------------------------Adding Goal
+    //The additional struct for the new goal (Cone)
     #[repr(C)]
     #[derive(Serialize, Deserialize, Clone, Debug, Default, Copy)]
     #[cfg_attr(feature = "pybindings", pyclass)]
