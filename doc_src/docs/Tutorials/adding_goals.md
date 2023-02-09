@@ -25,7 +25,7 @@ To demonstrate how to create additional lifelike behavior mentioned above, the d
 - [`src/utils/goals.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/utils/goals.rs)
 - [`src/utils/info.rs`](https://github.com/Wisc-HCI/lively/blob/master/src/utils/info.rs)
 
-We will name the new Objective: `PerspectiveLivelinessObjective` and the new goal: `Cone`.
+We will name the new objective: `PerspectiveLivelinessObjective` and the new goal: `Cone`.
 
 <Tabs>
   <TabItem value="perlin" label="src/objectives/liveliness/perlin.rs">
