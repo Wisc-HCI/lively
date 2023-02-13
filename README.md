@@ -1,5 +1,6 @@
-[![PyPI version](https://img.shields.io/pypi/v/lively_tk)](https://badge.fury.io/py/lively_tk)
-![Upload Python Package](https://github.com/Wisc-HCI/lively_tk/workflows/Upload%20Python%20Package/badge.svg)
+[![PyPI version](https://badge.fury.io/py/lively-tk.svg)](https://badge.fury.io/py/lively-tk)
+[![npm version](https://badge.fury.io/js/@people_and_robots%2Flively.svg)](https://badge.fury.io/js/@people_and_robots%2Flively)
+
 # Lively v0.10.0 (beta)
 
 _NOTE: Since Lively is still in beta, the design is subject to change and should not be considered final!_
