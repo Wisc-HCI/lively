@@ -1,3 +1,5 @@
+<img width="640" alt="banner_doc_github" src="https://user-images.githubusercontent.com/5341396/218564862-aeac4437-873f-48cb-b503-15375250f75b.png">
+
 [![PyPI version](https://badge.fury.io/py/lively-tk.svg)](https://badge.fury.io/py/lively-tk)
 [![npm version](https://badge.fury.io/js/@people_and_robots%2Flively.svg)](https://badge.fury.io/js/@people_and_robots%2Flively)
 
