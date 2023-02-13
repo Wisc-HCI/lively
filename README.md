@@ -1,7 +1,12 @@
-<img width="640" alt="banner_doc_github" src="https://user-images.githubusercontent.com/5341396/218564862-aeac4437-873f-48cb-b503-15375250f75b.png">
+<h1 align="center">
+  <a href="https://wisc-hci.github.io/lively/"><img src="https://user-images.githubusercontent.com/5341396/218564862-aeac4437-873f-48cb-b503-15375250f75b.png" alt="Lively"></a>
+</h1>
 
-[![PyPI version](https://badge.fury.io/py/lively-tk.svg)](https://badge.fury.io/py/lively-tk)
-[![npm version](https://badge.fury.io/js/@people_and_robots%2Flively.svg)](https://badge.fury.io/js/@people_and_robots%2Flively)
+<p align="center">
+    <a href="https://badge.fury.io/py/lively-tk"><img src="https://badge.fury.io/py/lively-tk.svg" alt="PyPI version" height="18"></a>
+    <a href="https://badge.fury.io/js/@people_and_robots%2Flively"><img src="https://badge.fury.io/js/@people_and_robots%2Flively.svg" alt="npm version" height="18"></a>
+    <a href= "https://wisc-hci.github.io/lively/"><img alt="docs: ready" src="https://img.shields.io/badge/docs-ready-success.svg?logoHeight=10"></a>
+</p>
 
 # Lively v0.10.0 (beta)
 
