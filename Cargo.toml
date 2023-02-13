@@ -1,7 +1,7 @@
 [package]
 name = "lively"
 version = "1.0.0-rc.2"
-description = "A real-time robot control framework with liveliness."
+description = "A highly configurable toolkit for commanding robots in mixed modalities with liveliness."
 repository = "https://github.com/Wisc-HCI/lively"
 homepage = "https://wisc-hci.github.io/lively/"
 license = "MIT"
@@ -36,7 +36,7 @@ profiling = { version = "1.0" , optional = true}
 # Bevy
 bevy_transform_gizmo = {version = "0.3.1", optional = true}
 bevy_mod_picking = {version = "0.9", optional = true}
-smooth-bevy-cameras = {git = "https://github.com/bonsairobo/smooth-bevy-cameras", optional = true}
+smooth-bevy-cameras = {version = "0.7.0", optional = true}
 bevy = {version = "0.8.1", optional = true}
 
 # Python
