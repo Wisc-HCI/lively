@@ -5,6 +5,7 @@
 <p align="center">
     <a href="https://badge.fury.io/py/lively-tk"><img src="https://badge.fury.io/py/lively-tk.svg" alt="PyPI version" height="18"></a>
     <a href="https://badge.fury.io/js/@people_and_robots%2Flively"><img src="https://badge.fury.io/js/@people_and_robots%2Flively.svg" alt="npm version" height="18"></a>
+    <br>
     <a href= "https://wisc-hci.github.io/lively/"><img alt="docs: ready" src="https://img.shields.io/badge/docs-ready-success.svg?logoHeight=10"></a>
 </p>
 
