@@ -25,7 +25,7 @@ jobs:
           args: --release --out dist --sdist -m Cargo.toml
       - name: Install built wheel - x86_64
         run: |
-          pip install lively --no-index --find-links dist --force-reinstall
+          pip install lively-tk --no-index --find-links dist --force-reinstall
           python -c "import lively"
       - name: Build wheels - universal2
         uses: PyO3/maturin-action@v1
