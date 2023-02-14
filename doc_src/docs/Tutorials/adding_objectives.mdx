@@ -3,11 +3,6 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-:::note
-Since Lively is still in beta, the design is subject to change and should not be considered final!
-:::
-
-
 `Lively` can be greatly extended through the development of additional [`objectives`](../API/Objectives). In order to add your own new [`objectives`](../API/Objectives), there are three files you will have to modify. 
 In the example below, an additional `CenterOfMassMatchObjective` is created. Because the robot state already includes a vector representing the [`center-of-mass`](../API/state)
 of the robot, it is straightforward to create a new [`objectives`](../API/Objectives) of `CenterOfMassMatch`,

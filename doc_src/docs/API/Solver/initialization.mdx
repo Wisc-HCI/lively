@@ -10,16 +10,16 @@ import TabItem from "@theme/TabItem";
 Configuring of Lively is centered on the [`Solver`](../Solver) class, which you can instantiate with the following parameters:
 
 :::note
-If no values are provided for the **optional** field, the `Solver` will just use the default values and behaviors for the optional parameters.
+If no values are provided for the `optional` field, the **`Solver`** will just use the default values and behaviors for the `optional` parameters.
 :::
 
 | Parameter            | Type                                                                   | Optional | Default value/behavior                                                                                                                                                        | Description                                                                                                                                                                                                                                                                                                                      |
 | -------------------- | ---------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `urdf`               | string                                                                 | no       | none                                                                                                                                                                          | URDF XML as a string.                                                                                                                                                                                                                                                                                                            |
-| `objectives`         | look-up table of [`Objectives`](../Objectives) indexed by a string key | no       | none                                                                                                                                                                          | The initial objectives to the `Solver`.                                                                                                                                                                                                                                                                                          |
+| `objectives`         | look-up table of [`Objectives`](../Objectives) indexed by a string key | no       | none                                                                                                                                                                          | The initial objectives to the **`Solver`**.                                                                                                                                                                                                                                                                                          |
 | `root_bounds`        | list of 6 pairs of floats                                              | yes      | The root of the robot is fixed to the world origin                                                                                                                            | The list of hard limits on how much the base of the robot can move relative to the world frame. The first value in each pair is the center of the range, and the second is the delta allowed. The first 3 entries correspond to the X, Y, and Z coordinates, and the second 3 correspond to the rotation in R, P, Y euler angles |
 | `shapes`             | list of [`Shape`](../Shapes) objects                                   | yes      | There will be no other shapes beside that of the robot.                                                                                                                       | The initial environmental shapes that will not be modified in a later stage. `shape_update` in [`solve`](Methods/solve) will not modify these shapes. They are solely static in the scene.                                                                                                                                       |
-| `initial_state`      | [`State`](../state) objects                                            | yes      | Only `origin` and `joints` parameters have to be defined for the [`State`](../state) if user decided to provide a [`State`](../state) object to the `initial_state` parameter | The initial state to the `Solver`.                                                                                                                                                                                                                                                                                               |
+| `initial_state`      | [`State`](../state) objects                                            | yes      | Only `origin` and `joints` parameters have to be defined for the [`State`](../state) if user decided to provide a [`State`](../state) object to the `initial_state` parameter | The initial state to the **`Solver`**.                                                                                                                                                                                                                                                                                               |
 | `max_retries`        | integer                                                                | yes      | Value of 1 is used                                                                                                                                                            | If a value bigger than 1 is provided, the new value is the maximum number of randomly initialized rounds allowed for each invocation of [`solve`](Methods/solve).                                                                                                                                                                |
 | `max_iterations`     | integer                                                                | yes      | value of 150 is used                                                                                                                                                          | If a value other than 150 is provided, the value is the number of maximum iterations per round within the optimization.                                                                                                                                                                                                          |
 | `collision_settings` | [`Collision Setting`](../Info/CollisionSettingInfo)                    | yes      | See Type Defaults                                                                                                                                                             | The initial setting to [`Collision Avoidance`](../collision).                                                                                                                                                                                                                                                                    |
@@ -50,7 +50,7 @@ use lively::lively::Solver;
    </TabItem>
 </Tabs>
 
-## Example Solver Initialization
+## Solver Initialization Example
 
 <Tabs>
   <TabItem value="js" label="Javascript">
@@ -129,7 +129,7 @@ solver = Solver(
   objectives={
       "PositionMatchObjective" : PositionMatchObjective(name="EE Position",link="panda_hand",weight=50),
       "OrientationMatchObjective" :  OrientationMatchObjective(name="EE Rotation",link="panda_hand",weight=25),
-      "SmoothnessMacroObjective":SmoothnessMacroObjective(name="General Smoothness",weight=10),
+      "SmoothnessMacroObjective":SmoothnessMacroObjective(name="General Smoothness",weight=10,joints=true, origin=false, links=false),
       "CollisionAvoidanceObjective":CollisionAvoidanceObjective(name="Collision Avoidance",weight=10)
       ...
   },
@@ -173,7 +173,7 @@ fn main(){
     PositionMatchObjective::new("EE Position".to_string(), 0.0, "tool0".to_string());
  let col_avoid_obj =
     CollisionAvoidanceObjective::new("Collision Avoidance".to_string(), 20.0);
- let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 30.0);
+ let smooth_macro_obj = SmoothnessMacroObjective::new("Smoothness".to_string(), 30.0, true, false, false);
  let root_bounds: Vec<(f64, f64)> = vec![
          (0.0, 0.0),
          (0.0, 0.0),
