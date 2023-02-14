@@ -1,0 +1,52 @@
+# Installation
+
+
+:::note 
+Since Lively is still in beta, the design is subject to change and should not be considered final!
+:::
+
+`Lively` can be install as `javascript`, `python`, and `rust` packages. 
+
+------------
+## Javascript
+view it on [`www.npmjs.com`](https://www.npmjs.com/package/@people_and_robots/lively) 
+### Installation 
+`npm i @people_and_robots/lively`
+### Import
+`import { Solver } from "@people_and_robots/lively";`
+
+
+
+-------------
+## Python
+view it on [`Pypl`](https://pypi.org/project/lively-tk/1.0.0rc2/)
+### Installation 
+`pip install lively-tk==1.0.0rc2`
+### Import
+`from lively import Solver`
+
+
+
+-------------
+## Rust
+The package is not yet posted on [`crates.io`](https://crates.io/), but you can install the package by making necessary changes under `[dependencies]` and `[patch.crates-io]` in `cargo.toml`.
+### Installation
+
+```rust title="cargo.toml"
+[dependencies]
+lively = {git = "https://github.com/Wisc-HCI/lively", tag="1.0.0-rc.2"}
+k = { version = "0.29.1" }
+
+[patch.crates-io]
+k = {git = "https://github.com/AndrewJSchoen/k"}
+```
+
+### Import
+`use lively::lively::Solver;`
+
+-------------
+
+
+
+
+
