@@ -1,7 +1,10 @@
 import React, { memo, useEffect } from "react";
 import { Scene, useSceneStore } from "robot-scene";
-import { mapValues } from "lodash";
+// import { mapValues } from "lodash";
+import { Button } from "./Button";
 import MeshLookupTable from "./Meshes";
+import { FullScreen, useFullScreenHandle } from "react-full-screen";
+import { useControls, Leva } from "leva";
 
 export const RobotViewer = ({
   state,
@@ -9,8 +12,26 @@ export const RobotViewer = ({
   showCollision = false,
   shapes,
   transformControl,
-  onMove
+  onMove,
+  levaOptions = {}
 }) => {
+  const handle = useFullScreenHandle();
+  const { _ } = useControls({
+    fullScreen: {
+      label: "Full Screen",
+      value: handle.active,
+      onChange: (v) => {
+        if (v) {
+          handle.enter();
+        } else {
+          handle.exit();
+        }
+      },
+    },
+    ...levaOptions
+  });
+  // const {foo} = useControls({foo:'bar'});
+
   useEffect(() => {
     let items = {};
     links?.forEach((link) => {
@@ -23,14 +44,11 @@ export const RobotViewer = ({
         });
       }
     });
-   
 
-    
-      shapes?.forEach((shape, i) => {
-        items[`env-shape-${shape.name}`] = shape2item(shape, false);
-      });
-    
-    
+    shapes?.forEach((shape, i) => {
+      items[`env-shape-${shape.name}`] = shape2item(shape, false);
+    });
+
     if (transformControl) {
       //console.log("transformControl", transformControl);
       items[`transform-controller-${transformControl.name}`] = shape2item(
@@ -48,12 +66,21 @@ export const RobotViewer = ({
   }, [state, links, onMove]);
   //items[`transformControl-${transformControl.name}`] = shape2item(transformControl,false);
 
-  return <SceneWrapper />;
+  return (
+    <>
+      <FullScreen handle={handle}>
+        <Leva/>
+        <SceneWrapper bounded={!handle.active} />
+      </FullScreen>
+    </>
+  );
 };
 
-const SceneWrapper = memo(() => {
+const SceneWrapper = memo(({ bounded }) => {
   return (
-    <div style={{ height: 500, marginTop: 4, marginBottom: 4 }}>
+    <div
+      style={{ height: bounded ? 500 : "100%", marginTop: 0, marginBottom: 4 }}
+    >
       <Scene
         displayGrid={true}
         backgroundColor="#1e1e1e"
@@ -70,7 +97,7 @@ const SceneWrapper = memo(() => {
   );
 });
 
-function shape2item(shape, isCollision ) {
+function shape2item(shape, isCollision) {
   let item = {
     name: shape.name,
     frame: shape.frame,
@@ -89,11 +116,11 @@ function shape2item(shape, isCollision ) {
       ? { r: 100, g: 0, b: 0, a: 1 }
       : { r: 100, g: 100, b: 100, a: 1 },
     scale: { x: 1, y: 1, z: 1 },
-    wireframe: isCollision
+    wireframe: isCollision,
   };
 
   switch (shape.type) {
-    case "Arrow": 
+    case "Arrow":
       item.shape = "arrow";
       item.scale = { x: 0.5, y: 0.5, z: 0.5 };
       item.transformMode = "rotate";

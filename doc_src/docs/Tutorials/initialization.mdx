@@ -9,11 +9,11 @@ Since Lively is still in beta, the design is subject to change and should not be
 
 We have also created examples in Javascript, Python, and Rust for Basic Initialization. You can find the file by clicking the links in the table down below.
 
-|Language|Path|Command to run the example|
-|---|---|---|
-|Rust|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/rust_examples/basic_initialization_example.rs)|`cargo run --package lively --example basic_initialization_example`|
-|Python|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/python_examples/basic_initialization_example.ipynb)|run in the Jupyter Notebook|
-|Javascript|[link](https://github.com/Wisc-HCI/lively/tree/master/examples/js_examples/basic_initialization)|`yarn build`, `yarn dev`|
+| Language   | Path                                                                                                               | Command to run the example                                          |
+| ---------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Rust       | [link](https://github.com/Wisc-HCI/lively/blob/master/examples/rust_examples/basic_initialization_example.rs)      | `cargo run --package lively --example basic_initialization_example` |
+| Python     | [link](https://github.com/Wisc-HCI/lively/blob/master/examples/python_examples/basic_initialization_example.ipynb) | run in the Jupyter Notebook                                         |
+| Javascript | [link](https://github.com/Wisc-HCI/lively/tree/master/examples/js_examples/basic_initialization)                   | `yarn build`, `yarn dev`                                            |
 
 <Tabs>
   <TabItem value="jsx" label="Live">
@@ -63,15 +63,17 @@ function InitializationExample(props) {
 
   return (
     <div>
-      <Button active={robot === "panda"} onClick={() => setRobot("panda")}>
-        Panda
-      </Button>
-      <Button active={robot === "ur3e"} onClick={() => setRobot("ur3e")}>
-        UR3e
-      </Button>
       <RobotViewer
         state={robotState}
         links={livelySolver ? livelySolver.links : []}
+        levaOptions={{
+          robot: {
+            label: "Robot",
+            value: robot,
+            options: { UR3e: "ur3e", Panda: "panda" },
+            onChange: (r) => setRobot(r),
+          },
+        }}
       />
       <Tree label="state" data={robotState} />
     </div>
@@ -84,27 +86,26 @@ function InitializationExample(props) {
   <TabItem value="js" label="Javascript">
 
 ```js
-import { panda } from './urdfs.js';
-import { Solver } from '@people_and_robots/lively';
+import { panda } from "./urdfs.js";
+import { Solver } from "@people_and_robots/lively";
 
 const newSolver = new Solver(panda, {
   smoothness: {
     // An example objective (smoothness macro)
-    name: 'MySmoothnessObjective',
-    type: 'SmoothnessMacro',
+    name: "MySmoothnessObjective",
+    type: "SmoothnessMacro",
     weight: 5,
   },
 });
 
 const newState = newSolver.solve({}, {}, 0.0);
 
-document.querySelector('#app').innerHTML = `
+document.querySelector("#app").innerHTML = `
   <div>
    ${JSON.stringify(newState)}
   </div>`;
 
 console.log(newState);
-
 ```
 
   </TabItem>
