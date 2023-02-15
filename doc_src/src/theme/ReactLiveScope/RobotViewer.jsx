@@ -5,6 +5,37 @@ import { Button } from "./Button";
 import MeshLookupTable from "./Meshes";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import { useControls, Leva } from "leva";
+import { useColorMode } from "@docusaurus/theme-common";
+
+const LevaLightMode = {
+  colors: {
+    elevation1: "#eee",
+    elevation2: "#ddd",
+    elevation3: "#eee",
+    accent1: "#8528a0",
+    accent2: "#b44cd2",
+    accent3: "#c26edb",
+    highlight1: "#333",
+    highlight2: "#444",
+    highlight3: "#555",
+    vivid1: "#ffcc00",
+  },
+};
+
+const LevaDarkMode = {
+  colors: {
+    elevation1: "#333",
+    elevation2: "#222",
+    elevation3: "#333",
+    accent1: "#942db1",
+    accent2: "#bf65d8",
+    accent3: "#cf8be2",
+    highlight1: "#777",
+    highlight2: "#999",
+    highlight3: "#FEFEFE",
+    vivid1: "#ffcc00",
+  },
+};
 
 export const RobotViewer = ({
   state,
@@ -13,8 +44,9 @@ export const RobotViewer = ({
   shapes,
   transformControl,
   onMove,
-  levaOptions = {}
+  levaOptions = {},
 }) => {
+  const { colorMode } = useColorMode();
   const handle = useFullScreenHandle();
   const { _ } = useControls({
     fullScreen: {
@@ -28,7 +60,7 @@ export const RobotViewer = ({
         }
       },
     },
-    ...levaOptions
+    ...levaOptions,
   });
   // const {foo} = useControls({foo:'bar'});
 
@@ -69,7 +101,13 @@ export const RobotViewer = ({
   return (
     <>
       <FullScreen handle={handle}>
-        <Leva/>
+        <Leva
+          flat={!handle.active}
+          fill={!handle.active}
+          hideCopyButton
+          titleBar={{ title: "Example Settings" }}
+          theme={colorMode === "dark" ? LevaDarkMode : LevaLightMode}
+        />
         <SceneWrapper bounded={!handle.active} />
       </FullScreen>
     </>
