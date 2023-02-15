@@ -1,10 +1,11 @@
 # Box
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import box from '/img/box.png';
 
 A 6-sided cuboid that captures colliders that have cuboid properties. 
 
-![img alt](/img/box.png)
+<img src={box} alt='box' width='200'/>
 
 | Parameter |Type| Description |
 |---|---|--|
@@ -12,9 +13,9 @@ A 6-sided cuboid that captures colliders that have cuboid properties.
 |`name`|string|A user-defined name of the shape|
 |`frame`|string|The coordinateshe frame this shape belongs to. Can either be `world` or `robot frame`|
 |`physical`|boolean|True if the collision with this shape is phyiscal, else false|
-|`x`|float|The length of `x` dimension|
-|`y`|float|The length of `y` dimension|
-|`z`|float|The length of `z` dimension|
+|<span class='axis-x'>`x`</span>|float|The length of <span class='axis-x'>`x`</span> dimension|
+|<span class='axis-y'>`y`</span>|float|The length of <span class='axis-y'>`y`</span> dimension|
+|<span class='axis-z'>`z`</span>|float|The length of <span class='axis-z'>`z`</span> dimension|
 |`localTransform`|isometry consisted of translation and rotation|Defines the position and rotation of the shape relevant to the specific `frame`|
 
 

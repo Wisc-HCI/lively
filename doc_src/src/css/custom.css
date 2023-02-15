@@ -29,3 +29,23 @@
   --ifm-color-primary-lightest: #dfb1eb;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+.axis-x {
+  color:#DF5252
+}
+
+.axis-y {
+  color:#67E06D
+}
+
+.axis-z {
+  color:#6897E1
+}
+
+.attr-radius {
+  color:#FF8D00
+}
+
+.attr-length {
+  color:#CE4AFF
+}

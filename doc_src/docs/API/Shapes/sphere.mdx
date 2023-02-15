@@ -1,10 +1,11 @@
 # Sphere
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import sphere from '/img/sphere.png';
 
 A 3D sphere that captures colliders that have ball-like properties. 
 
-![img alt](/img/sphere.png)
+<img src={sphere} alt='sphere' width='200'/>
 
 | Parameter |Type| Description |
 |---|---|--|
@@ -12,7 +13,7 @@ A 3D sphere that captures colliders that have ball-like properties.
 |`name`|string|A user-defined name of the shape|
 |`frame`|string|The coordinateshe frame this shape belongs to. Can either be `world` or `robot frame`|
 |`physical`|boolean|True if the collision with this shape is phyiscal, else false|
-|`radius`|float|The length of `radius` of the sphere|
+|<span class='attr-radius'>`radius`</span>|float|The length of <span class='attr-radius'>`radius`</span> of the sphere|
 |`localTransform`|isometry consisted of translation and rotation|Defines the position and rotation of the shape relevant to the specific `frame`|
 
 <Tabs>

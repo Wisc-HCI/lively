@@ -1,10 +1,11 @@
 # Capsule
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import capsule from '/img/capsule.png';
 
 A 3D capsule shape that captures colliders with curvilinear geometric properties.
 
-![img alt](/img/capsule.jpeg)
+<img src={capsule} alt='capsule' width='200'/>
 
 | Parameter |Type| Description |
 |---|---|--|
@@ -12,8 +13,8 @@ A 3D capsule shape that captures colliders with curvilinear geometric properties
 |`name`|string|A user-defined name of the shape|
 |`frame`|string|The coordinateshe frame this shape belongs to. Can either be `world` or `robot frame`|
 |`physical`|boolean|True if the collision with this shape is phyiscal, else false|
-|`length`|float|The length of height of the capsule|
-|`radius`|float|The length of `radius` of the capsule|
+|<span class='attr-length'>`length`</span>|float|The length of <span class='attr-length'>`length`</span> of the capsule, not including caps|
+|<span class='attr-radius'>`radius`</span>|float|The length of <span class='attr-radius'>`radius`</span> of the capsule|
 |`localTransform`|isometry consisted of translation and rotation|Defines the position and rotation of the shape relevant to the specific `frame`|
 
 <Tabs>

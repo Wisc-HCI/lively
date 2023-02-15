@@ -1,10 +1,11 @@
 # Cylinder
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import cylinder from '/img/cylinder.png';
 
 A 3D cylinder shape that captures colliders with curvilinear geometric properties.
 
-![img alt](/img/cylinder.gif)
+<img src={cylinder} alt='cylinder' width='200'/>
 
 | Parameter |Type| Description |
 |---|---|--|
@@ -12,8 +13,8 @@ A 3D cylinder shape that captures colliders with curvilinear geometric propertie
 |`name`|string|A user-defined name of the shape|
 |`frame`|string|The coordinateshe frame this shape belongs to. Can either be `world` or `robot frame`|
 |`physical`|boolean|True if the collision with this shape is phyiscal, else false|
-|`length`|float|The length of height of the cylinder|
-|`radius`|float|The length of `radius` of the cylinder|
+|<span class='attr-length'>`length`</span>|float|The length of <span class='attr-length'>`length`</span> of the cylinder|
+|<span class='attr-radius'>`radius`</span>|float|The length of <span class='attr-radius'>`radius`</span> of the cylinder|
 |`localTransform`|isometry consisted of translation and rotation|Defines the position and rotation of the shape relevant to the specific `frame`|
 
 
