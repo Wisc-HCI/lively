@@ -179,19 +179,11 @@ function shape2item(shape, isCollision) {
       break;
     case "Cylinder":
       item.shape = "cylinder";
-      item.scale = {
-        x: shape.radius * 2,
-        y: shape.radius * 2,
-        z: shape.length,
-      };
+      item.shapeParams = {height: shape.length,radius:shape.radius};
       break;
     case "Capsule":
       item.shape = "capsule";
-      item.scale = {
-        x: shape.radius * 2,
-        y: shape.radius * 2,
-        z: shape.length,
-      };
+      item.shapeParams = {height: shape.length,radius:shape.radius};
       break;
     case "Mesh":
       item.shape = shape.filename;

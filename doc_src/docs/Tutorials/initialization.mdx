@@ -23,6 +23,7 @@ function InitializationExample(props) {
   const [livelySolver, setLivelySolver] = useState(null);
   const [robot, setRobot] = useState("panda");
   const [robotState, setRobotState] = useState(null);
+  const [showCollision, setShowCollision] = useState(false);
 
   useEffect(() => {
     /* 
@@ -66,13 +67,19 @@ function InitializationExample(props) {
       <RobotViewer
         state={robotState}
         links={livelySolver ? livelySolver.links : []}
+        showCollision={showCollision}
         levaOptions={{
           robot: {
             label: "Robot",
             value: robot,
-            options: { UR3e: "ur3e", Panda: "panda" },
+            options: { UR3e: "ur3e", Panda: "panda"},
             onChange: (r) => setRobot(r),
           },
+          showCollision:{
+            value:showCollision,
+            label:'Show Collisions',
+            onChange:(v)=>setShowCollision(v)
+          }
         }}
       />
       <Tree label="state" data={robotState} />

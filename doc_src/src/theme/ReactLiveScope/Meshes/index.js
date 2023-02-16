@@ -296,6 +296,13 @@ import ConveyorReceiver from './Other/ConveyorReceiver';
 import ConveyorDispatcherCollision from './Other/ConveyorDispatcherCollision';
 import ConveyorReceiverCollision from './Other/ConveyorReceiverCollision';
 
+//---------------------------------------------------Quori
+import HelmetDuripod from './Quori/helmet_duripod';
+import LowerArmLeft from './Quori/lower_arm_left';
+import LowerArmRight from './Quori/lower_arm_right';
+import UpperArmLeft from './Quori/upper_arm_left';
+import UpperArmRight from './Quori/upper_arm_right';
+
 const MeshLookupTable = {
     // 'sphere':Sphere,
     // 'cube':Cube,
@@ -558,7 +565,13 @@ const MeshLookupTable = {
        'package://evd_ros_tasks/tasks/3d_printer_machine_tending/collision_meshes/Table.stl': Collision_Table ,
        //'package://app/meshes/InfoPhycon.stl': InfoPhycon, // not showing
        'package://app/meshes/LocationMarker.stl': LocationMarker,
-       'package://app/meshes/OpenWaypointMarker.stl': OpenWaypointMarker, //
+       'package://app/meshes/OpenWaypointMarker.stl': OpenWaypointMarker,
+       //---------------Quori
+       'package://quori_description/meshes/0917_Helmet_Duripod.dae':HelmetDuripod,
+       'package://quori_description/meshes/0917_Lower_Arm_left.dae':LowerArmLeft,
+       'package://quori_description/meshes/0917_Lower_Arm_right.dae':LowerArmRight,
+       'package://quori_description/meshes/0917_Upper_Arm+gear_left.dae':UpperArmLeft,
+       'package://quori_description/meshes/0917_Upper_Arm+gear_right.dae':UpperArmRight,
   }
 
   export default MeshLookupTable

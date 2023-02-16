@@ -120,6 +120,7 @@ const sidebars = {
         //"Tutorials/initialization_hook",
         "Tutorials/solving",
         "Tutorials/liveliness",
+        "Tutorials/social",
         "Tutorials/environment",
         "Tutorials/environment-sine",
       ],
