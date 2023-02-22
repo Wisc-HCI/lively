@@ -9,22 +9,30 @@ Since Lively is still in beta, the design is subject to change and should not be
 
 We have also created examples in Javascript, Python, and Rust for liveliness. You can find the file by clicking the links in the table down below.
 
-|Language|Path|Command to run the example|
-|---|---|---|
-|Rust|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/rust_examples/liveliness_example.rs)|cargo run --package lively --example liveliness_example|
-| Python |[link](https://github.com/Wisc-HCI/lively/blob/master/examples/python_examples/liveliness_example.ipynb)|run in the Jupyter Notebook|
-| Javascript| [link](https://github.com/Wisc-HCI/lively/tree/master/examples/js_examples/liveliness)|`yarn build`, `yarn dev`|
+| Language   | Path                                                                                                     | Command to run the example                              |
+| ---------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Rust       | [link](https://github.com/Wisc-HCI/lively/blob/master/examples/rust_examples/liveliness_example.rs)      | cargo run --package lively --example liveliness_example |
+| Python     | [link](https://github.com/Wisc-HCI/lively/blob/master/examples/python_examples/liveliness_example.ipynb) | run in the Jupyter Notebook                             |
+| Javascript | [link](https://github.com/Wisc-HCI/lively/tree/master/examples/js_examples/liveliness)                   | `yarn build`, `yarn dev`                                |
 
 <Tabs>
   <TabItem value="jsx" label="Live">
 
 ```jsx live
 function InitializationExample(props) {
+  const l_arm_joints = {
+      LShoulderPitch: 0,
+      LShoulderRoll: 1.1,
+      LElbowYaw: -1.88,
+      LElbowRoll: -0.7,
+      LWristYaw: 0.9 ,
+      LHand: 1
+    };
+
   const [livelySolver, setLivelySolver] = useState(null);
   const [robot, setRobot] = useState("panda");
   const [robotState, setRobotState] = useState(null);
   const [visualRobotState, setVisualRobotState] = useState(null);
-  const [torsoTranslation, setTorsoTranslation] = useState([0,0,0.4])
 
   useEffect(() => {
     /* 
@@ -42,15 +50,15 @@ function InitializationExample(props) {
         smoothness: {
           name: "MySmoothnessObjective",
           type: "SmoothnessMacro",
-          weight: 15,
+          weight: 25,
           joints: true,
           origin: false,
-          links: true,
+          links: false,
         },
         collision: {
           name: "MyCollisionDetection",
           type: "CollisionAvoidance",
-          weight: 5,
+          weight: .5,
         },
         jointLimit: {
           name: "MyJointLimit",
@@ -61,15 +69,69 @@ function InitializationExample(props) {
           name: "Torso Position",
           type: "PositionMatch",
           link: "torso",
-          weight: 10
+          weight: 10,
+        },
+        rHandPosition: {
+          name: "R Hand Position",
+          type: "PositionMatch",
+          link: "r_gripper",
+          weight: 10,
+        },
+        rHandOrientation: {
+          name: "R Hand Orientation",
+          type: "OrientationMatch",
+          link: "r_gripper",
+          weight: 10,
+        },
+        headOrientation: {
+          name: "Gaze",
+          type: "OrientationMatch",
+          link: "Head",
+          weight: 7,
         },
         idleGaze: {
           name: "Idle Gaze",
           type: "OrientationLiveliness",
           link: "Head",
-          weight: 7,
-          frequency: 7,
-        }
+          weight: 20,
+          frequency: 10,
+        },
+        LShoulderPitch: {
+          name: "LShoulderPitch",
+          joint: "LShoulderPitch",
+          type: "JointMatch",
+          weight: 10,
+        },
+        LShoulderRoll: {
+          name: "LShoulderRoll",
+          joint: "LShoulderRoll",
+          type: "JointMatch",
+          weight: 10,
+        },
+        LElbowYaw: {
+          name: "LElbowYaw",
+          joint: "LElbowYaw",
+          type: "JointMatch",
+          weight: 10,
+        },
+        LElbowRoll: {
+          name: "LElbowRoll",
+          joint: "LElbowRoll",
+          type: "JointMatch",
+          weight: 10,
+        },
+        LWristYaw: {
+          name: "LWristYaw",
+          joint: "LWristYaw",
+          type: "JointMatch",
+          weight: 10,
+        },
+        LHand: {
+          name: "LHand",
+          joint: "LHand",
+          type: "JointMatch",
+          weight: 10,
+        },
       }
     );
     // Normalize the collision bodies
@@ -90,24 +152,30 @@ function InitializationExample(props) {
     };
   }, [robot]); // Rerun this code if the robot changes
 
-  useEffect(()=>{
+  useEffect(() => {
     const updateSolver = () => {
       if (livelySolver) {
         const d = new Date();
+        let jointGoals =lodash.mapValues(l_arm_joints,(j)=>({Scalar:j}));
+        
         let time = d.getTime(); // Get the time in milliseconds
+        jointGoals.LElbowRoll.Scalar = 0.21*Math.sin(time/1000) - 1.13;
         let goals = {
           torsoPosition: {
-            Translation: torsoTranslation
+            Translation: [0.0,0.0,0.85],
+          },
+          rHandPosition: {
+            Translation: [0.0,-0.216,0.546]
+          },
+          rHandOrientation: {
+            Rotation: [0.536,0.455,-0.435,0.5616]
           },
           idleGaze: {
             Size: [0.01, 0.0, 0.1],
           },
+          ...jointGoals
         };
-        const newState = livelySolver.solve(
-          goals,
-          {},
-          time / 1000
-        ); // Pass the new goal into solve function
+        const newState = livelySolver.solve(goals, {}, time / 1000); // Pass the new goal into solve function
         // Update the solver's current state
         setRobotState(newState);
         setVisualRobotState(newState);
@@ -118,26 +186,19 @@ function InitializationExample(props) {
 
     const interval = setInterval(updateSolver, 1000 / 60);
 
-    return (()=>{
+    return () => {
       //setShapesUpdate(null);
       setRobotState(null);
       setVisualRobotState(null);
       clearInterval(interval);
-    })
-  },[livelySolver,torsoTranslation])
+    };
+  }, [livelySolver]);
 
   return (
     <div>
       <RobotViewer
         state={robotState}
         links={livelySolver ? livelySolver.links : []}
-        levaOptions={{
-          torsoTranslation:{
-            label: "Torso Translation",
-            value: torsoTranslation,
-            onChange: (v) => {setTorsoTranslation(v)}
-          }
-        }}
       />
       <Tree label="state" data={visualRobotState} />
     </div>
@@ -169,7 +230,7 @@ async function start() {
         name: "MyPositionObjective",
         type: "PositionMatch",
         weight: 15,
-        link: 'panda_hand'
+        link: "panda_hand",
       },
       positionLively: {
         name: "MyLivelinessObjective",

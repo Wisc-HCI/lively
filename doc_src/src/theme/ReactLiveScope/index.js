@@ -6,6 +6,7 @@ import { Tree } from './Tree';
 import { Button } from './Button';
 import { RobotViewer } from './RobotViewer';
 import { useLively } from './useLively';
+import lodash from 'lodash';
 
 const ReactLiveScope = {
   React,
@@ -15,7 +16,8 @@ const ReactLiveScope = {
   Tree,
   Button,
   RobotViewer,
-  useLively
+  useLively,
+  lodash
 };
 
 
