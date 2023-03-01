@@ -59,7 +59,7 @@ fn main() {
 
 
     
-let data = fs::read_to_string("./tests/basic.xml").expect("Something went wrong reading the file");
+let data = fs::read_to_string("./tests/pepper.xml").expect("Something went wrong reading the file");
 let mut solver = Solver::new(
     data.clone(), // Full urdf as a string
     objectives, //objectives
