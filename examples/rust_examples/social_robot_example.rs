@@ -32,11 +32,9 @@ fn main() {
         "RHandOrientation".into(), Objective::OrientationMatch(OrientationMatchObjective::new("R Hand Orientation".to_string(), 10.0 , "r_gripper".to_string()))
     );
     objectives.insert(
-        "Gaze".into(), Objective::OrientationMatch(OrientationMatchObjective::new("Gaze".to_string(), 7.0 , "Head".to_string()))
+        "HeadOrientation".into(), Objective::OrientationMatch(OrientationMatchObjective::new("Gaze".to_string(), 7.0 , "Head".to_string()))
     );
-    objectives.insert(
-        "Gaze".into(), Objective::OrientationMatch(OrientationMatchObjective::new("Gaze".to_string(), 7.0 , "Head".to_string()))
-    );
+
     objectives.insert(
         "Idle Gaze".into(), Objective::OrientationLiveliness(OrientationLivelinessObjective::new("OrientationLiveliness".to_string(), 0.0, "Head".to_string(), 10.0))
     );
