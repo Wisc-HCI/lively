@@ -8,9 +8,8 @@ fn main() {
     let mut objectives: HashMap<String, Objective> = HashMap::new();
     // Add a Smoothness Macro Objective
     objectives.insert(
-        "smoothness".into(),
-        // An example objective (smoothness macro)
-        Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective".to_string(), 5.0, true,false,false))
+        "smoothness".into(),Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective".to_string(), 5.0, true,false,false))
+        
     );
 let data = fs::read_to_string("./tests/basic.xml").expect("Something went wrong reading the file");
 let mut solver = Solver::new(

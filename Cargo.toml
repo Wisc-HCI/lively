@@ -104,3 +104,7 @@ path = "examples/rust_examples/liveliness_example.rs"
 [[example]]
 name = "environmental_modeling_example"
 path = "examples/rust_examples/environmental_modeling_example.rs"
+
+[[example]]
+name = "social_robot_example"
+path = "examples/rust_examples/social_robot_example.rs"
