@@ -7,7 +7,11 @@ import TabItem from '@theme/TabItem';
 Since Lively is still in beta, the design is subject to change and should not be considered final!
 :::
 
-`Lively` supports 
 
-https://www.npmjs.com/package/@people_and_robots/lively : npm i @people_and_robots/lively
+- Javascript: `npm i @people_and_robots/lively`
+- Python: `pip install lively-tk`
+- Rust: 
+`[dependencies]
+...
+lively = {git = "https://github.com/Wisc-HCI/lively", tag="1.0.0-rc.1"}` in `Cargo.toml`
 
