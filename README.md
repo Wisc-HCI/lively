@@ -46,6 +46,10 @@ pip3 install maturin
 maturin develop
 ```
 
+## Deploy to GitHub Page
+
+To deploy, run `yarn deploy` from the `main` branch. We will need to redeploy everytime we make new changes to the documentataion.
+
 **Javascript Instructions**
 
 To build, download and `cd` to this directory. Then run:
