@@ -37,7 +37,7 @@ function HomepageHeader() {
           width:'100vw'
         }}
       >
-        <h1 className="hero__title">{"Lively v0.10.0 (beta)"}</h1>
+        <h1 className="hero__title">{"Lively"}</h1>
         <p className="hero__subtitle">
           {
             "A highly configurable toolkit for commanding robots in mixed modalities"
