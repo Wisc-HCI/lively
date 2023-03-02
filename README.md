@@ -48,7 +48,7 @@ maturin develop
 
 ## Deploy to GitHub Page
 
-To deploy, run `yarn deploy` from the `main` branch. We will need to redeploy everytime we make new changes to the documentataion.
+To deploy, run `yarn deploy` from the `main` branch in the `docs` directory. We will need to redeploy every time we make new changes to the documentataion.
 
 **Javascript Instructions**
 
