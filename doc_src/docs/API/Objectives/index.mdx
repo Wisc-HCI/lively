@@ -18,7 +18,7 @@ Lively allows for a wide range of robot with which users program robot motion. T
 
 The priority of the `Objective` is determined by the `weight` parameter. Higher `weight` indicates a higher priority for an `objective`. A value between 0 and 5 is suggestive, 5 to 40 is true [`goal-driven`](../Goals/goals) behavior, and after that it behaves more like a constraint.
 
-`Weight` can be adjusted in real-time, allowing for prioritization of certain `objectives` and [`goals`](../Goals/goals), or the deactivation of others, based on the current needs of the developer. Since `Objectives` are organized by key, and atomic updates are possible for `goals` and `weights`, only the needed changes need to be included each round of [`solve`](../Solver/Methods/solve).
+`Weight` can be adjusted in real-time, allowing for prioritization of certain `objectives` and [`goals`](../Goals/goal), or the deactivation of others, based on the current needs of the developer. Since `Objectives` are organized by key, and atomic updates are possible for `goals` and `weights`, only the needed changes need to be included each round of [`solve`](../Solver/Methods/solve).
 
 ## Import
 
