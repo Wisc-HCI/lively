@@ -316,18 +316,12 @@ impl JointAccelerationMinimizationObjective {
 impl Callable<bool> for JointAccelerationMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
-        let time_diff1:f64 = TEMPORAL_NORMALIZATION*(state.timestamp - v.history.prev1.timestamp);
-        let time_diff2:f64 = TEMPORAL_NORMALIZATION*(v.history.prev1.timestamp - v.history.prev2.timestamp);
         for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
             let v1: f64 = joint_value - v.history.prev1.get_joint_position(&joint.name);
             let v2: f64 = v.history.prev1.get_joint_position(&joint.name)
                 - v.history.prev2.get_joint_position(&joint.name);
-            if time_diff1 > 0.0 && time_diff2 > 0.0 {
-                x_val += (v1 / time_diff1 - v2 / time_diff2).powi(2);
-            } else {
-                x_val += (v1 - v2).powi(2);
-            }
+            x_val += (v1 - v2).powi(2);
         }
         return self.weight * groove_loss(x_val.sqrt(), 0.0, 2, 0.1, 10.0, 2);
     }
@@ -375,14 +369,7 @@ impl Callable<bool> for OriginAccelerationMinimizationObjective {
         let pos1: Vector3<f64> = state.origin.translation.vector;
         let pos2: Vector3<f64> = v.history.prev1.origin.translation.vector;
         let pos3: Vector3<f64> = v.history.prev2.origin.translation.vector;
-        let time_diff1:f64 = TEMPORAL_NORMALIZATION*(state.timestamp - v.history.prev1.timestamp);
-        let time_diff2:f64 = TEMPORAL_NORMALIZATION*(v.history.prev1.timestamp - v.history.prev2.timestamp);
-        let x_val: f64;
-        if time_diff1 > 0.0 && time_diff2 > 0.0 {
-            x_val = ((pos1 - pos2)/time_diff1 - (pos2 - pos3)/time_diff2).norm().powi(2);
-        } else {
-            x_val = ((pos1 - pos2) - (pos2 - pos3)).norm().powi(2);
-        }
+        let x_val: f64 = ((pos1 - pos2) - (pos2 - pos3)).norm().powi(2);
 
         return self.weight * groove_loss(x_val.sqrt(), 0.0, 2, 0.1, 10.0, 2);
     }
@@ -428,18 +415,12 @@ impl LinkAccelerationMinimizationObjective {
 impl Callable<bool> for LinkAccelerationMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val: f64 = 0.0;
-        let time_diff1:f64 = TEMPORAL_NORMALIZATION*(state.timestamp - v.history.prev1.timestamp);
-        let time_diff2:f64 = TEMPORAL_NORMALIZATION*(v.history.prev1.timestamp - v.history.prev2.timestamp);
         for link in v.links.iter() {
             let pos1: Vector3<f64> = state.get_link_transform(&link.name).translation.vector;
             let pos2: Vector3<f64> = v.history.prev1.get_link_transform(&link.name).translation.vector;
             let pos3: Vector3<f64> = v.history.prev2.get_link_transform(&link.name).translation.vector;
             
-            if time_diff1 > 0.0 && time_diff2 > 0.0 {
-                x_val += ((pos1 - pos2)/time_diff1 - (pos2 - pos3)/time_diff2).norm().powi(2);
-            } else {
-                x_val += ((pos1 - pos2) - (pos2 - pos3)).norm().powi(2);
-            }
+            x_val += ((pos1 - pos2) - (pos2 - pos3)).norm().powi(2);
         }
         return self.weight * groove_loss(x_val.sqrt(), 0.0, 2, 0.1, 10.0, 2);
     }
@@ -485,9 +466,6 @@ impl JointJerkMinimizationObjective {
 impl Callable<bool> for JointJerkMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val = 0.0;
-        let time_diff1:f64 = TEMPORAL_NORMALIZATION*(state.timestamp - v.history.prev1.timestamp);
-        let time_diff2:f64 = TEMPORAL_NORMALIZATION*(v.history.prev1.timestamp - v.history.prev2.timestamp);
-        let time_diff3:f64 = TEMPORAL_NORMALIZATION*(v.history.prev2.timestamp - v.history.prev3.timestamp);
         for joint in v.joints.iter() {
             let joint_value: f64 = state.get_joint_position(&joint.name);
             let v1: f64;
@@ -498,13 +476,7 @@ impl Callable<bool> for JointJerkMinimizationObjective {
                 - v.history.prev2.get_joint_position(&joint.name);
             v3 = v.history.prev2.get_joint_position(&joint.name)
                 - v.history.prev3.get_joint_position(&joint.name);
-            if time_diff1 > 0.0 && time_diff2 > 0.0 && time_diff3 > 0.0 {
-                x_val += ((v1 / time_diff1 - v2 / time_diff2)
-                    - (v2 / time_diff2 - v3 / time_diff3))
-                    .powi(2);
-            } else {
-                x_val += ((v1 - v2) - (v2 - v3)).powi(2);
-            }
+            x_val += ((v1 - v2) - (v2 - v3)).powi(2);
         }
         return self.weight * groove_loss(x_val.sqrt(), 0.0, 2, 0.1, 10.0, 2);
     }
@@ -554,18 +526,9 @@ impl Callable<bool> for OriginJerkMinimizationObjective {
         let pos2: Vector3<f64> = v.history.prev1.origin.translation.vector;
         let pos3: Vector3<f64> = v.history.prev2.origin.translation.vector;
         let pos4: Vector3<f64> = v.history.prev3.origin.translation.vector;
-        let time_diff1:f64 = TEMPORAL_NORMALIZATION*(state.timestamp - v.history.prev1.timestamp);
-        let time_diff2:f64 = TEMPORAL_NORMALIZATION*(v.history.prev1.timestamp - v.history.prev2.timestamp);
-        let time_diff3:f64 = TEMPORAL_NORMALIZATION*(v.history.prev2.timestamp - v.history.prev3.timestamp);
-        if time_diff1 > 0.0 && time_diff2 > 0.0 && time_diff3 > 0.0 {
-            x_val = (((pos1 - pos2)/time_diff1 - (pos2 - pos3)/time_diff2) - ((pos2 - pos3)/time_diff2 - (pos3 - pos4)/time_diff3))
+        x_val = (((pos1 - pos2) - (pos2 - pos3)) - ((pos2 - pos3) - (pos3 - pos4)))
             .norm()
             .powi(2);
-        } else {
-            x_val = (((pos1 - pos2) - (pos2 - pos3)) - ((pos2 - pos3) - (pos3 - pos4)))
-            .norm()
-            .powi(2);
-        }
         
         return self.weight * groove_loss(x_val.sqrt(), 0.0, 2, 0.1, 10.0, 2);
     }
@@ -611,24 +574,15 @@ impl LinkJerkMinimizationObjective {
 impl Callable<bool> for LinkJerkMinimizationObjective {
     fn call(&self, v: &Vars, state: &State) -> f64 {
         let mut x_val: f64 = 0.0;
-        let time_diff1:f64 = TEMPORAL_NORMALIZATION*(state.timestamp - v.history.prev1.timestamp);
-        let time_diff2:f64 = TEMPORAL_NORMALIZATION*(v.history.prev1.timestamp - v.history.prev2.timestamp);
-        let time_diff3:f64 = TEMPORAL_NORMALIZATION*(v.history.prev2.timestamp - v.history.prev3.timestamp);
         for link in v.links.iter() {
             let pos1: Vector3<f64> = state.get_link_transform(&link.name).translation.vector;
             let pos2: Vector3<f64> = v.history.prev1.get_link_transform(&link.name).translation.vector;
             let pos3: Vector3<f64> = v.history.prev2.get_link_transform(&link.name).translation.vector;
             let pos4: Vector3<f64> = v.history.prev3.get_link_transform(&link.name).translation.vector;
             
-            if time_diff1 > 0.0 && time_diff2 > 0.0 && time_diff3 > 0.0 {
-                x_val += (((pos1 - pos2)/time_diff1 - (pos2 - pos3)/time_diff2) - ((pos2 - pos3)/time_diff2 - (pos3 - pos4)/time_diff3))
+            x_val += (((pos1 - pos2) - (pos2 - pos3)) - ((pos2 - pos3) - (pos3 - pos4)))
                 .norm()
                 .powi(2);
-            } else {
-                x_val += (((pos1 - pos2) - (pos2 - pos3)) - ((pos2 - pos3) - (pos3 - pos4)))
-                .norm()
-                .powi(2);
-            }
         }
         return self.weight * groove_loss(x_val.sqrt(), 0.0, 2, 0.1, 10.0, 2);
     }
