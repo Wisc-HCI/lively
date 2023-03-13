@@ -9,9 +9,9 @@
     <a href= "https://wisc-hci.github.io/lively/"><img alt="docs: ready" src="https://img.shields.io/badge/docs-ready-success.svg?logoHeight=10"></a>
 </p>
 
-# Lively v1.0.0 (RC2)
+# Lively v1.0.0
 
-_NOTE: Since Lively is still in beta, the design is subject to change and should not be considered final!_
+You can find the documentation for lively [here](https://wisc-hci.github.io/lively/)
 
 ## About
 
