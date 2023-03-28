@@ -9,7 +9,7 @@
     <a href= "https://wisc-hci.github.io/lively/"><img alt="docs: ready" src="https://img.shields.io/badge/docs-ready-success.svg?logoHeight=10"></a>
 </p>
 
-# Lively v1.0.0
+# Lively v1.1.0
 
 You can find the documentation for lively [here](https://wisc-hci.github.io/lively/)
 

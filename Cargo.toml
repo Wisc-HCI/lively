@@ -1,6 +1,6 @@
 [package]
 name = "lively"
-version = "1.0.0"
+version = "1.1.0"
 description = "A highly configurable toolkit for commanding robots in mixed modalities with liveliness."
 repository = "https://github.com/Wisc-HCI/lively"
 homepage = "https://wisc-hci.github.io/lively/"
@@ -50,7 +50,7 @@ getrandom = { version = "0.2", features = ["js"] }
 nalgebra = { version = "0.31", features = ["serde-serialize-no-std"]}
 array2d = "0.2.1"
 parry3d-f64 = "0.9.0"
-wasm-bindgen = { version = "=0.2.83", features = ["serde-serialize"] }
+wasm-bindgen = { version = "0.2.84", features = ["serde-serialize"] }
 yaml-rust = "0.4"
 optimization_engine = { version = "0.7.7", features = ["wasm"] }
 ndarray = "0.13.0"
