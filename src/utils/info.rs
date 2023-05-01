@@ -907,3 +907,56 @@ impl Ellipse {
     }
 
 }
+
+#[repr(C)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Copy)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct Line {
+    pub start: Vector3<f64>,
+    pub end: Vector3<f64>
+}
+
+impl Line {
+    pub fn new(start: Vector3<f64>, end: Vector3<f64>) -> Self {
+        Self { start, end }
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl Line {
+    #[new]
+    pub fn from_python(start: PyPoint3, end: PyPoint3) -> Self {
+        Self::new(start.value, end.value)
+    }
+
+    #[getter]
+    pub fn get_start(&self) -> PyResult<PyPoint3> {
+        Ok(PyPoint3 {value:self.start.clone()})
+    }
+
+    #[getter]
+    pub fn get_end(&self) -> PyResult<PyPoint3> {
+        Ok(PyPoint3 {value:self.end.clone()})
+    }
+
+    fn as_str(&self) -> String {
+        format!("Line: {{start: {{x: {:?}, y: {:?}, z: {:?}}}, end: {{x: {:?}, y: {:?}, z: {:?}}}}}",
+            self.start[0],
+            self.start[1],
+            self.start[2],
+            self.end[0],
+            self.end[1],
+            self.end[2],
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+}

@@ -1,4 +1,5 @@
 use crate::objectives::objective::{groove_loss, Callable};
+use crate::utils::info::Line;
 use crate::utils::state::State;
 use crate::utils::vars::Vars;
 use nalgebra::geometry::UnitQuaternion;
@@ -271,5 +272,74 @@ impl DistanceMatchObjective {
     #[getter]
     pub fn get_link2(&self) -> PyResult<String> {
         Ok(self.link2.clone())
+    }
+}
+
+#[repr(C)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct PositionLineMatchObjective {
+    pub name: String,
+    pub weight: f64,
+    pub link: String,
+    // Goal Value
+    #[serde(skip)]
+    pub goal: Line,
+}
+
+impl PositionLineMatchObjective {
+    pub fn new(name: String, weight: f64, link: String) -> Self {
+        Self {
+            name,
+            weight,
+            link,
+            goal: Line::new(vector![0.0, 0.0, 0.0],vector![0.0, 0.0, 0.0]),
+        }
+    }
+}
+
+impl Callable<Line> for PositionLineMatchObjective {
+    fn call(&self, _v: &Vars, state: &State) -> f64 {
+        // Get the link transform from frames
+        let link_translation = state.get_link_transform(&self.link).translation.vector;
+        let ap = link_translation - self.goal.start;
+        let ab = self.goal.end - self.goal.start;
+        let projected = self.goal.start + (ab*(ap.dot(&ab)/ab.dot(&ab)));
+
+        let x_val = (link_translation - projected).norm();
+
+        return self.weight * groove_loss(x_val, 0., 2, 0.1, 10.0, 2);
+    }
+
+    fn set_goal(&mut self, goal: Line) {
+        self.goal = goal;
+    }
+
+    fn set_weight(&mut self, weight: f64) {
+        self.weight = weight;
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl PositionLineMatchObjective {
+    #[new]
+    pub fn from_python(name:String,weight:f64,link:String) -> Self {
+        PositionLineMatchObjective::new(name,weight,link)
+    }
+    
+    #[getter]
+    pub fn get_name(&self) -> PyResult<String> {
+        Ok(self.name.clone())
+    }
+
+    #[getter]
+    pub fn get_weight(&self) -> PyResult<f64> {
+        Ok(self.weight.clone())
+    }
+
+    #[getter]
+    pub fn get_link(&self) -> PyResult<String> {
+        Ok(self.link.clone())
     }
 }
