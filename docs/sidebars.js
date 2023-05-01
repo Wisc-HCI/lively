@@ -123,6 +123,7 @@ const sidebars = {
         "Tutorials/social",
         "Tutorials/environment",
         "Tutorials/environment-sine",
+        "Tutorials/line",
         "Tutorials/solving_jacobian"
       ],
     },
