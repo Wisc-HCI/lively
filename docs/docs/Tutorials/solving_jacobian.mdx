@@ -1,0 +1,292 @@
+# Utility - Jacobian IK
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+:::note
+Since Lively is still in beta, the design is subject to change and should not be considered final!
+:::
+
+We have also created examples in Javascript, Python, and Rust for solving. You can find the file by clicking the links in the table down below.
+
+|Language|Path|Command to run the example|
+|---|---|---|
+|Rust|[link](https://github.com/Wisc-HCI/lively/blob/master/examples/rust_examples/solving_example.rs)|cargo run --package lively --example solving_example|
+| Python |[link](https://github.com/Wisc-HCI/lively/blob/master/examples/python_examples/solving_example.ipynb)|run in the Jupyter Notebook|
+| Javascript| [link](https://github.com/Wisc-HCI/lively/tree/master/examples/js_examples/solving)|`yarn build`, `yarn dev`|
+
+<Tabs>
+  <TabItem value="jsx" label="Live">
+
+```jsx live
+function InitializationExample(props) {
+  const [livelySolver, setLivelySolver] = useState(null);
+  const [robot, setRobot] = useState("panda");
+  const [robotState, setRobotState] = useState(null);
+  const [visualRobotState, setVisualRobotState] = useState(null);
+
+  useEffect(() => {
+    /* 
+      Given that we are showing this example in a declarative
+      react context, we need to use the useEffect hook to execute
+      imperative (sequential) code. That means that if you are
+      writing standard javascript, your code will look like the
+      contents of the function in this 'useEffect'.
+    */
+
+    // Instantiate a new solver
+    const newSolver = new lively.Solver(
+      urdfs.panda, // The urdf of the robot
+      {}
+    );
+    newSolver.computeAverageDistanceTable();
+    
+    // Assign the solver to the value
+    setLivelySolver(newSolver);
+    // Run solve to get a solved state
+    const newState = newSolver.solve({}, {}, 0.0);
+    // Update the solver's current state
+    setRobotState(newState);
+    setVisualRobotState(newState);
+
+    const updateSolver = () => {
+      if (newSolver) {
+        const d = new Date();
+        let time = d.getTime(); // Get the time used in Math.sin
+        let goal = {
+          // An goal example with defined Translation and Rotation
+          translation: [
+              0.0,
+              Math.cos(time / 1000) / 20 + 0.4, // The sin function alternating between -1 and 1 to have the robot to swing back and forth along the y-axis
+              Math.sin(time / 1000) / 5 + 0.5, // The sin function alternating between -1 and 1 to have the robot to swing back and forth along the z-axis
+          ],
+          rotation: [0.0, 0.707, 0.0, 0.0] // A defined Rotation to make the gripper facing downward
+        };
+        const newState = newSolver.jacobianIk(goal, {translation:[0.0,0.0,0.0],rotation:[0.0,0.0,0.0,1.0]}, robot === 'panda' ? 'panda_hand' : 'tool0'); // Pass the new goal into solve function
+        if (newState?.frames) {
+          // Update the solver's current state
+          setRobotState(newState);
+        }
+        
+      }
+    };
+
+    const interval = setInterval(updateSolver, 1000 / 30); // Update the solver 30fps
+
+    return () => {
+      // Provide a function to clear previous values
+      setLivelySolver(null);
+      setRobotState(null);
+      setVisualRobotState(null);
+      clearInterval(interval);
+    };
+  }, [robot]); // Rerun this code if the robot changes
+
+  return (
+    <div>
+      <RobotViewer
+        state={robotState}
+        links={livelySolver ? livelySolver.links : []}
+      />
+      <Button
+        active={robot === "panda"}
+        onClick={() => setVisualRobotState(robotState)}
+      >
+        Update State
+      </Button>
+      <Tree label="state" data={visualRobotState} />
+    </div>
+  );
+}
+```
+
+  </TabItem>
+
+  <TabItem value="js" label="Javascript">
+
+```js
+import { panda, ur3e } from './urdfs.js';
+import { Solver } from '@people_and_robots/lively';
+
+const initialRootBounds = [
+  // An exmaple of root bounds
+  { value: 0.0, delta: 0.0 },
+  { value: 0.25, delta: 0.0 },
+  { value: 0.5, delta: 0.0 },
+  { value: 0.0, delta: 0.0 },
+  { value: 0.0, delta: 0.0 },
+  { value: 0.0, delta: 0.0 },
+];
+
+const initialObjectives = {
+  // some objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
+  smoothness: {
+    name: 'MySmoothnessObjective',
+    type: 'SmoothnessMacro',
+    weight: 20,
+    joints: true,
+    origin: false,
+    links: true,
+  },
+  position: {
+    name: 'MyPositionMatchObjective',
+    type: 'PositionMatch',
+    link: 'panda_hand',
+    weight: 15,
+  },
+  orientation: {
+    name: 'MyOrientationMatchObjective',
+    type: 'OrientationMatch',
+    link: 'panda_hand',
+    weight: 10,
+  },
+  collision: {
+    name: 'MyCollisionDetection',
+    type: 'CollisionAvoidance',
+    weight: 3,
+  },
+  jointLimit: {
+    name: 'MyJointLimit',
+    type: 'JointLimits',
+    weight: 5,
+  },
+  jointMatch: {
+    name: 'MyJointMatchFinger1',
+    type: 'JointMatch',
+    weight: 5,
+    joint: 'panda_finger_joint1',
+  },
+};
+
+const initialEnvShapes = [
+  {
+    type: 'Cylinder', // The Cylinder here is an example of static environmental shape. This shape will be not able to be moved or deleted.
+    name: 'pill',
+    frame: 'world',
+    physical: true,
+    length: 0.3,
+    radius: 0.2,
+    localTransform: {
+      translation: [-0.8, 0.0, 0.1],
+      rotation: [1.0, 0.0, 0.0, 0.0],
+    }, // [x, y, z, w] ordering for quaternion
+  },
+];
+
+const collision_settings = {
+  // This is an example of customized collision_settings
+  dMax: 0.1,
+  r: 0.0,
+  aMax: 2.0,
+  timeBudget: 100,
+  timed: false,
+};
+
+const newSolver = new Solver(
+  panda,
+  initialObjectives,
+  initialRootBounds,
+  initialEnvShapes,
+  null,
+  null,
+  null,
+  collision_settings
+);
+
+newSolver.computeAverageDistanceTable();
+const d = new Date();
+let time = d.getTime(); // Get the time used in Math.sin
+let goal = {
+  // An goal example with defined Translation and Rotation
+  position: {
+    Translation: [
+      0.0,
+      0.5,
+      Math.sin(time / 1000) / 5 + 0.5, // The sin function alternating between -1 and 1 to have the robot to swing back and forth along the z-axis
+    ],
+  },
+  orientation: {
+    Rotation: [0.0, 0.707, 0.0, 0.0], // A defined Rotation to make the gripper facing downward
+  },
+  jointMatch: {
+    Scalar: 0.02,
+  },
+};
+const newState = newSolver.solve(goal, {}, time / 1000);
+
+document.querySelector('#app').innerHTML = `
+  <div>
+   ${JSON.stringify(newState)}
+  </div>`;
+
+console.log(newState);
+```
+
+  </TabItem>
+
+  <TabItem value="py" label="Python">
+
+```py
+from lively import Solver, SmoothnessMacroObjective
+
+# Instantiate a new solver
+solver = Solver(
+  urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
+  objectives={
+      # An example objective (smoothness macro)
+      "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5)
+  }
+)
+
+# Run solve to get a solved state
+state = solver.solve({},{},0.0)
+# Log the initial state
+print(state)
+```
+
+  </TabItem>
+
+  <TabItem value="rs" label="Rust">
+
+```rust
+use lively::lively::Solver;
+use lively::objectives::core::base::SmoothnessMacroObjective;
+use lively::objectives::objective::Objective;
+use std::collections::HashMap;
+use std::fs;
+
+fn main() {
+    let mut objectives: HashMap<String, Objective> = HashMap::new();
+    // Add a Smoothness Macro Objective
+    objectives.insert(
+        "smoothness".into(),
+        // An example objective (smoothness macro)
+        Objective::SmoothnessMacro(SmoothnessMacroObjective::new("MySmoothnessObjective".to_string(), 5.0, true,false,false))
+    );
+let data = fs::read_to_string("./tests/basic.xml").expect("Something went wrong reading the file");
+let mut solver = Solver::new(
+    data.clone(), // Full urdf as a string
+    objectives, //objectives
+    None, //root_bounds
+    None, //shapes
+    None, //initial_state
+    None, //max_retries
+    None, //max_iterations
+    None); //collision_settings
+  // Run solve to get a solved state
+  let state = solver.solve(
+    HashMap::new(), // empty goals hashmap
+    HashMap::new(), // empty weights hashmap
+    0.0, // time
+    None //shape_update
+  );
+  // Log the initial state
+  println!("{:?}",state);
+
+}
+
+```
+
+  </TabItem>
+
+</Tabs>
