@@ -75,29 +75,10 @@ function InitializationExample(props) {
   };
 
   const initialGoal = {
-    // the inital goal to be fed into the the solver representing the the initial translation and rotation.
-    position: {
-      Translation: initialGoalValues.translation,
-    },
-    orientation: {
-      Rotation: initialGoalValues.rotation,
-    },
+    position: { Line: {start: [0,0,0], end: [1,1,1]}, }
   };
 
-  const initialEnvShapes = [
-    {
-      type: "Cylinder", // The Cylinder here is an example of static environmental shape.
-      name: "pill",
-      frame: "world",
-      physical: true,
-      length: 0.3,
-      radius: 0.2,
-      localTransform: {
-        translation: [-0.8, 0.0, 0.1],
-        rotation: [1.0, 0.0, 0.0, 0.0],
-      }, // [x, y, z, w] ordering for quaternion
-    },
-  ];
+  const initialEnvShapes = [];
 
   const [livelySolver, setLivelySolver] = useState(null);
   const [robot, setRobot] = useState("panda");
@@ -116,68 +97,6 @@ function InitializationExample(props) {
   const [envShapes, setEnvShapes] = useState(initialEnvShapes);
   const [shapesUpdate, setShapesUpdate] = useState(null);
   const [activeCube, setActiveCube] = useState(false);
-
-  function addOrRemoveEnvCube() {
-    if (activeCube) {
-      const newEnvShapes = envShapes.filter((shape) => shape.name !== "box");
-      setEnvShapes(newEnvShapes);
-      setActiveCube(false);
-      setShapesUpdate([
-        {
-          Delete: "env-box",
-        },
-      ]);
-    } else {
-      const cube = [
-        {
-          Add: {
-            id: "env-box", // must be an unique id
-            shape: {
-              type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
-              name: "box", // name can be arbitrary
-              frame: "world", // or 'world'
-              physical: true, // physical collision
-              x: 0.25,
-              y: 0.25,
-              z: 0.25, // dimension of the box
-              localTransform: {
-                translation: [0.6, 0.05, 0.15],
-                rotation: [0.0, 0.0, 0.0, 1.0],
-              },
-            },
-          }
-        },
-      ];
-      let newEnvShapes = initialEnvShapes;
-      newEnvShapes.push({
-        type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
-        name: "box", // name can be arbitrary
-        frame: "world", // or 'world'
-        physical: true, // physical collision
-        x: 0.25,
-        y: 0.25,
-        z: 0.25, // dimension of the box
-        localTransform: {
-          translation: [0.6, 0.05, 0.15],
-          rotation: [0.0, 0.0, 0.0, 1.0],
-        },
-        transformMode : "translate"
-      });
-      setShapesUpdate(cube);
-      setEnvShapes(newEnvShapes);
-      setActiveCube(true);
-    }
-  }
-
-  function updateTransformMode() {
-    // switch between Position Match or Orientation Match
-    transformMode === "translate"
-      ? setTransformMode("rotate")
-      : setTransformMode("translate");
-    transformControl.type === "Arrow"
-      ? setTransformControl(sphereTransformControlVisual)
-      : setTransformControl(arrowTransformControlVisual);
-  }
 
   function updateTransformControlTransform(transform) {
     let newGoal = goal;
@@ -275,39 +194,13 @@ function InitializationExample(props) {
     const newSolver = new lively.Solver(
       urdfs.ur3e, // The urdf of the robot
       {
-        // some objective examples. Notice for JavaScript, you do not need to import anything for objective. Simply construct an object
-        smoothness: {
-          name: "MySmoothnessObjective",
-          type: "SmoothnessMacro",
-          weight: 15,
-          joints: true,
-          origin: false,
-          links: true,
-        },
-        collision: {
-          // The main objective that allows the robot to avoid collision within the links, as well as with the environmental objects.
-          name: "MyCollisionDetection",
-          type: "CollisionAvoidance",
-          weight: 3,
-        },
-        jointLimit: {
-          name: "MyJointLimit",
-          type: "JointLimits",
-          weight: 5,
-        },
         position: {
           // The main objective that allows the pand hand to follow the position defined by the sphere transform control visual in the scene.
-          name: "MyPositionMatchObjective",
-          type: "PositionMatch",
+          name: "MyPositionLineMatchObjective",
+          type: "PositionLineMatch",
           link: "tool0",
           weight: 15,
-        },
-        orientation: {
-          // The main objective that allows the pand hand to follow the orientation defined by the arrow transform control visual in the scene.
-          name: "MyOrientationMatchObjective",
-          type: "OrientationMatch",
-          link: "tool0",
-          weight: 10,
+          goal: {start: [0,0,0], end:[1,1,1]},
         },
       },
       [
@@ -349,6 +242,8 @@ function InitializationExample(props) {
         //console.log(shapesUpdate);
         const d = new Date();
         let time = d.getTime(); // Get the time in milliseconds
+        let newTranslation = [Math.sin(time / 1000) / 5 + -0.8, 0.5, 0.25];
+        let newTranslation2 = [0.8, 0.5, Math.sin(time / 500) / 10 + 0.3];
         const newState = livelySolver.solve(
           goal,
           {},
@@ -358,9 +253,41 @@ function InitializationExample(props) {
         // Update the solver's current state
         setRobotState(newState);
         setVisualRobotState(newState);
-      }
+        setEnvShapes([
+          {
+            type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+            name: "box", // name can be arbitrary
+            frame: "world", // or 'world'
+            physical: false, // physical collision
+            x: 0.25,
+            y: 0.25,
+            z: 0.25, // dimension of the box
+            localTransform: {
+              translation: newTranslation,
+              rotation: [0.0, 0.0, 0.0, 1.0],
+            },
+          },
+          {
+            type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+            name: "box2", // name can be arbitrary
+            frame: "world", // or 'world'
+            physical: false, // physical collision
+            x: 0.25,
+            y: 0.25,
+            z: 0.25, // dimension of the box
+            localTransform: {
+              translation: newTranslation2,
+              rotation: [0.0, 0.0, 0.0, 1.0],
+            },
+          },
+        ]);
 
-      //console.log(goal);
+        let newGoal = {
+          position: { Line: {start: newTranslation, end: newTranslation2}, }
+        };
+        // setGoal(newGoal);
+      }
+      // console.log(goal);
     };
 
     const interval = setInterval(updateSolver, 1000 / 60);
@@ -386,29 +313,6 @@ function InitializationExample(props) {
         }
         activeEnvShapesTransform={activeShapesTransform}
       />
-      <Button
-        active={robot === "panda"}
-        onClick={() => setVisualRobotState(robotState)}
-      >
-        Update State
-      </Button>
-      <Button
-        active={transformMode === "translate"}
-        onClick={() => updateTransformMode()}
-      >
-        Position Match
-      </Button>
-      <Button
-        active={transformMode === "rotate"}
-        onClick={() => updateTransformMode()}
-      >
-        Orientation Match
-      </Button>
-      <Button active={activeCube} onClick={() => addOrRemoveEnvCube()}>
-        {activeCube
-          ? "Delete environmental shape - Cube"
-          : "Add environmental shape - Cube"}
-      </Button>
 
       <Tree label="state" data={visualRobotState} />
     </div>
