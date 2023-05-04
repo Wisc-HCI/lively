@@ -42,6 +42,7 @@ export const RobotViewer = ({
   links = [],
   showCollision = false,
   shapes,
+  lines,
   transformControl,
   onMove,
   levaOptions = {},
@@ -91,11 +92,11 @@ export const RobotViewer = ({
 
     let tfs = state2tfs(state);
 
-    useSceneStore.setState({ items, tfs, onMove });
+    useSceneStore.setState({ items, tfs, onMove, lines });
     //useSceneStore.setState(state => console.log(state));
 
     //useDefaultSceneStore.setState({items,tfs})
-  }, [state, links, onMove]);
+  }, [state, links, onMove, lines]);
   //items[`transformControl-${transformControl.name}`] = shape2item(transformControl,false);
 
   return (
