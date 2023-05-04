@@ -137,7 +137,7 @@ function InitializationExample(props) {
     ];
     setArrowTransformControlVisual(newArrowTransformControl); // update the the transformation of the arrow transform control visual in the scene.
     setSphereTransformControlVisual(newSphereTransformControl); // update the the transformation of the sphere transform control visual in the scene.
-    setGoal(newGoal); // update the goal being sent to the solver.
+    //setGoal(newGoal); // update the goal being sent to the solver.
     transformMode === "translate"
       ? setTransformControl(newSphereTransformControl)
       : setTransformControl(newArrowTransformControl);
@@ -189,6 +189,7 @@ function InitializationExample(props) {
       which needs to be imported asynchronously.
       */
     var currentSolver;
+   
 
     // Instantiate a new solver
     const newSolver = new lively.Solver(
@@ -236,6 +237,7 @@ function InitializationExample(props) {
     };
   }, [robot]); // Rerun this code if the robot changes
 
+  var newGoal;
   useEffect(() => {
     const updateSolver = () => {
       if (livelySolver) {
@@ -244,8 +246,11 @@ function InitializationExample(props) {
         let time = d.getTime(); // Get the time in milliseconds
         let newTranslation = [Math.sin(time / 1000) / 5 + -0.8, 0.5, 0.25];
         let newTranslation2 = [0.8, 0.5, Math.sin(time / 500) / 10 + 0.3];
+        newGoal = {
+          position: { Line: {start: newTranslation, end: newTranslation2}, }
+        };
         const newState = livelySolver.solve(
-          goal,
+          newGoal,
           {},
           time / 1000,
           shapesUpdate // compare to static environmental shapes, these shapes can be modified.
@@ -280,25 +285,21 @@ function InitializationExample(props) {
               rotation: [0.0, 0.0, 0.0, 1.0],
             },
           },
-        ]);
-
-        let newGoal = {
-          position: { Line: {start: newTranslation, end: newTranslation2}, }
-        };
-        // setGoal(newGoal);
+        ]);     
       }
       // console.log(goal);
     };
-
+    
     const interval = setInterval(updateSolver, 1000 / 60);
 
     return (()=>{
       //setShapesUpdate(null);
+      setGoal(newGoal);
       setRobotState(null);
       setVisualRobotState(null);
       clearInterval(interval);
     })
-  }, [livelySolver,shapesUpdate,goal]); // Update the solver 30fps},[robot])
+  }, [livelySolver,shapesUpdate,newGoal]); // Update the solver 30fps},[robot])
 
   return (
     <div>
