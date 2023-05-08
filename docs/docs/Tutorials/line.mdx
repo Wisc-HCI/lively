@@ -75,10 +75,70 @@ function InitializationExample(props) {
   };
 
   const initialGoal = {
-    position: { Line: {start: [0,0,0], end: [1,1,1]}, }
+    line: { Line: {start: [-0.8, 0.5,  0.3], end: [0.8, 0.5,  0.3]}, },
+    position: {Translation: initialGoalValues.translation},
   };
 
-  const initialEnvShapes = [];
+  const initialEnvShapes = [
+    {
+      type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+      name: "box", // name can be arbitrary
+      frame: "world", // or 'world'
+      physical: false, // physical collision
+      x: 0.125,
+      y: 0.125,
+      z: 0.125, // dimension of the box
+      localTransform: {
+        translation: [-0.8, 0.5,  0.3],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+      },
+    },
+    {
+      type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
+      name: "box2", // name can be arbitrary
+      frame: "world", // or 'world'
+      physical: false, // physical collision
+      x: 0.125,
+      y: 0.125,
+      z: 0.125, // dimension of the box
+      localTransform: {
+        translation: [0.8, 0.5,  0.3],
+        rotation: [0.0, 0.0, 0.0, 1.0],
+      },
+    },
+];
+  const initialEnvLines = [{
+    name: "Line",
+    vertices: [
+      {
+        position: {
+          x: -0.8,
+          y: 0.5,
+          z: 0.3
+        },
+        color: {
+          r: 255,
+          g: 0,
+          b: 0,
+          a: 1
+        }
+      },
+      {
+        position: {
+          x: 0.8,
+          y: 0.5,
+          z: 0.3
+        },
+        color: {
+          r: 255,
+          g: 0,
+          b: 0,
+          a: 1
+        }
+      },
+    ],
+    width: 1
+  }];
 
   const [livelySolver, setLivelySolver] = useState(null);
   const [robot, setRobot] = useState("panda");
@@ -95,6 +155,7 @@ function InitializationExample(props) {
   ); // the visual representation of the transformMode.
   const [goal, setGoal] = useState(initialGoal);
   const [envShapes, setEnvShapes] = useState(initialEnvShapes);
+  const [envLines, setEnvLines] = useState(initialEnvLines);
   const [shapesUpdate, setShapesUpdate] = useState(null);
   const [activeCube, setActiveCube] = useState(false);
 
@@ -104,12 +165,6 @@ function InitializationExample(props) {
       transform.position.x,
       transform.position.y,
       transform.position.z,
-    ];
-    newGoal.orientation.Rotation = [
-      transform.quaternion.x,
-      transform.quaternion.y,
-      transform.quaternion.z,
-      transform.quaternion.w,
     ];
     let newArrowTransformControl = arrowTransformControlVisual;
     let newSphereTransformControl = sphereTransformControlVisual;
@@ -137,7 +192,7 @@ function InitializationExample(props) {
     ];
     setArrowTransformControlVisual(newArrowTransformControl); // update the the transformation of the arrow transform control visual in the scene.
     setSphereTransformControlVisual(newSphereTransformControl); // update the the transformation of the sphere transform control visual in the scene.
-    //setGoal(newGoal); // update the goal being sent to the solver.
+    setGoal(newGoal); // update the goal being sent to the solver.
     transformMode === "translate"
       ? setTransformControl(newSphereTransformControl)
       : setTransformControl(newArrowTransformControl);
@@ -189,19 +244,33 @@ function InitializationExample(props) {
       which needs to be imported asynchronously.
       */
     var currentSolver;
-   
 
     // Instantiate a new solver
     const newSolver = new lively.Solver(
       urdfs.ur3e, // The urdf of the robot
       {
-        position: {
+        smoothness: {
+          name: "MySmoothnessObjective",
+          type: "SmoothnessMacro",
+          weight: 15,
+          joints: true,
+          origin: false,
+          links: true,
+        },
+        line: {
           // The main objective that allows the pand hand to follow the position defined by the sphere transform control visual in the scene.
           name: "MyPositionLineMatchObjective",
           type: "PositionLineMatch",
           link: "tool0",
-          weight: 15,
+          weight: 30,
           goal: {start: [0,0,0], end:[1,1,1]},
+        },
+        position: {
+          // The main objective that allows the pand hand to follow the position defined by the sphere transform control visual in the scene.
+          name: "MyPositionMatchObjective",
+          type: "PositionMatch",
+          link: "tool0",
+          weight: 2.5,
         },
       },
       [
@@ -237,20 +306,14 @@ function InitializationExample(props) {
     };
   }, [robot]); // Rerun this code if the robot changes
 
-  var newGoal;
   useEffect(() => {
     const updateSolver = () => {
       if (livelySolver) {
         //console.log(shapesUpdate);
         const d = new Date();
         let time = d.getTime(); // Get the time in milliseconds
-        let newTranslation = [Math.sin(time / 1000) / 5 + -0.8, 0.5, 0.25];
-        let newTranslation2 = [0.8, 0.5, Math.sin(time / 500) / 10 + 0.3];
-        newGoal = {
-          position: { Line: {start: newTranslation, end: newTranslation2}, }
-        };
         const newState = livelySolver.solve(
-          newGoal,
+          goal,
           {},
           time / 1000,
           shapesUpdate // compare to static environmental shapes, these shapes can be modified.
@@ -258,53 +321,26 @@ function InitializationExample(props) {
         // Update the solver's current state
         setRobotState(newState);
         setVisualRobotState(newState);
-        setEnvShapes([
-          {
-            type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
-            name: "box", // name can be arbitrary
-            frame: "world", // or 'world'
-            physical: false, // physical collision
-            x: 0.25,
-            y: 0.25,
-            z: 0.25, // dimension of the box
-            localTransform: {
-              translation: newTranslation,
-              rotation: [0.0, 0.0, 0.0, 1.0],
-            },
-          },
-          {
-            type: "Box", //can be 'Cylinder', 'Capsule', or 'Sphere'
-            name: "box2", // name can be arbitrary
-            frame: "world", // or 'world'
-            physical: false, // physical collision
-            x: 0.25,
-            y: 0.25,
-            z: 0.25, // dimension of the box
-            localTransform: {
-              translation: newTranslation2,
-              rotation: [0.0, 0.0, 0.0, 1.0],
-            },
-          },
-        ]);     
       }
-      // console.log(goal);
+
+      //console.log(goal);
     };
-    
+
     const interval = setInterval(updateSolver, 1000 / 60);
 
     return (()=>{
       //setShapesUpdate(null);
-      setGoal(newGoal);
       setRobotState(null);
       setVisualRobotState(null);
       clearInterval(interval);
     })
-  }, [livelySolver,shapesUpdate,newGoal]); // Update the solver 30fps},[robot])
+  }, [livelySolver,shapesUpdate,goal]); // Update the solver 30fps},[robot])
 
   return (
     <div>
       <RobotViewer
         state={robotState}
+        lines={envLines}
         links={livelySolver ? livelySolver.links : []}
         shapes={envShapes}
         transformMode={transformMode}
