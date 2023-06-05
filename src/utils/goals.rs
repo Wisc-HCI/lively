@@ -4,7 +4,7 @@ use nalgebra::Vector3;
 #[cfg(feature = "pybindings")]
 use pyo3::prelude::*;
 
-use crate::utils::info::{ScalarRange,RotationRange,Ellipse,Line};
+use crate::utils::info::{ScalarRange,RotationRange,Ellipse,Line,Plane};
 #[cfg(feature = "pybindings")]
 use crate::utils::pyutils::{PyTranslation,PyRotation,PySize};
 
@@ -19,7 +19,8 @@ pub enum Goal {
     Ellipse(Ellipse),
     RotationRange(RotationRange),
     ScalarRange(ScalarRange),
-    Line(Line)
+    Line(Line),
+    Plane(Plane),
 }
 
 #[cfg(feature = "pybindings")]
@@ -33,7 +34,8 @@ impl IntoPy<PyObject> for Goal {
             Self::Ellipse(obj) => obj.into_py(py),
             Self::RotationRange(obj) => obj.into_py(py),
             Self::ScalarRange(obj) => obj.into_py(py),
-            Self::Line(obj) => obj.into_py(py)
+            Self::Line(obj) => obj.into_py(py),
+            Self::Plane(obj) => obj.into_py(py),
         }
     }
 }
@@ -72,6 +74,10 @@ impl FromPyObject<'_> for Goal {
 
         if let Ok(ob) = Line::extract(ob) {
             return Ok(Self::Line(ob))
+        }
+
+        if let Ok(ob) = Plane::extract(ob) {
+            return Ok(Self::Plane(ob))
         }
 
         return Ok(Self::Scalar(0.0));

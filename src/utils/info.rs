@@ -922,6 +922,7 @@ impl Line {
     }
 }
 
+
 #[cfg(feature = "pybindings")]
 #[pymethods]
 impl Line {
@@ -959,4 +960,56 @@ impl Line {
         Ok(self.as_str())
     }
 
+}
+
+#[repr(C)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default, Copy)]
+#[cfg_attr(feature = "pybindings", pyclass)]
+pub struct Plane {
+    pub normal: Vector3<f64>,
+    pub point: Vector3<f64>
+}
+
+impl Plane {
+    pub fn new(normal: Vector3<f64>, point: Vector3<f64>) -> Self {
+        Self { normal, point }
+    }
+}
+
+#[cfg(feature = "pybindings")]
+#[pymethods]
+impl Plane {
+    #[new]
+    pub fn from_python(normal: PyPoint3, point: PyPoint3) -> Self {
+        Self::new(normal.value, point.value)
+    }
+
+    #[getter]
+    pub fn get_normal(&self) -> PyResult<PyPoint3> {
+        Ok(PyPoint3 {value:self.normal.clone()})
+    }
+
+    #[getter]
+    pub fn get_point(&self) -> PyResult<PyPoint3> {
+        Ok(PyPoint3 {value:self.point.clone()})
+    }
+
+    fn as_str(&self) -> String {
+        format!("Plane: {{normal: {{x: {:?}, y: {:?}, z: {:?}}}, point: {{x: {:?}, y: {:?}, z: {:?}}}}}",
+            self.normal[0],
+            self.normal[1],
+            self.normal[2],
+            self.point[0],
+            self.point[1],
+            self.point[2],
+        )
+    }
+
+    pub fn __str__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
+
+    pub fn __repr__(&self) -> PyResult<String> {
+        Ok(self.as_str())
+    }
 }

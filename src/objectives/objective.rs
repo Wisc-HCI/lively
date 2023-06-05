@@ -44,7 +44,8 @@ pub enum Objective {
     Gravity(GravityObjective),
     SmoothnessMacro(SmoothnessMacroObjective),
     DistanceMatch(DistanceMatchObjective),
-    PositionLineMatch(PositionLineMatchObjective)
+    PositionLineMatch(PositionLineMatchObjective),
+    PositionPlaneMatch(PositionPlaneMatchObjective)
 }
 
 impl Objective {
@@ -78,7 +79,8 @@ impl Objective {
             Self::Gravity(_obj) => return String::from("GravityObjective"),
             Self::SmoothnessMacro(_obj) => return String::from("SmoothnessMacroObjective"),
             Self::DistanceMatch(_obj) => return String::from("DistanceMatchObjective"),
-            Self::PositionLineMatch(_obj) => return String::from("PositionLineMatchObjective")
+            Self::PositionLineMatch(_obj) => return String::from("PositionLineMatchObjective"),
+            Self::PositionPlaneMatch(_obj) => return String::from("PositionPlaneMatchObjective")
         }
     }
 
@@ -116,7 +118,8 @@ impl Objective {
                     Self::Gravity(obj) => obj.call(v,state),
                     Self::SmoothnessMacro(obj) => obj.call(v,state),
                     Self::DistanceMatch(obj) => obj.call(v,state),
-                    Self::PositionLineMatch(obj) => obj.call(v,state)
+                    Self::PositionLineMatch(obj) => obj.call(v,state),
+                    Self::PositionPlaneMatch(obj) => obj.call(v,state)
                 }
     }
 
@@ -161,7 +164,8 @@ impl Objective {
             Self::Gravity(obj) => obj.set_weight(weight),
             Self::SmoothnessMacro(obj) => obj.set_weight(weight),
             Self::DistanceMatch(obj) =>  obj.set_weight(weight),
-            Self::PositionLineMatch(obj) =>  obj.set_weight(weight)
+            Self::PositionLineMatch(obj) =>  obj.set_weight(weight),
+            Self::PositionPlaneMatch(obj) =>  obj.set_weight(weight)
         }
     }
 
@@ -195,7 +199,8 @@ impl Objective {
             Self::Gravity(_obj) => return None,
             Self::SmoothnessMacro(_obj) => return None,
             Self::DistanceMatch(obj) => return Some(Goal::Scalar(obj.goal)),
-            Self::PositionLineMatch(obj) => return Some(Goal::Line(obj.goal))
+            Self::PositionLineMatch(obj) => return Some(Goal::Line(obj.goal)),
+            Self::PositionPlaneMatch(obj) => return Some(Goal::Plane(obj.goal))
         }
     }
 
@@ -217,6 +222,7 @@ impl Objective {
             (Goal::RotationRange(rotation_range_goal),Self::OrientationBounding(obj)) => obj.set_goal(*rotation_range_goal),
             (Goal::ScalarRange(scalar_range_goal),Self::JointBounding(obj)) => obj.set_goal(*scalar_range_goal),
             (Goal::Line(line_goal),Self::PositionLineMatch(obj)) => obj.set_goal(*line_goal),
+            (Goal::Plane(plane_goal),Self::PositionPlaneMatch(obj)) => obj.set_goal(*plane_goal),
             (g,o) => {
                 println!("Unexpected goal {:?} provided for Objective {:?}",g,o.clone())
             }
@@ -278,6 +284,7 @@ impl IntoPy<PyObject> for Objective {
 			Self::SmoothnessMacro(obj) => obj.into_py(py),
 			Self::DistanceMatch(obj) => obj.into_py(py),
             Self::PositionLineMatch(obj) => obj.into_py(py),
+            Self::PositionPlaneMatch(obj) => obj.into_py(py),
         }
     }
 }

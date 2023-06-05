@@ -56,6 +56,7 @@ fn lively(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<RotationRange>()?;
     m.add_class::<ScalarRange>()?;
     m.add_class::<Line>()?;
+    m.add_class::<Plane>()?;
     // ShapeUpdates
     m.add_class::<AddShape>()?;
     m.add_class::<MoveShape>()?;
@@ -77,6 +78,7 @@ fn lively(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<objectives::core::matching::JointMatchObjective>()?;
     m.add_class::<objectives::core::matching::DistanceMatchObjective>()?;
     m.add_class::<objectives::core::matching::PositionLineMatchObjective>()?;
+    m.add_class::<objectives::core::matching::PositionPlaneMatchObjective>()?;
     m.add_class::<objectives::core::mirroring::PositionMirroringObjective>()?;
     m.add_class::<objectives::core::mirroring::OrientationMirroringObjective>()?;
     m.add_class::<objectives::core::mirroring::JointMirroringObjective>()?;
