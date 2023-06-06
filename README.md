@@ -33,6 +33,18 @@ Documentation is provided on our [github pages site](https://wisc-hci.github.io/
 
 Please feel free to post in our [Github Discussions](https://github.com/Wisc-HCI/lively/discussions), or if you found an issue, report it [here](https://github.com/Wisc-HCI/lively/issues). 
 
+## Cite This
+
+```bibtex
+@inproceedings{schoen2023lively,
+  title={Lively: Enabling Multimodal, Lifelike, and Extensible Real-time Robot Motion},
+  author={Schoen, Andrew and Sullivan, Dakota and Zhang, Ze Dong and Rakita, Daniel and Mutlu, Bilge},
+  booktitle={Proceedings of the 2023 ACM/IEEE International Conference on Human-Robot Interaction},
+  pages={594--602},
+  year={2023}
+}
+```
+
 
 ## Contributing
 
