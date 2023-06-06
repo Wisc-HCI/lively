@@ -42,7 +42,7 @@ export const RobotViewer = ({
   links = [],
   showCollision = false,
   shapes,
-  lines,
+  lines = {},
   transformControl,
   onMove,
   levaOptions = {},
@@ -69,24 +69,29 @@ export const RobotViewer = ({
     let items = {};
     links?.forEach((link) => {
       link.visuals.forEach((visual, i) => {
-        items[`visual-${link.name}-${i}`] = shape2item(visual, false);
+        items[`visual-${link.name}-${i}`] = shape2item(visual, false, false);
       });
       if (showCollision) {
         link.collisions.forEach((collision, i) => {
-          items[`collision-${link.name}-${i}`] = shape2item(collision, true);
+          items[`collision-${link.name}-${i}`] = shape2item(
+            collision,
+            true,
+            false
+          );
         });
       }
     });
 
     shapes?.forEach((shape, i) => {
-      items[`env-shape-${shape.name}`] = shape2item(shape, false);
+      items[`env-shape-${shape.name}`] = shape2item(shape, false, false);
     });
 
     if (transformControl) {
       //console.log("transformControl", transformControl);
       items[`transform-controller-${transformControl.name}`] = shape2item(
         transformControl,
-        false
+        false,
+        true
       );
     }
 
@@ -136,7 +141,7 @@ const SceneWrapper = memo(({ bounded }) => {
   );
 });
 
-function shape2item(shape, isCollision) {
+function shape2item(shape, isCollision, isTransform) {
   let item = {
     name: shape.name,
     frame: shape.frame,
@@ -153,6 +158,8 @@ function shape2item(shape, isCollision) {
     },
     color: isCollision
       ? { r: 100, g: 0, b: 0, a: 1 }
+      : shape.color
+      ? shape.color
       : { r: 100, g: 100, b: 100, a: 1 },
     scale: { x: 1, y: 1, z: 1 },
     wireframe: isCollision,
@@ -162,7 +169,9 @@ function shape2item(shape, isCollision) {
     case "Arrow":
       item.shape = "arrow";
       item.scale = { x: 0.5, y: 0.5, z: 0.5 };
-      item.transformMode = "rotate";
+      if (isTransform) {
+        item.transformMode = "rotate";
+      }
       break;
     case "Box":
       item.shape = "cube";
@@ -176,15 +185,17 @@ function shape2item(shape, isCollision) {
         y: shape.radius * 2,
         z: shape.radius * 2,
       };
-      item.transformMode = "translate";
+      if (isTransform) {
+        item.transformMode = "translate";
+      }
       break;
     case "Cylinder":
       item.shape = "cylinder";
-      item.shapeParams = {height: shape.length,radius:shape.radius};
+      item.shapeParams = { height: shape.length, radius: shape.radius };
       break;
     case "Capsule":
       item.shape = "capsule";
-      item.shapeParams = {height: shape.length,radius:shape.radius};
+      item.shapeParams = { height: shape.length, radius: shape.radius };
       break;
     case "Mesh":
       item.shape = shape.filename;

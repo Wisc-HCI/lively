@@ -269,19 +269,46 @@ console.log(newState);
   <TabItem value="py" label="Python">
 
 ```py
-from lively import Solver, SmoothnessMacroObjective
+from lively import Solver, Translation, Rotation, SmoothnessMacroObjective, CollisionAvoidanceObjective, JointLimitsObjective, PositionMatchObjective, OrientationMatchObjective, JointMatchObjective, BoxShape, CollisionSettingInfo, ScalarRange
+from lxml import etree
+
+# Constructed CollisionAvoidance Objective ,BoxShape and configured Collision Setting
+collision = CollisionSettingInfo(d_max = 0.1, r = 0.0, a_max = 2.0, time_budget = 100, timed = False)
+
+# Read the xml file into a string
+xml_file = '../../tests/panda.xml'
+tree = etree.parse(xml_file)
+xml_string = etree.tostring(tree).decode()
 
 # Instantiate a new solver
 solver = Solver(
-  urdf='<?xml version="1.0" ?><robot name="panda">...</robot>', # Full urdf as a string
+  urdf=xml_string, # Full urdf as a string
   objectives={
       # An example objective (smoothness macro)
-      "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=5)
-  }
+      "smoothness":SmoothnessMacroObjective(name="MySmoothnessObjective",weight=20,joints=True,origin=False,links=True),
+      "position": PositionMatchObjective(name="MyPositionMatchObjective", weight=15,link="panda_hand"),
+      "orientation": OrientationMatchObjective(name="MyOrientationMatchObjective", weight=10,link="panda_hand"),
+      "collision": CollisionAvoidanceObjective(name="MyCollisionAvoidanceObjective", weight=3),
+      "jointLimit": JointLimitsObjective(name="MyJointLimitObjective", weight=5),
+      "jointMatch": JointMatchObjective(name="MyJointMatchObjective", weight=5, joint="panda_finger_joint1")
+  },
+  root_bounds=[
+      ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0), # Translational, (x, y, z)
+      ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0),ScalarRange(value=0.0,delta=0.0)  # Rotational, (r, p, y)
+  ],
+  collision_settings = collision
 )
 
 # Run solve to get a solved state
-state = solver.solve({},{},0.0)
+state = solver.solve(
+    goals= {
+        "position": Translation(x=1.0, y =2.0, z=3.0),
+        "orientation": Rotation(0.0,0.707,0.0,0.0),
+        "jointMatch": 0.02
+    },
+    weights = {},
+    time = 0.0
+)
 # Log the initial state
 print(state)
 ```
