@@ -407,7 +407,7 @@ impl From<Link> for LinkInfo {
                     isometry_from(&visual.origin),
                 )),
                 Geometry::Mesh { filename, scale } => {
-                    let size = scale.unwrap_or([1.0, 1.0, 1.0]);
+                    let size = scale.unwrap_or(urdf_rs::Vec3([1.0, 1.0, 1.0]));
                     return Shape::Mesh(MeshShape::new(
                         visual
                             .name
@@ -478,7 +478,7 @@ impl From<Link> for LinkInfo {
                     isometry_from(&collision.origin),
                 )),
                 Geometry::Mesh { filename, scale } => {
-                    let size = scale.unwrap_or([1.0, 1.0, 1.0]);
+                    let size = scale.unwrap_or(urdf_rs::Vec3([1.0, 1.0, 1.0]));
                     return Shape::Mesh(MeshShape::new(
                         collision
                             .name
