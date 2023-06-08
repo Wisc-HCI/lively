@@ -19,7 +19,11 @@ impl ObjectiveSet {
         let state = robot_model.get_state(&x.to_vec(),true, timestamp);
         let mut out = self.baseline.call(&vars,&state);
         for (_,objective) in &self.objectives {
-            out += objective.call(&vars, &state);
+            if objective.get_weight() == 0.0 {
+                continue;
+            } else {
+                out += objective.call(&vars, &state);
+            }
         }
         out
     }

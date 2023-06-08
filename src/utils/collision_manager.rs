@@ -12,10 +12,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::f64::consts::PI;
 use std::fmt;
-
-//use std::time::{Duration, Instant};
-//use instant::{now};
-use instant::{Duration, Instant};
+use web_time::{Duration, Instant};
 
 const ACCURACY_BUDGET: f64 = 0.1;
 #[derive(Clone)]

@@ -204,6 +204,41 @@ impl Objective {
         }
     }
 
+    pub fn get_weight(&self) -> f64 {
+        // get the weight for the inner objective. Useful for skipping objectives with weight 0.
+        match self {
+            Self::PositionMatch(obj) => return obj.weight,
+            Self::OrientationMatch(obj) => return obj.weight,
+            Self::PositionLiveliness(obj) => return obj.weight,
+            Self::OrientationLiveliness(obj) => return obj.weight,
+            Self::PositionMirroring(obj) => return obj.weight,
+            Self::OrientationMirroring(obj) => return obj.weight,
+            Self::PositionBounding(obj) => return obj.weight,
+            Self::OrientationBounding(obj) => return obj.weight,
+            Self::JointMatch(obj) => return obj.weight,
+            Self::JointLiveliness(obj) => return obj.weight,
+            Self::JointMirroring(obj) => return obj.weight,
+            Self::JointLimits(obj) => return obj.weight,
+            Self::JointBounding(obj) => return obj.weight,
+            Self::CollisionAvoidance(obj) => return obj.weight,
+            Self::JointVelocityMinimization(obj) => return obj.weight,
+            Self::JointAccelerationMinimization(obj) => return obj.weight,
+            Self::JointJerkMinimization(obj) => return obj.weight,
+            Self::OriginVelocityMinimization(obj) => return obj.weight,
+            Self::OriginAccelerationMinimization(obj) => return obj.weight,
+            Self::OriginJerkMinimization(obj) => return obj.weight,
+            Self::LinkVelocityMinimization(obj) => return obj.weight,
+            Self::LinkAccelerationMinimization(obj) => return obj.weight,
+            Self::LinkJerkMinimization(obj) => return obj.weight,
+            Self::RelativeMotionLiveliness(obj) => return obj.weight,
+            Self::Gravity(obj) => return obj.weight,
+            Self::SmoothnessMacro(obj) => return obj.weight,
+            Self::DistanceMatch(obj) => return obj.weight,
+            Self::PositionLineMatch(obj) => return obj.weight,
+            Self::PositionPlaneMatch(obj) => return obj.weight
+        }
+    }
+
     pub fn set_goal(&mut self, goal: &Goal) {
         // Set the goal for the inner objective. This matches based on Objective and Goal variant. 
         match (goal,self) {
